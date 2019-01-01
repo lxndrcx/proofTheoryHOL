@@ -1,0 +1,38 @@
+\usepackage{epsfig,pict2e}
+\usepackage{fancyhdr}
+\usepackage[tc]{titlepic}
+\usepackage{amsmath,amsfonts,amssymb,relsize,geometry}
+\usepackage[tikz]{bclogo}
+\usepackage{titling}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage[absolute,overlay]{textpos}
+\usepackage[english]{babel}
+\usepackage{blindtext}
+
+\geometry{tmargin=3.5cm,bmargin=3cm,lmargin=2cm,rmargin=2cm}
+
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[R]{\thepage}
+
+\chead{
+\tikz[remember picture,overlay] \node[opacity=1,inner sep=0pt,anchor=north] at (current page.north){\includegraphics[width=\paperwidth]{imgs/header.png}};
+}
+
+\cfoot{
+\tikz[remember picture,overlay] \node[opacity=1,inner sep=0pt,anchor=south] at (current page.south){\includegraphics[width=\paperwidth]{imgs/footer.png}};
+}
+
+
+%Font setting
+%Update two lines below to change the font
+%More details: https://en.wikibooks.org/wiki/LaTeX/Fonts
+%\renewcommand{\familydefault}{\sfdefault}
+%\renewcommand*\rmdefault{phv}
+
+%Important: the document needs to be compiled with xelatex/lualatex if two lines below are uncommented
+%\usepackage{fontspec}
+%\setmainfont{Arial}
+
