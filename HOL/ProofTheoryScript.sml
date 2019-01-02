@@ -24,7 +24,8 @@ val Not_def = Define `Not f = f --> Bot`;
 val BiImp_def = Define `f <--> f' = (f --> f') && (f' --> f)`;
 val Top_def = Define `Top = Bot --> Bot`;
 
-val (AndIntro_rules, AndIntro_induct, AndIntro_cases) = Hol_reln `
+val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
+(!A B D1 D2. (NDi D1) /\ (A IN D1) /\ (NDi D2) /\ (B IN D2) ==> (NDi ((A && B) INSERT (D1 UNION D2)))`; 
 
 
 (* val _ = set_mapped_fixity {tok = "N|-", fixity = Infix(NONASSOC,400), term_name = "NiDerives"}; *)
