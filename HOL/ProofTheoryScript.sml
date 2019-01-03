@@ -34,6 +34,7 @@ val Top_def = Define `Top = Bot Imp Bot`;
 
 val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (!A D. A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
+/\ (!A D. (NDi D Bot) ==> (NDi D A))
 /\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
