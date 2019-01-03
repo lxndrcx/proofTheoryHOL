@@ -33,8 +33,8 @@ val Top_def = Define `Top = Bot Imp Bot`;
 (*     would have complicated things a lot, and is unnessesary to represent the deductions in HOL *)
 
 val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
-(!A D. A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
-/\ (!A D. (NDi D Bot) ==> (NDi D A))
+(! (A :'a formula) (D :'a formula set). A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
+/\ (!A D. (NDi D Bot) ==> (NDi D A)) (* Intuitionistic Absurdity Rule *)
 /\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
@@ -49,3 +49,12 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (NDi D3 C) /\ (B IN D3) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
 ==> NDi D4 C)`;                         (* Or Elim *)
+
+(* Example deduction, not finished *)
+val _ = Q.prove(`NDi {} (A Imp (B Imp A))`,
+`NDi {A;B} A` by rw[NDi_rules] >>
+`B IN {A;B}` by rw[] >>
+`NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules]
+(* `({A;B} DIFF {B}) = {A}` by (simp[DIFF_DEF] >> ) *)
+(* `NDi {A} (B Imp A)` by rw[NDi_rules] *)
+);
