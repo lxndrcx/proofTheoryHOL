@@ -47,9 +47,4 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (NDi D2 C) /\ (A IN D2) /\
 (NDi D3 C) /\ (B IN D3) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
-==> NDi D4 C)                   (* Or Elim *)
-`; 
-
-
-(* val _ = set_mapped_fixity {tok = "N|-", fixity = Infix(NONASSOC,400), term_name = "NiDerives"}; *)
-(* val (NiDerives_rules, NiDerives_induct, NiDerives_cases) = Hol_reln `` *)
+==> NDi D4 C)`;                         (* Or Elim *)
