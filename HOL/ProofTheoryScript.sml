@@ -33,14 +33,21 @@ val Top_def = Define `Top = Bot Imp Bot`;
 (*     would have complicated things a lot, and is unnessesary to represent the deductions in HOL *)
 
 val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
-(!A D. A IN D ==> NDi D A) (* Base case: A formula `A` is deducible from any set `D` containing `A` *)
-                 /\ (!A B D1 D2. (NDi D1 A /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B)) (* And Introduction *)
-                 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
-                 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
-                 /\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DIFF {A})) ==> NDi D2 (A Imp B)) (* Imp Intro *)
-                 /\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A)) ==> NDi (D1 UNION D2) B) (* Imp Elim *)
+(!A D. A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
+/\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
+/\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
+/\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DIFF {A}))
+                                      ==> NDi D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A))
+                                      ==> NDi (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. NDi D A ==> NDi D (A Or B)) (* Or Intro right *)
 /\ (!A B D. NDi D B ==> NDi D (A Or B)) (* Or Intro left *)
+/\ (!A B C D1 D2 D3 D4. (NDi D1 (A Or B)) /\
+(NDi D2 C) /\ (A IN D2) /\
+(NDi D3 C) /\ (B IN D3) /\
+(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
+==> NDi D4 C)                   (* Or Elim *)
 `; 
 
 
