@@ -50,16 +50,13 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (* Example deduction, not finished *)
 val NDi_example1 = Q.prove(`NDi EMPTY (A Imp (B Imp A))`,
 `NDi {A;B} A` by rw[NDi_rules] >>
-`B IN {A;B}` by rw[] >>
-`A IN {A;B}` by rw[] >>
-`NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules]
-
-(* `NDi {A} (B Imp A)` by rw[NDi_rules] *)
-);
+`NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules] >>
+`NDi (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[NDi_rules] >>
+`(({A;B} DIFF {B}) DIFF {A}) = EMPTY` by (rw[]) >>
+metis_tac[]);
 
 val NDi_example2 = Q.prove(`NDi EMPTY (Bot Imp A)`,
 `NDi {Bot} Bot` by rw[NDi_rules] >>
 `NDi {Bot} A` by rw[NDi_rules] >>
-`Bot IN {Bot}` by rw[INSERT_DEF] >>
 `{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
 metis_tac[NDi_rules]);
