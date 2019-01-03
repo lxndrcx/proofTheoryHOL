@@ -38,7 +38,7 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 /\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DIFF {A}))
+/\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DELETE A))
                                       ==> NDi D2 (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A))
                                       ==> NDi (D1 UNION D2) B) (* Imp Elim *)
@@ -58,3 +58,10 @@ val _ = Q.prove(`NDi {} (A Imp (B Imp A))`,
 (* `({A;B} DIFF {B}) = {A}` by (simp[DIFF_DEF] >> ) *)
 (* `NDi {A} (B Imp A)` by rw[NDi_rules] *)
 );
+
+val example2 = Q.prove(`NDi EMPTY (Bot Imp A)`,
+`NDi {Bot} Bot` by rw[NDi_rules] >>
+`NDi {Bot} A` by rw[NDi_rules] >>
+`Bot IN {Bot}` by rw[INSERT_DEF] >>
+`{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
+metis_tac[NDi_rules]);
