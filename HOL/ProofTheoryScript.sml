@@ -38,28 +38,26 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 /\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DELETE A))
-                                      ==> NDi D2 (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A))
-                                      ==> NDi (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D1 D2. (NDi D1 B) /\ (D2 = (D1 DIFF {A})) ==> NDi D2 (A Imp B)) (* Imp Intro: T&S say A need not actually be in D1 *)
+/\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A)) ==> NDi (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. NDi D A ==> NDi D (A Or B)) (* Or Intro right *)
 /\ (!A B D. NDi D B ==> NDi D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (NDi D1 (A Or B)) /\
-(NDi D2 C) /\ (A IN D2) /\
-(NDi D3 C) /\ (B IN D3) /\
+(NDi D2 C) /\ (NDi D3 C) /\     (* T&S say A and B need not actually be in D2 and D3 respectively *)
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
 ==> NDi D4 C)`;                         (* Or Elim *)
 
 (* Example deduction, not finished *)
-val _ = Q.prove(`NDi {} (A Imp (B Imp A))`,
+val NDi_example1 = Q.prove(`NDi EMPTY (A Imp (B Imp A))`,
 `NDi {A;B} A` by rw[NDi_rules] >>
 `B IN {A;B}` by rw[] >>
+`A IN {A;B}` by rw[] >>
 `NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules]
-(* `({A;B} DIFF {B}) = {A}` by (simp[DIFF_DEF] >> ) *)
+
 (* `NDi {A} (B Imp A)` by rw[NDi_rules] *)
 );
 
-val example2 = Q.prove(`NDi EMPTY (Bot Imp A)`,
+val NDi_example2 = Q.prove(`NDi EMPTY (Bot Imp A)`,
 `NDi {Bot} Bot` by rw[NDi_rules] >>
 `NDi {Bot} A` by rw[NDi_rules] >>
 `Bot IN {Bot}` by rw[INSERT_DEF] >>
