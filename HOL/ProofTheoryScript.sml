@@ -29,8 +29,8 @@ val Top_def = Define `Top = Bot Imp Bot`;
 (* NDi is the 'deduciblility' relation for this system *)
 (* A, B and C are used to represent formulae *)
 (* D, D1, D2, D3 are used to represent the set of open/not-discharged assumptions in the deduction *)
-(* In Troelstra & Schwichtenberg the deductions are trees, but to represent them this was here val *)
-(*     would have complicated things a lot, and is unnessesary to represent the deductions in HOL *)
+(* In Troelstra & Schwichtenberg the deductions are trees, but to represent them this was here *)
+(*     would have complicated things a lot, and they use this style in 2.1.8 anyway *)
 
 val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
