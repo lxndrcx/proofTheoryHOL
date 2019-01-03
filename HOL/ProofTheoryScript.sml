@@ -14,15 +14,15 @@ Var 'a
 | Imp formula formula
 | Bot`;
 
-val _ = set_mapped_fixity {tok = "-->", fixity = Infixr(460), term_name = "Imp"};
-val _ = set_mapped_fixity {tok = "<-->", fixity = Infix(NONASSOC, 450), term_name = "BiImp"};
-val _ = set_mapped_fixity {tok = "&&", fixity = Infixr(490), term_name = "And"};
-val _ = set_mapped_fixity {tok = "%%", fixity = Infixr(490), term_name = "Or"};
-val _ = set_mapped_fixity {tok = "~~", fixity = Prefix(510), term_name = "Not"};
+val _ = set_fixity "Imp" (Infixr 460);
+val _ = set_fixity "BiImp" (Infix (NONASSOC, 450) );
+val _ = set_fixity "And" (Infixr 490);
+val _ = set_fixity "Or" (Infixr 490);
+val _ = set_fixity "Not" (Prefix 510);
 
-val Not_def = Define `Not f = f --> Bot`;
-val BiImp_def = Define `f <--> f' = (f --> f') && (f' --> f)`;
-val Top_def = Define `Top = Bot --> Bot`;
+val Not_def = Define `Not f = f Imp Bot`;
+val BiImp_def = Define `f BiImp f' = (f Imp f') And (f' Imp f)`;
+val Top_def = Define `Top = Bot Imp Bot`;
 
 
 (** Natural Deduction for intuitionistic logic **)
@@ -34,7 +34,13 @@ val Top_def = Define `Top = Bot --> Bot`;
 
 val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (!A D. A IN D ==> NDi D A) (* Base case: A formula `A` is deducible from any set `D` containing `A` *)
-                            /\ (!A B D1 D2. (NDi D1 A /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A && B)) (* And Introduction *)
+                 /\ (!A B D1 D2. (NDi D1 A /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B)) (* And Introduction *)
+                 /\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
+                 /\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
+                 /\ (!A B D1 D2. (A IN D1) /\ (NDi D1 B) /\ (D2 = (D1 DIFF {A})) ==> NDi D2 (A Imp B)) (* Imp Intro *)
+                 /\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A)) ==> NDi (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D. NDi D A ==> NDi D (A Or B)) (* Or Intro right *)
+/\ (!A B D. NDi D B ==> NDi D (A Or B)) (* Or Intro left *)
 `; 
 
 
