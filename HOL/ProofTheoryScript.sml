@@ -47,16 +47,23 @@ val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
 ==> NDi D4 C)`;                         (* Or Elim *)
 
-(* Example deduction, not finished *)
-val NDi_example1 = Q.prove(`NDi EMPTY (A Imp (B Imp A))`,
+val NDThm = Define `NDThm A = NDi EMPTY A`;
+
+(* Example deductions *)
+val NDi_example1 = Q.prove(`NDThm (A Imp (B Imp A))`,
 `NDi {A;B} A` by rw[NDi_rules] >>
 `NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules] >>
 `NDi (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[NDi_rules] >>
 `(({A;B} DIFF {B}) DIFF {A}) = EMPTY` by (rw[]) >>
-metis_tac[]);
+`NDi EMPTY (A Imp (B Imp A))` by metis_tac[] >>
+ rw[NDThm]);
 
-val NDi_example2 = Q.prove(`NDi EMPTY (Bot Imp A)`,
+val NDi_example2 = Q.prove(`NDThm (Bot Imp A)`,
 `NDi {Bot} Bot` by rw[NDi_rules] >>
 `NDi {Bot} A` by rw[NDi_rules] >>
 `{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
-metis_tac[NDi_rules]);
+`NDi EMPTY (Bot Imp A)` by metis_tac[NDi_rules] >>
+rw[NDThm]);
+
+val NDi_example3 = Q.prove(`NDThm (A BiImp (Not (Not A)))`,
+
