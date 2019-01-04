@@ -3,7 +3,8 @@
  *)
 
 open HolKernel boolLib Parse bossLib;
-open pred_setTheory bagTheory;
+open pred_setTheory;
+open bagTheory;
 
 val _ = new_theory "ProofTheory";
 
@@ -25,45 +26,84 @@ val BiImp_def = Define `f BiImp f' = (f Imp f') And (f' Imp f)`;
 val Top_def = Define `Top = Bot Imp Bot`;
 
 
-(** Natural Deduction for intuitionistic logic **)
-(* NDi is the 'deduciblility' relation for this system *)
+(** Natural Deduction for minimal logic **)
+(* Nm is the 'deduciblility' relation for this system *)
 (* A, B and C are used to represent formulae *)
 (* D, D1, D2, D3 are used to represent the set of open/not-discharged assumptions in the deduction *)
 (* In Troelstra & Schwichtenberg the deductions are trees, but to represent them this was here *)
 (*     would have complicated things a lot, and they use this style in 2.1.8 anyway *)
 
-val (NDi_rules, NDi_induct, NDi_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). A IN D ==> NDi D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
-/\ (!A D. (NDi D Bot) ==> (NDi D A)) (* Intuitionistic Absurdity Rule *)
-/\ (!A B D1 D2. (NDi D1 A) /\ (NDi D2 B) ==> (NDi (D1 UNION D2) (A And B))) (* And Introduction *)
-/\ (!A B D. (NDi D (A And B)) ==> NDi D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (NDi D (A And B)) ==> NDi D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (NDi D1 B) /\ (D2 = (D1 DIFF {A})) ==> NDi D2 (A Imp B)) (* Imp Intro: T&S say A need not actually be in D1 *)
-/\ (!A B D1 D2. (NDi D1 (A Imp B)) /\ (NDi D2 (A)) ==> NDi (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. NDi D A ==> NDi D (A Or B)) (* Or Intro right *)
-/\ (!A B D. NDi D B ==> NDi D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3 D4. (NDi D1 (A Or B)) /\
-(NDi D2 C) /\ (NDi D3 C) /\     (* T&S say A and B need not actually be in D2 and D3 respectively *)
-(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B}))
-==> NDi D4 C)`;                         (* Or Elim *)
+val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). A IN D ==> Nm D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
+/\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B) ==> (Nm (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
+/\ (!A B D. (Nm D (A And B)) ==> Nm D B) (* And Elim Right Conjunct *)
+/\ (!A B D1 D2. (Nm D1 B) /\ (D2 = (D1 DIFF {A})) ==> Nm D2 (A Imp B)) (* Imp Intro: T&S say A need not actually be in D1 *)
+/\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A) ==> Nm (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
+/\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
+/\ (!A B C D1 D2 D3 D4. (Nm D1 (A Or B)) /\
+(Nm D2 C) /\ (Nm D3 C) /\     (* T&S say A and B need not actually be in D2 and D3 respectively *)
+(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm D4 C)`;                         (* Or Elim *)
 
-val NDThm = Define `NDThm A = NDi EMPTY A`;
+(** Natural Deduction for intuitionistic logic **)
+(* Ni is the 'deduciblility' relation for this system *)
+val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). A IN D ==> Ni D A) (* Base case *)
+/\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B) ==> (Ni (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
+/\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *)
+/\ (!A B D1 D2. (Ni D1 B) /\ (D2 = (D1 DIFF {A})) ==> Ni D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A) ==> Ni (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
+/\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *)
+/\ (!A B C D1 D2 D3 D4. (Ni D1 (A Or B)) /\
+(Ni D2 C) /\ (Ni D3 C) /\
+(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Ni D4 C) (* Or Elim *)
+/\ (!A D. (Ni D Bot) ==> (Ni D A))`; (* Intuitionistic Absurdity Rule *)
+
+(** Natural Deduction for classical logic **)
+(* Nc is the 'deduciblility' relation for this system *)
+val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). A IN D ==> Nc D A) (* Base case *)
+/\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B) ==> (Nc (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
+/\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *)
+/\ (!A B D1 D2. (Nc D1 B) /\ (D2 = (D1 DIFF {A})) ==> Nc D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A) ==> Nc (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
+/\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *)
+/\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
+(Nc D2 C) /\ (Nc D3 C) /\
+(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
+/\ (!A D. (Nc D Bot) ==> (Nc D A)) (* Intuitionistic Absurdity Rule *)
+/\ (!A D1 D2. (Nc D1 (Not A)) /\ (D2 = (D1 DIFF {Not A})) ==> Nc D2 A) (* Classical absurdidty rule *)
+`;
+
+val NmThm = Define `NmThm A = Nm EMPTY A`;
+val NiThm = Define `NiThm A = Ni EMPTY A`;
+val NcThm = Define `NcThm A = Nc EMPTY A`;
 
 (* Example deductions *)
-val NDi_example1 = Q.prove(`NDThm (A Imp (B Imp A))`,
-`NDi {A;B} A` by rw[NDi_rules] >>
-`NDi ({A;B} DIFF {B}) (B Imp A)` by metis_tac[NDi_rules] >>
-`NDi (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[NDi_rules] >>
+val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
+`Nm {A;B} A` by rw[Nm_rules] >>
+`Nm ({A;B} DIFF {B}) (B Imp A)` by metis_tac[Nm_rules] >>
+`Nm (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[Nm_rules] >>
 `(({A;B} DIFF {B}) DIFF {A}) = EMPTY` by (rw[]) >>
-`NDi EMPTY (A Imp (B Imp A))` by metis_tac[] >>
- rw[NDThm]);
+`Nm EMPTY (A Imp (B Imp A))` by metis_tac[] >>
+ rw[NmThm]);
 
-val NDi_example2 = Q.prove(`NDThm (Bot Imp A)`,
-`NDi {Bot} Bot` by rw[NDi_rules] >>
-`NDi {Bot} A` by rw[NDi_rules] >>
+val Ni_example = Q.prove(`NiThm (Bot Imp A)`,
+`Ni {Bot} Bot` by rw[Ni_rules] >>
+`Ni {Bot} A` by rw[Ni_rules] >>
 `{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
-`NDi EMPTY (Bot Imp A)` by metis_tac[NDi_rules] >>
-rw[NDThm]);
+`Ni EMPTY (Bot Imp A)` by metis_tac[Ni_rules] >>
+rw[NiThm]);
 
-val NDi_example3 = Q.prove(`NDThm (A BiImp (Not (Not A)))`,
-
+val Nm_NotNotElim = Q.prove(`NmThm (A BiImp (Not (Not A)))`,
+rw[BiImp_def,NmThm,Not_def] >>
+`Nm {A Imp Bot} (A Imp Bot)` by rw[Nm_rules] >>
+`Nm {A} A` by rw[Nm_rules] >>
+`{A;A Imp Bot} = ({A} UNION {A Imp Bot})` by simp[Once INSERT_DEF, Once UNION_DEF]
+`Nm ({A Imp Bot} UNION {A}) Bot` by metis_tac[Nm_rules] >>
+(* `Nm ({A;A Imp Bot}) Bot` by rw[Nm_rules,Once UNION_DEF, Once INSERT_DEF]  *)
