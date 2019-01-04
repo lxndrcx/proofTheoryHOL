@@ -3,8 +3,8 @@
  *)
 
 open HolKernel boolLib Parse bossLib;
-open pred_setTheory;
 open bagTheory;
+open pred_setTheory;
 
 val _ = new_theory "ProofTheory";
 
@@ -104,6 +104,10 @@ val Nm_NotNotElim = Q.prove(`NmThm (A BiImp (Not (Not A)))`,
 rw[BiImp_def,NmThm,Not_def] >>
 `Nm {A Imp Bot} (A Imp Bot)` by rw[Nm_rules] >>
 `Nm {A} A` by rw[Nm_rules] >>
-`{A;A Imp Bot} = ({A} UNION {A Imp Bot})` by simp[Once INSERT_DEF, Once UNION_DEF]
+`{A Imp Bot;A} = ({A Imp Bot} UNION {A})` by simp[Once INSERT_DEF, Once UNION_DEF] >>
 `Nm ({A Imp Bot} UNION {A}) Bot` by metis_tac[Nm_rules] >>
-(* `Nm ({A;A Imp Bot}) Bot` by rw[Nm_rules,Once UNION_DEF, Once INSERT_DEF]  *)
+(* `Nm ({A; A Imp Bot}) Bot` by metis_tac[Nm_rules,INSERT_DEF,UNION_DEF]  why is this so hard to prove? *)
+`Nm (({A Imp Bot} UNION {A}) DIFF {A Imp Bot}) ((A Imp Bot) Imp Bot)` by metis_tac[Nm_rules] >>
+`Nm ((({A Imp Bot} UNION {A}) DIFF {A Imp Bot}) DIFF {A}) (A Imp ((A Imp Bot) Imp Bot))` by metis_tac[Nm_rules]
+(* Stuck *)
+);
