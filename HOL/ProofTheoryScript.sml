@@ -144,48 +144,56 @@ val (Gm_rules, Gm_induct, Gm_cases) = Hol_reln `
 
 val GmThm = Define `GmThm A = Gm EMPTY_BAG A`;
 
-val Gm_example1 = Q.prove(`GmThm ((A And B) Imp (B And A))`, rw[GmThm,Gm_rules]);
+val Gm_example1 =
+    Q.prove(`GmThm ((A And B) Imp (B And A))`, rw[GmThm,Gm_rules]);
 
-val Gm_example2 = Q.prove(`GmThm ((A Imp (A Imp B)) Imp (A Imp B))`,
-rw[GmThm] >>
-
-);
+val Gm_example2 =
+    Q.prove (`GmThm ((A Imp (A Imp B)) Imp (A Imp B))`,
+             rw[GmThm] >> metis_tac[Gm_rules]);
 
 (** Sequent Calculus (Gentzen System) for intuitionistic logic **)
 (* Gi is the 'deduciblility' relation for this system *)
 (* S and D are used to represent the multiset of Antecedent and Consequent Contexts *)
 (* The Consequent has at most one formula for intuitionistic logic *)
-               
+
 val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
-(!A:'a formula. Gc {|A|} {|A|})            (* Ax *)
+(!A:'a formula. Gi {|A|} {|A|})            (* Ax *)
 /\ (Gi {|Bot|} {||})            (* LBot *)
 /\ (!A S D. Gi S D ==> Gi (BAG_INSERT A S) D) (* Left Weakening *)
-/\ (!A S D. Gi S D ==> Gi S (BAG_INSERT A D)) (* Right Weakening *)
+/\ (!A S. Gi S EMPTY_BAG ==> Gi S {|A|}) (* Right Weakening *)
 /\ (!A S D. (Gi S D) /\ (S A >= 2)
    ==> Gi (S - {|A|}) D) (* Left Contraction *)
-/\ (!A S D. (Gi S D) /\ (D A >= 2)
-   ==> Gi S (D - {|A|})) (* Right Contraction *)
-/\ (!A B S D. (Gi (BAG_INSERT A S) D) /\ (SING_BAG D \/ (D = EMPTY_BAG))
+/\ (!A B S D. (Gi (BAG_INSERT A S) D)
    ==> (Gi (BAG_INSERT (A And B) S) D)) (* Left And 1 *)
-/\ (!A B S D. (Gi (BAG_INSERT B S) D) /\ (SING_BAG D \/ (D = EMPTY_BAG))
+/\ (!A B S D. (Gi (BAG_INSERT B S) D)
    ==> (Gi (BAG_INSERT (A And B) S) D)) (* Left And 2 *)
 /\ (!A B S. (Gi S {|A|}) /\ (Gi S {|B|})
    ==> (Gi S {|A And B|})) (* Right And *)
 /\ (!A B S D. (Gi (BAG_INSERT A S) D)
     /\ (Gi (BAG_INSERT B S) D)
-    /\ (SING_BAG D \/ (D = EMPTY_BAG))
-   ==> (Gi (BAG_INSERT (A Or B) S) D) (* Left Or *)
+   ==> (Gi (BAG_INSERT (A Or B) S) D)) (* Left Or *)
 /\ (!A B S. (Gi S {|A|})
    ==> (Gi S {|A Or B|})) (* Right Or 1 *)
 /\ (!A B S. (Gi S {|B|})
    ==> (Gi S {|A Or B|})) (* Right Or 2 *)
-/\ (!A B S D. (Gi S {|A|} /\ (Gi (BAG_INSERT B S) D)
-   /\ (SING_BAG D \/ (D = EMPTY_BAG))
-   ==> (Gi (BAG_INSERT (A Imp B) S) D) (* Left Imp *)
+/\ (!A B S D. (Gi S {|A|}) /\ (Gi (BAG_INSERT B S) D)
+   ==> (Gi (BAG_INSERT (A Imp B) S) D)) (* Left Imp *)
 /\ (!A B S. (Gi (BAG_INSERT A S) {|B|})
    ==> (Gi S {|A Imp B|}))`; (* Right Imp *)
 
-               val GmThm = Define `GmThm A = Gm EMPTY_BAG {|A|}`
+val GiThm = Define `GiThm A = Gi EMPTY_BAG {|A|}`
+
+val Gi_example1 =
+    Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
+`Gi {|P And Not P|} EMPTY_BAG` suffices_by metis_tac[Gi_rules] >>
+`Gi {|Bot|} EMPTY_BAG` by metis_tac[Gi_rules] >>
+`Gi {|P;Bot|} EMPTY_BAG` by metis_tac[Gi_rules] >>
+`Gi {|P|} {|P|}` by metis_tac[Gi_rules] >>
+
+`Gi {|P;P Imp Bot|} {||}` by metis_tac[Gi_rules]
+
+`Gi {|P And Not P;P And Not P|} EMPTY_BAG` suffices_by fs[Gi_rules] >>
+           );
 
 (** Sequent Calculus (Gentzen System) for classical logic **)
 (* Gc is the 'deduciblility' relation for this system *)
