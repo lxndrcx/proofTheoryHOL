@@ -1,6 +1,8 @@
-(* Equivalence of Sequent Calculus and Natural Deduction
-   Starting with intuitionistic propositional case
- *)
+(* ========================================================================== *)
+(* Equivalence of Sequent Calculus and Natural Deduction                      *)
+(* Working from Troelstra and Schwichtenburg - Basic Proof Theory 2nd Edition *)
+(*                                                                            *)
+(* ========================================================================== *)
 
 open HolKernel boolLib Parse bossLib;
 open bagLib bagTheory;
@@ -29,32 +31,38 @@ val Top_def = Define `Top = Bot Imp Bot`;
 (** Natural Deduction for minimal logic **)
 (* Nm is the 'deduciblility' relation for this system *)
 (* A, B and C are used to represent formulae *)
-(* D, D1, D2, D3 are used to represent the set of open/not-discharged assumptions in the deduction *)
-(* In Troelstra & Schwichtenberg the deductions are trees, but to represent them this was here *)
-(*     would have complicated things a lot, and they use this style in 2.1.8 anyway *)
+(* D, D1, D2, D3 are used to represent the set of open assumptions *)
+(* I'm representing the deductions simply with unlabeled sets of
+   open assumptions, as in T&S 2.1.8-2.1.9 (p.41--44) *)
 
 val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). A IN D ==> Nm D A) (* Base case: A formula 'A' is deducible from any set 'D' containing 'A' *)
-/\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B) ==> (Nm (D1 UNION D2) (A And B))) (* And Introduction *)
+(! (A :'a formula) (D :'a formula set). A IN D ==> Nm D A) (* Base case *)
+/\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B)
+                             ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Nm D1 B) /\ (D2 = (D1 DIFF {A})) ==> Nm D2 (A Imp B)) (* Imp Intro: T&S say A need not actually be in D1 *)
-/\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A) ==> Nm (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D1 D2. (Nm D1 B) /\ (D2 = (D1 DIFF {A}))
+                      ==> Nm D2 (A Imp B)) (* Imp Intro: A need not be in D1 *)
+/\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A)
+                      ==> Nm (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Nm D1 (A Or B)) /\
-(Nm D2 C) /\ (Nm D3 C) /\     (* T&S say A and B need not actually be in D2 and D3 respectively *)
+(Nm D2 C) /\ (Nm D3 C) /\     (* A and B need not actually be in D2/3 *)
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm D4 C)`; (* Or Elim *)
 
 (** Natural Deduction for intuitionistic logic **)
 (* Ni is the 'deduciblility' relation for this system *)
 val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> Ni D A) (* Base case *)
-/\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B) ==> (Ni (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B)
+                             ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Ni D1 B) /\ (D2 = (D1 DIFF {A})) ==> Ni D2 (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A) ==> Ni (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D1 D2. (Ni D1 B) /\ (D2 = (D1 DIFF {A}))
+                             ==> Ni D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A)
+                             ==> Ni (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Ni D1 (A Or B)) /\
@@ -66,11 +74,14 @@ val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
 (* Nc is the 'deduciblility' relation for this system *)
 val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> Nc D A) (* Base case *)
-/\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B) ==> (Nc (D1 UNION D2) (A And B))) (* And Introduction *)
+/\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B)
+                             ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Nc D1 B) /\ (D2 = (D1 DIFF {A})) ==> Nc D2 (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A) ==> Nc (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D1 D2. (Nc D1 B) /\ (D2 = (D1 DIFF {A}))
+                             ==> Nc D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A)
+                                     ==> Nc (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
@@ -100,18 +111,6 @@ val Ni_example = Q.prove(`NiThm (Bot Imp A)`,
 `{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
 `Ni EMPTY (Bot Imp A)` by metis_tac[Ni_rules] >>
 rw[NiThm]);
-
-(* val Nm_NotNotElim = Q.prove(`NmThm (A BiImp (Not (Not A)))`, *)
-(* rw[BiImp_def,NmThm,Not_def] >> *)
-(* `Nm {A Imp Bot} (A Imp Bot)` by rw[Nm_rules] >> *)
-(* `Nm {A} A` by rw[Nm_rules] >> *)
-(* `{A Imp Bot;A} = ({A Imp Bot} UNION {A})` by simp[Once INSERT_DEF, Once UNION_DEF] >> *)
-(* `Nm ({A Imp Bot} UNION {A}) Bot` by metis_tac[Nm_rules] >> *)
-(* (* `Nm ({A; A Imp Bot}) Bot` by metis_tac[Nm_rules,INSERT_DEF,UNION_DEF]  why is this so hard to prove? *) *)
-(* `Nm (({A Imp Bot} UNION {A}) DIFF {A Imp Bot}) ((A Imp Bot) Imp Bot)` by metis_tac[Nm_rules] >> *)
-(* `Nm ((({A Imp Bot} UNION {A}) DIFF {A Imp Bot}) DIFF {A}) (A Imp ((A Imp Bot) Imp Bot))` by metis_tac[Nm_rules] *)
-(* (* Stuck *) *)
-(* ); *)
 
 (** Sequent Calculus (Gentzen System) for minimal logic **)
 (* Gm is the 'deduciblility' relation for this system *)
@@ -153,7 +152,7 @@ val Gm_example2 =
 
 (** Sequent Calculus (Gentzen System) for intuitionistic logic **)
 (* Gi is the 'deduciblility' relation for this system *)
-(* S and D are used to represent the multiset of Antecedent and Consequent Contexts *)
+(* S and D are used to represent the bag Antecedent and Consequent Contexts *)
 (* The Consequent has at most one formula for intuitionistic logic *)
 
 val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
@@ -203,6 +202,7 @@ val Gi_example1 = Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
 
 (** Sequent Calculus (Gentzen System) for classical logic **)
 (* Gc is the 'deduciblility' relation for this system *)
+(* Both contexts are arbitrary size finite bags *)
 val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
 (!A:'a formula. Gc {|A|} {|A|})            (* Ax *)
 /\ (Gc {|Bot|} {||})            (* LBot *)
