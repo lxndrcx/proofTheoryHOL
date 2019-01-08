@@ -183,17 +183,23 @@ val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
 
 val GiThm = Define `GiThm A = Gi EMPTY_BAG {|A|}`
 
-val Gi_example1 =
-    Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
+val Gi_example1 = Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
 `Gi {|P And Not P|} EMPTY_BAG` suffices_by metis_tac[Gi_rules] >>
 `Gi {|Bot|} EMPTY_BAG` by metis_tac[Gi_rules] >>
 `Gi {|P;Bot|} EMPTY_BAG` by metis_tac[Gi_rules] >>
+`{|P;Bot|} = {|Bot;P|}` by metis_tac[BAG_INSERT_commutes] >>
+`Gi ({|Bot;P|}) EMPTY_BAG` by metis_tac[Gi_rules] >>
 `Gi {|P|} {|P|}` by metis_tac[Gi_rules] >>
-
-`Gi {|P;P Imp Bot|} {||}` by metis_tac[Gi_rules]
-
-`Gi {|P And Not P;P And Not P|} EMPTY_BAG` suffices_by fs[Gi_rules] >>
-           );
+`Gi {|P Imp Bot;P|} {||}` by metis_tac[Gi_rules,BAG_INSERT] >>
+`Gi {|Not P;P|} {||}` by metis_tac[Not_def] >>
+`Gi {|P And Not P;P|} {||}` by metis_tac[Gi_rules] >>
+`Gi {|P And Not P;P And Not P|} {||}`
+  by metis_tac[Gi_rules,BAG_INSERT_commutes] >>
+`{|P And Not P|} = {|P And Not P;P And Not P|} - {|P And Not P|}`
+  by rw[BAG_DIFF] >>
+`({|P And Not P;P And Not P|} (P And Not P)) >= 2`
+  by simp[BAG_INSERT,EMPTY_BAG] >>
+`Gi {|P And Not P|} {||}` by metis_tac[Gi_rules]);
 
 (** Sequent Calculus (Gentzen System) for classical logic **)
 (* Gc is the 'deduciblility' relation for this system *)
