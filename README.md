@@ -4,7 +4,6 @@ Done:
 - Defined G systems
 
 In progress:
-- Examples
 
 TODO: 
 - Define cut
