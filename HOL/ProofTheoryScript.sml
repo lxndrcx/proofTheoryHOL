@@ -3,7 +3,7 @@
  *)
 
 open HolKernel boolLib Parse bossLib;
-open bagTheory;
+open bagLib bagTheory;
 open pred_setTheory;
 
 val _ = new_theory "ProofTheory";
@@ -229,3 +229,11 @@ val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
 /\ (!A B S D. (Gc (BAG_INSERT A S) (BAG_INSERT B D))
    ==> (Gc S (BAG_INSERT (A Imp B) D)))`; (* Right Imp *)
 
+val GcThm = Define `GcThm A = Gc EMPTY_BAG {|A|}`
+
+val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
+`Gc {|P|} {|P|}` by metis_tac[Gc_rules] >>
+`Gc {|P|} {|Q;P|}` by metis_tac[Gc_rules] >>
+`Gc {||} {|P Imp Q;P|}` by metis_tac[Gc_rules] >>
+`Gc {|(P Imp Q) Imp P|} {|P|}` by metis_tac[Gc_rules] >>
+`Gc {||} {|((P Imp Q) Imp P) Imp P|}` by metis_tac[Gc_rules]);
