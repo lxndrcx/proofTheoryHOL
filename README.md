@@ -6,5 +6,4 @@ Done:
 In progress:
 
 TODO: 
-- Define cut
 - prove something interesting
