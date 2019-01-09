@@ -87,7 +87,7 @@ val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 /\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
 (Nc D2 C) /\ (Nc D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
-/\ (!A D D. (Nc D (Bot))
+/\ (!A D. (Nc D (Bot))
    ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *)
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
@@ -137,7 +137,8 @@ val (Gm_rules, Gm_induct, Gm_cases) = Hol_reln `
 /\ (!A B S C. (Gm S A) /\ (Gm (BAG_INSERT B S) C)
    ==> (Gm (BAG_INSERT (A Imp B) S) C)) (* Left Imp *)
 /\ (!A B S. (Gm (BAG_INSERT A S) B)
-   ==> (Gm S (A Imp B)))`; (* Right Imp *)
+   ==> (Gm S (A Imp B))) (* Right Imp *)
+∧  (∀A B Γ Γ'. (Gm Γ A) ∧ (Gm (BAG_INSERT A Γ') B) ==> Gm (Γ + Γ') B)` (* Cut *)
 
 val GmThm = Define `GmThm A = Gm EMPTY_BAG A`;
 
@@ -176,7 +177,8 @@ val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
 /\ (!A B S D. (Gi S {|A|}) /\ (Gi (BAG_INSERT B S) D)
    ==> (Gi (BAG_INSERT (A Imp B) S) D)) (* Left Imp *)
 /\ (!A B S. (Gi (BAG_INSERT A S) {|B|})
-   ==> (Gi S {|A Imp B|}))`; (* Right Imp *)
+   ==> (Gi S {|A Imp B|})) (* Right Imp *)
+∧  (∀A Γ Δ. (Gi Γ {|A|}) ∧ (Gi {|A|} Δ) ==> Gi Γ Δ)` (* Cut *)
 
 val GiThm = Define `GiThm A = Gi EMPTY_BAG {|A|}`
 
@@ -225,7 +227,10 @@ val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
 /\ (!A B S D. (Gc S (BAG_INSERT A D)) /\ (Gc (BAG_INSERT B S) D)
    ==> (Gc (BAG_INSERT (A Imp B) S) D)) (* Left Imp *)
 /\ (!A B S D. (Gc (BAG_INSERT A S) (BAG_INSERT B D))
-   ==> (Gc S (BAG_INSERT (A Imp B) D)))`; (* Right Imp *)
+   ==> (Gc S (BAG_INSERT (A Imp B) D))) (* Right Imp *)
+∧  (∀A Γ Γ' Δ Δ'. (Gc Γ (BAG_INSERT A Δ))
+     ∧ (Gc (BAG_INSERT A Γ') Δ')
+     ==> Gc (Γ + Γ') (Δ + Δ'))` (* Cut *)
 
 val GcThm = Define `GcThm A = Gc EMPTY_BAG {|A|}`
 
