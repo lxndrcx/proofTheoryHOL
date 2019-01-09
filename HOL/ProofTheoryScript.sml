@@ -265,12 +265,9 @@ val Nc'_def = Define`
 
 Theorem Nc_Nc' `∀D A. Nc D A ⇒ Nc' D A` (
   simp[Nc'_def] >> Induct_on `Nc` >> reverse (rpt strip_tac)
-  >- (qmatch_abbrev_tac ‘Nm' rules _ _’ >>
-      rename [‘Nm' _ Delta Concl’] >>
-      ‘∃D0 A0. ((D0,A0),(Delta,Concl)) ∈ rules ∧ Nm' rules D0 A0’
-        suffices_by prove_tac [Nm'_rules] >>
-      simp[Abbr‘rules’] >> metis_tac[]) >>
-  prove_tac[Nm'_rules]
+  >- (rw[] >> irule (el 2 (CONJUNCTS (SPEC_ALL Nm'_rules))) >>
+      simp[] >> metis_tac[])
+  >> prove_tac[Nm'_rules]
 )
 
 Theorem Nc'_Nc `∀D A. Nc' D A ⇒ Nc D A` (
