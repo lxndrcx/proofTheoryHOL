@@ -87,8 +87,8 @@ val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 /\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
 (Nc D2 C) /\ (Nc D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
-/\ (!A D1 D2. (Nc D1 (Not A)) /\ (D2 = (D1 DIFF {Not A}))
-   ==> Nc D2 A)`; (* Classical absurdidty rule *)
+/\ (!A D D. (Nc D (Bot))
+   ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *)
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
 val NiThm = Define `NiThm A = Ni EMPTY A`;
