@@ -38,17 +38,17 @@ val Top_def = Define `Top = Bot Imp Bot`;
 val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> Nm D A) (* Base case *)
 /\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B)
-                             ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
+   ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D B) (* And Elim Right Conjunct *)
 /\ (!A B D1 D2. (Nm D1 B) /\ (D2 = (D1 DIFF {A}))
-                      ==> Nm D2 (A Imp B)) (* Imp Intro: A need not be in D1 *)
+   ==> Nm D2 (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A)
-                      ==> Nm (D1 UNION D2) B) (* Imp Elim *)
+   ==> Nm (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Nm D1 (A Or B)) /\
-(Nm D2 C) /\ (Nm D3 C) /\     (* A and B need not actually be in D2/3 *)
+(Nm D2 C) /\ (Nm D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm D4 C)`; (* Or Elim *)
 
 (** Natural Deduction for intuitionistic logic **)
@@ -56,13 +56,13 @@ val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
 val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> Ni D A) (* Base case *)
 /\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B)
-                             ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
+   ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *)
 /\ (!A B D1 D2. (Ni D1 B) /\ (D2 = (D1 DIFF {A}))
-                             ==> Ni D2 (A Imp B)) (* Imp Intro *)
+   ==> Ni D2 (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A)
-                             ==> Ni (D1 UNION D2) B) (* Imp Elim *)
+   ==> Ni (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Ni D1 (A Or B)) /\
@@ -75,22 +75,20 @@ val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
 val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 (! (A :'a formula) (D :'a formula set). A IN D ==> Nc D A) (* Base case *)
 /\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B)
-                             ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
+   ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *)
 /\ (!A B D1 D2. (Nc D1 B) /\ (D2 = (D1 DIFF {A}))
-                             ==> Nc D2 (A Imp B)) (* Imp Intro *)
+   ==> Nc D2 (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A)
-                                     ==> Nc (D1 UNION D2) B) (* Imp Elim *)
+   ==> Nc (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
 (Nc D2 C) /\ (Nc D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
-/\ (!A D. (Nc D Bot) ==> (Nc D A)) (* Intuitionistic Absurdity Rule *)
 /\ (!A D1 D2. (Nc D1 (Not A)) /\ (D2 = (D1 DIFF {Not A}))
    ==> Nc D2 A)`; (* Classical absurdidty rule *)
-
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
 val NiThm = Define `NiThm A = Ni EMPTY A`;
@@ -119,10 +117,10 @@ rw[NiThm]);
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_induct, Gm_cases) = Hol_reln `
-(!A:'a formula. Gm {|A|} A)            (* Ax *)
+(!A:'a formula. Gm {|A|} A) (* Ax *)
 /\ (!A S C. Gm S D ==> Gm (BAG_INSERT A S) C) (* Left Weakening *)
-/\ (!A S C. (Gm S C) /\ (S A >= 2)
-   ==> Gm (S - {|A|}) C) (* Left Contraction *)
+/\ (!A S C. (Gm ({|A;A|} + S) C)
+   ==> Gm ({|A|} + S) C) (* Left Contraction *)
 /\ (!A B S C. (Gm (BAG_INSERT A S) C)
    ==> (Gm (BAG_INSERT (A And B) S) C)) (* Left And 1 *)
 /\ (!A B S C. (Gm (BAG_INSERT B S) C)
@@ -156,12 +154,12 @@ val Gm_example2 =
 (* The Consequent has at most one formula for intuitionistic logic *)
 
 val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
-(!A:'a formula. Gi {|A|} {|A|})            (* Ax *)
-/\ (Gi {|Bot|} {||})            (* LBot *)
+(!A:'a formula. Gi {|A|} {|A|}) (* Ax *)
+/\ (Gi {|Bot|} {||}) (* LBot *)
 /\ (!A S D. Gi S D ==> Gi (BAG_INSERT A S) D) (* Left Weakening *)
 /\ (!A S. Gi S EMPTY_BAG ==> Gi S {|A|}) (* Right Weakening *)
-/\ (!A S D. (Gi S D) /\ (S A >= 2)
-   ==> Gi (S - {|A|}) D) (* Left Contraction *)
+/\ (!A S D. (Gi ({|A;A|} + S) D)
+    ==> Gi ({|A|} + S) D) (* Left Contraction *)
 /\ (!A B S D. (Gi (BAG_INSERT A S) D)
    ==> (Gi (BAG_INSERT (A And B) S) D)) (* Left And 1 *)
 /\ (!A B S D. (Gi (BAG_INSERT B S) D)
@@ -194,24 +192,24 @@ val Gi_example1 = Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
 `Gi {|P And Not P;P|} {||}` by metis_tac[Gi_rules] >>
 `Gi {|P And Not P;P And Not P|} {||}`
   by metis_tac[Gi_rules,BAG_INSERT_commutes] >>
-`{|P And Not P|} = {|P And Not P;P And Not P|} - {|P And Not P|}`
-  by rw[BAG_DIFF] >>
-`({|P And Not P;P And Not P|} (P And Not P)) >= 2`
-  by simp[BAG_INSERT,EMPTY_BAG] >>
-`Gi {|P And Not P|} {||}` by metis_tac[Gi_rules]);
+`{|A;A|} = {|A;A|} + {||}` by simp[] >>
+`{|A|} = {|A|} + {||}` by simp[] >>
+qspecl_then [`P And Not P`,`{||}`,`{||}`] mp_tac (el 5 (CONJUNCTS Gi_rules)) >>
+simp[]
+);
 
 (** Sequent Calculus (Gentzen System) for classical logic **)
 (* Gc is the 'deduciblility' relation for this system *)
 (* Both contexts are arbitrary size finite bags *)
 val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
-(!A:'a formula. Gc {|A|} {|A|})            (* Ax *)
-/\ (Gc {|Bot|} {||})            (* LBot *)
+(!A:'a formula. Gc {|A|} {|A|}) (* Ax *)
+/\ (Gc {|Bot|} {||}) (* LBot *)
 /\ (!A S D. Gc S D ==> Gc (BAG_INSERT A S) D) (* Left Weakening *)
 /\ (!A S D. Gc S D ==> Gc S (BAG_INSERT A D)) (* Right Weakening *)
-/\ (!A S D. (Gc S D) /\ (S A >= 2)
-   ==> Gc (S - {|A|}) D) (* Left Contraction *)
-/\ (!A S D. (Gc S D) /\ (D A >= 2)
-   ==> Gc S (D - {|A|})) (* Right Contraction *)
+/\ (!A S D. (Gc ({|A;A|} + S) D) 
+   ==> Gc ({|A|} + S) D) (* Left Contraction *)
+/\ (!A S D. (Gc S ({|A;A|} + D))
+   ==> Gc S ({|A|} + D)) (* Right Contraction *)
 /\ (!A B S D. (Gc (BAG_INSERT A S) D)
    ==> (Gc (BAG_INSERT (A And B) S) D)) (* Left And 1 *)
 /\ (!A B S D. (Gc (BAG_INSERT B S) D)
@@ -237,3 +235,5 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 `Gc {||} {|P Imp Q;P|}` by metis_tac[Gc_rules] >>
 `Gc {|(P Imp Q) Imp P|} {|P|}` by metis_tac[Gc_rules] >>
 `Gc {||} {|((P Imp Q) Imp P) Imp P|}` by metis_tac[Gc_rules]);
+
+val _ = export_theory()
