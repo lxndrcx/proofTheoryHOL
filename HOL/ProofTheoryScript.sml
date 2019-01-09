@@ -87,7 +87,8 @@ val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 /\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
 (Nc D2 C) /\ (Nc D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
-/\ (!A D1 D2. (Nc D1 Bot) /\ (D2 = (D1 DIFF {Not A}))
+/\ (!A D. (Nc D Bot) ==> (Nc D A)) (* Intuitionistic Absurdity Rule *)
+/\ (!A D1 D2. (Nc D1 (Not A)) /\ (D2 = (D1 DIFF {Not A}))
    ==> Nc D2 A)`; (* Classical absurdidty rule *)
 
 
@@ -236,48 +237,3 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 `Gc {||} {|P Imp Q;P|}` by metis_tac[Gc_rules] >>
 `Gc {|(P Imp Q) Imp P|} {|P|}` by metis_tac[Gc_rules] >>
 `Gc {||} {|((P Imp Q) Imp P) Imp P|}` by metis_tac[Gc_rules]);
-
-
-val (Nm'_rules, Nm'_induct, Nm'_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set).
-   A IN D ==> Nm' rules D A) (* Base case *) ∧
-(∀D0 A0 D A.
-  Nm' rules D0 A0 /\ ((D0,A0),(D,A)) ∈ rules ⇒
-  Nm' rules D A) ∧ (* extension with more rules *)
-
- (!A B D1 D2. (Nm' rules D1 A) /\ (Nm' rules D2 B)
-                             ==> (Nm' rules (D1 UNION D2) (A And B))) (* And Intro *)
-/\ (!A B D. (Nm' rules D (A And B)) ==> Nm' rules D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (Nm' rules D (A And B)) ==> Nm' rules D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Nm' rules D1 B) /\ (D2 = (D1 DIFF {A}))
-                      ==> Nm' rules D2 (A Imp B)) (* Imp Intro: A need not be in D1 *)
-/\ (!A B D1 D2. (Nm' rules D1 (A Imp B)) /\ (Nm' rules D2 A)
-                      ==> Nm' rules (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. Nm' rules D A ==> Nm' rules D (A Or B)) (* Or Intro right *)
-/\ (!A B D. Nm' rules D B ==> Nm' rules D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3 D4. (Nm' rules D1 (A Or B)) /\
-(Nm' rules D2 C) /\ (Nm' rules D3 C) /\     (* A and B need not actually be in D2/3 *)
-(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm' rules D4 C)`; (* Or Elim *)
-
-val Nc'_def = Define`
-  Nc' D A = Nm' { ((D0,Bot), (D0 DIFF {Not A}, A)) | T } D A
-`;
-
-Theorem Nc_Nc' `∀D A. Nc D A ⇒ Nc' D A` (
-  simp[Nc'_def] >> Induct_on `Nc` >> reverse (rpt strip_tac)
-  >- (rw[] >> irule (el 2 (CONJUNCTS (SPEC_ALL Nm'_rules))) >>
-      simp[] >> metis_tac[])
-  >> prove_tac[Nm'_rules]
-)
-
-Theorem Nc'_Nc `∀D A. Nc' D A ⇒ Nc D A` (
-  simp[Nc'_def] >> Induct_on `Nm'` >> simp[] >> reverse (rpt strip_tac) >>
-  prove_tac [Nc_rules]
-)
-
-(* suggestion
-Theorem Ni_Nc' `∀D A. Ni D A ⇒ Nc' D A` (
-)
-*)
-
-val _ = export_theory()
