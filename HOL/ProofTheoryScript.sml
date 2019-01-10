@@ -35,8 +35,8 @@ val Top_def = Define `Top = Bot Imp Bot`;
 (* I'm representing the deductions simply with unlabeled sets of
    open assumptions, as in T&S 2.1.8-2.1.9 (p.41--44) *)
 
-val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). A IN D ==> Nm D A) (* Base case *)
+val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). Nm {A} A) (* Base case *)
 /\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B)
    ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
@@ -56,8 +56,8 @@ val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
 
 (** Natural Deduction for intuitionistic logic **)
 (* Ni is the 'deduciblility' relation for this system *)
-val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). A IN D ==> Ni D A) (* Base case *)
+val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). Ni {A} A) (* Base case *)
 /\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B)
    ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
@@ -78,8 +78,8 @@ val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe,
 
 (** Natural Deduction for classical logic **)
 (* Nc is the 'deduciblility' relation for this system *)
-val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). A IN D ==> Nc D A) (* Base case *)
+val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln `
+(! (A :'a formula) (D :'a formula set). Nc {A} A) (* Base case *)
 /\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B)
    ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
@@ -105,7 +105,11 @@ val NcThm = Define `NcThm A = Nc EMPTY A`;
 
 (* Example deductions *)
 val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
-`Nm {A;B} A` by rw[Nm_rules] >>
+`Nm {A} A` by rw[Nm_rules] >>
+`Nm {B} B` by rw[Nm_rules] >>
+`{A} UNION {B} = {A;B}` by simp[UNION_DEF,INSERT_DEF] >>
+`Nm {A;B} (A And B)` by metis_tac[Nm_rules] >>
+`Nm {A;B} (A)` by metis_tac[Nm_rules] >>
 `Nm ({A;B} DIFF {B}) (B Imp A)` by metis_tac[Nm_rules] >>
 `Nm (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[Nm_rules] >>
 `(({A;B} DIFF {B}) DIFF {A}) = EMPTY` by (rw[]) >>
@@ -125,7 +129,7 @@ rw[NiThm]);
 (* S is used to represent the multiset of the Antecedent Context *)
 (* The consequent is always a single formula in the minimal logic *)
 
-val (Gm_rules, Gm_induct, Gm_cases) = Hol_reln `
+val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
 (!A:'a formula. Gm {|A|} A) (* Ax *)
 /\ (!A S C. Gm S D ==> Gm (BAG_INSERT A S) C) (* Left Weakening *)
 /\ (!A S C. (Gm ({|A;A|} + S) C)
@@ -166,7 +170,9 @@ val Gm_example2 =
 (* S and D are used to represent the bag Antecedent and Consequent Contexts *)
 (* The Consequent has at most one formula for intuitionistic logic *)
 
-val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
+(* Maybe I should change the consequent to option type rather than
+   EMPTY or SINGLETON? *)
+val (Gi_rules, Gi_ind, Gi_cases) = Hol_reln `
 (!A:'a formula. Gi {|A|} {|A|}) (* Ax *)
 /\ (Gi {|Bot|} {||}) (* LBot *)
 /\ (!A S D. Gi S D ==> Gi (BAG_INSERT A S) D) (* Left Weakening *)
@@ -211,14 +217,14 @@ val Gi_example1 = Q.prove(`Gi {|P And (Not P)|} {|Bot|}`,
   by metis_tac[Gi_rules,BAG_INSERT_commutes] >>
 `{|A;A|} = {|A;A|} + {||}` by simp[] >>
 `{|A|} = {|A|} + {||}` by simp[] >>
-qspecl_then [`P And Not P`,`{||}`,`{||}`] mp_tac (el 5 (CONJUNCTS Gi_rules)) >>
+qspecl_then [`P And Not P`,`{||}`,`{||}`] mp_tac (Gi_lc) >>
 simp[]
 );
 
 (** Sequent Calculus (Gentzen System) for classical logic **)
 (* Gc is the 'deduciblility' relation for this system *)
 (* Both contexts are arbitrary size finite bags *)
-val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
+val (Gc_rules, Gc_ind, Gc_cases) = Hol_reln `
 (!A:'a formula. Gc {|A|} {|A|}) (* Ax *)
 /\ (Gc {|Bot|} {||}) (* LBot *)
 /\ (!A S D. Gc S D ==> Gc (BAG_INSERT A S) D) (* Left Weakening *)
@@ -258,5 +264,22 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 `Gc {||} {|P Imp Q;P|}` by metis_tac[Gc_rules] >>
 `Gc {|(P Imp Q) Imp P|} {|P|}` by metis_tac[Gc_rules] >>
 `Gc {||} {|((P Imp Q) Imp P) Imp P|}` by metis_tac[Gc_rules]);
+
+
+
+
+(* ========================================================================== *)
+(* Proofs of equivalence of N and G Systems                                   *)
+(*                                                                            *)
+(*                                                                            *)
+(* ========================================================================== *)
+
+Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
+ Induct_on `Nm ` >>
+ reverse ( rw[Nm_rules,Gm_rules] ) >> 
+ >- ()
+)
+
+(* Theorem Gm_Nm `∀Γ A.Gm Γ A ==> Nm (SET_OF_BAG Γ) A` () *)
 
 val _ = export_theory()
