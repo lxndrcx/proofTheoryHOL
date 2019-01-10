@@ -51,6 +51,9 @@ val (Nm_rules, Nm_induct, Nm_cases) = Hol_reln `
 (Nm D2 C) /\ (Nm D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm D4 C)`; (* Or Elim *)
 
+val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
+     Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
+
 (** Natural Deduction for intuitionistic logic **)
 (* Ni is the 'deduciblility' relation for this system *)
 val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
@@ -69,6 +72,9 @@ val (Ni_rules, Ni_induct, Ni_cases) = Hol_reln `
 (Ni D2 C) /\ (Ni D3 C) /\
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Ni D4 C) (* Or Elim *)
 /\ (!A D. (Ni D Bot) ==> (Ni D A))`; (* Intuitionistic Absurdity Rule *)
+
+val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe,
+     Ni_orir, Ni_oril, Ni_ore, Ni_absurd] = CONJUNCTS Ni_rules;
 
 (** Natural Deduction for classical logic **)
 (* Nc is the 'deduciblility' relation for this system *)
@@ -89,6 +95,9 @@ val (Nc_rules, Nc_induct, Nc_cases) = Hol_reln `
 (D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
 /\ (!A D. (Nc D (Bot))
    ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *)
+
+val [Nc_ax, Nc_andi, Nc_andel, Nc_ander, Nc_impi, Nc_impe,
+     Nc_orir, Nc_oril, Nc_ore, Nc_absurd] = CONJUNCTS Nc_rules;
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
 val NiThm = Define `NiThm A = Ni EMPTY A`;
@@ -140,6 +149,9 @@ val (Gm_rules, Gm_induct, Gm_cases) = Hol_reln `
    ==> (Gm S (A Imp B))) (* Right Imp *)
 ∧  (∀A B Γ Γ'. (Gm Γ A) ∧ (Gm (BAG_INSERT A Γ') B) ==> Gm (Γ + Γ') B)` (* Cut *)
 
+val [Gm_ax, Gm_lw, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
+     Gm_lor, Gm_rorl, Gm_rorr, Gm_limp, Gm_rimp, Gm_cut] = CONJUNCTS Gm_rules;
+
 val GmThm = Define `GmThm A = Gm EMPTY_BAG A`;
 
 val Gm_example1 =
@@ -179,6 +191,9 @@ val (Gi_rules, Gi_induct, Gi_cases) = Hol_reln `
 /\ (!A B S. (Gi (BAG_INSERT A S) {|B|})
    ==> (Gi S {|A Imp B|})) (* Right Imp *)
 ∧  (∀A Γ Δ. (Gi Γ {|A|}) ∧ (Gi {|A|} Δ) ==> Gi Γ Δ)` (* Cut *)
+
+val [Gi_ax, Gi_bot, Gi_lw, Gi_rw, Gi_lc, Gi_landl, Gi_landr, Gi_rand, Gi_lor,
+     Gi_rorl, Gi_rorr, Gi_limp, Gi_rimp, Gi_cut] = CONJUNCTS Gi_rules;
 
 val GiThm = Define `GiThm A = Gi EMPTY_BAG {|A|}`
 
@@ -231,6 +246,9 @@ val (Gc_rules, Gc_induct, Gc_cases) = Hol_reln `
 ∧  (∀A Γ Γ' Δ Δ'. (Gc Γ (BAG_INSERT A Δ))
      ∧ (Gc (BAG_INSERT A Γ') Δ')
      ==> Gc (Γ + Γ') (Δ + Δ'))` (* Cut *)
+
+val [Gc_ax, Gc_bot, Gc_lw, Gc_rw, Gc_lc, Gc_rc, Gc_landl, Gc_landr, Gc_rand,
+     Gc_lor, Gc_rorl, Gc_rorr, Gc_limp, Gc_rimp, Gc_cut] = CONJUNCTS Gc_rules;
 
 val GcThm = Define `GcThm A = Gc EMPTY_BAG {|A|}`
 
