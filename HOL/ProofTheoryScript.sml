@@ -41,8 +41,7 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
    ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Nm D1 B) /\ (D2 = (D1 DIFF {A}))
-   ==> Nm D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D. (Nm D B) ==> Nm (D DIFF {A}) (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A)
    ==> Nm (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
@@ -62,8 +61,7 @@ val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln `
    ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Ni D1 B) /\ (D2 = (D1 DIFF {A}))
-   ==> Ni D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D. (Ni D B) ==> Ni (D DIFF {A}) (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A)
    ==> Ni (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
@@ -84,8 +82,7 @@ val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln `
    ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *)
-/\ (!A B D1 D2. (Nc D1 B) /\ (D2 = (D1 DIFF {A}))
-   ==> Nc D2 (A Imp B)) (* Imp Intro *)
+/\ (!A B D. (Nc D B) ==> Nc (D DIFF {A}) (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A)
    ==> Nc (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
@@ -273,11 +270,21 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
+val Gm_empty = Q.prove(`~(Gm {||} A)`,);
+
+val Gm_lw_union = Q.prove(`∀Γ Γ' A. Gm Γ A ==> Gm (Γ+Γ') A`, Cases >> Cases
+ >- simp[BAG_UNION,EMPTY_BAG]
+ >- simp[BAG_UNION,EMPTY_BAG,BAG_INSERT]
+);
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
- reverse ( rw[Nm_rules,Gm_rules] ) >> 
- >- ()
+ rw[Nm_rules,Gm_rules] >> 
+ >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
+     metis_tac[Gm_rules])
+ >- (
+`Gm ((BAG_OF_SET Γ) + (BAG_OF_SET Γ')) A` by 
+ )
 )
 
 (* Theorem Gm_Nm `∀Γ A.Gm Γ A ==> Nm (SET_OF_BAG Γ) A` () *)
