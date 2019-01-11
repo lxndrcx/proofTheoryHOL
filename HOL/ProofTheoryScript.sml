@@ -270,7 +270,9 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
-val Gm_empty = Q.prove(`~(Gm {||} A)`,);
+val Gm_empty = Q.prove(`!A. ~(Gm {||} A)`, Induct
+ >- (strip_tac >> simp[Once Gm_cases] >> `Gm {|Var a|} (Var a)` by metis_tac[Gm_ax] >> 
+);
 
 val Gm_lw_union = Q.prove(`∀Γ Γ' A. Gm Γ A ==> Gm (Γ+Γ') A`, Cases >> Cases
  >- simp[BAG_UNION,EMPTY_BAG]
@@ -283,6 +285,8 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
      metis_tac[Gm_rules])
  >- (
+
+)
 `Gm ((BAG_OF_SET Γ) + (BAG_OF_SET Γ')) A` by 
  )
 )
