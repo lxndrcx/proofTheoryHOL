@@ -127,7 +127,7 @@ rw[NiThm]);
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
-(!Γ A:'a formula. Gm (BAG_INSERT A Γ) A) (* Ax *)
+(!Γ A:'a formula. A <: Γ ==> Gm Γ A) (* Ax *)
 /\ (!A Γ C. (Gm ({|A;A|} + Γ) C)
    ==> Gm ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gm (BAG_INSERT A Γ) C)
@@ -161,8 +161,8 @@ val Gm_example2 = Q.prove (`GmThm ((A Imp (A Imp B)) Imp (A Imp B))`,
 rw[GmThm] >>
 `Gm {|(A Imp A Imp B)|} (A Imp B)` suffices_by metis_tac[Gm_rules] >>
 `Gm {|A;(A Imp A Imp B)|} (B)` suffices_by metis_tac[Gm_rules] >>
-`Gm {|A|} (A)` by metis_tac[Gm_rules] >>
-`Gm {|B;A|} (B)` by metis_tac[Gm_ax] >>
+`Gm {|A|} (A)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+`Gm {|B;A|} (B)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
 (* `Gm {|A;B|} (B)` by simp[Gm_lw] >> *)
 (* `Gm {|B;A|} (B)` by simp[BAG_INSERT_commutes] >> *)
 `Gm {|(A Imp B);A|} (B)` by metis_tac[Gm_rules] >>
@@ -171,9 +171,9 @@ metis_tac[Gm_rules]);
 
 val Gm_land_commutes =
     Q.prove(`Gm {| A And B |} Δ ==> Gm {| B And A |} Δ`, rw[] >>
-`Gm {|B|} B` by metis_tac[Gm_ax] >>
+`Gm {|B|} B` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
 `Gm {|B And A|} B` by metis_tac[Gm_landl] >>
-`Gm {|A|} A` by metis_tac[Gm_ax] >>
+`Gm {|A|} A` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
 `Gm {|B And A|} A` by metis_tac[Gm_landr] >>
 `Gm {|B And A|} (A And B)` by metis_tac[Gm_rand] >>
 `Gm ({|B And A|} + {||}) Δ` by metis_tac[Gm_cut] >>
@@ -308,8 +308,6 @@ simp[BAG_MERGE] >>
 val Gm_lw_SUB_BAG = Q.prove(`Gm Γ A /\ Γ ≤ Γ' ==> Gm Γ' A`,
  simp[Once Gm_cases] >> (* DISJ2_TAC >> DISJ1_TAC *)
  rw[] >>
- Q.EXISTS_TAC `Γ` >>
- Q.EXISTS_TAC `B` >>
  `Gm (BAG_INSERT B Γ) A` by metis_tac[Gm_lw] >>
  metis_tac[]
 ); (* SUB_BAG_INSERT_I SUB_BAG_REFL SUB_BAG_EXISTS *)
