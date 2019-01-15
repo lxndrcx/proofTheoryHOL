@@ -1,4 +1,14 @@
-eory";
+(* ========================================================================== *)
+(* Equivalence of Sequent Calculus and Natural Deduction                      *)
+(* Working from Troelstra and Schwichtenburg - Basic Proof Theory 2nd Edition *)
+(*                                                                            *)
+(* ========================================================================== *)
+
+open HolKernel boolLib Parse bossLib;
+open bagLib bagSimps bagTheory;
+open pred_setTheory;
+
+val _ = new_theory "ProofTheory";
 
 val _ = Datatype `formula =
 Var 'a
@@ -87,7 +97,6 @@ val [Nc_ax, Nc_andi, Nc_andel, Nc_ander, Nc_impi, Nc_impe,
      Nc_orir, Nc_oril, Nc_ore, Nc_absurd] = CONJUNCTS Nc_rules;
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
-val Nm'Thm = Define `Nm'Thm A = Nm' {||} A`;
 val NiThm = Define `NiThm A = Ni EMPTY A`;
 val NcThm = Define `NcThm A = Nc EMPTY A`;
 
@@ -162,6 +171,17 @@ rw[GmThm] >>
 `Gm {|(A Imp B);A|} (B)` by metis_tac[Gm_rules] >>
 `Gm {|(A Imp A Imp B);A|} (B)` suffices_by metis_tac[BAG_INSERT_commutes] >>
 metis_tac[Gm_rules]);
+
+val Gm_land_commutes = Q.prove(`Gm {| A And B |} Δ ==> Gm {| B And A |} Δ`,
+                               rw[] >>
+`Gm {|B|} B` by metis_tac[Gm_ax] >>
+`Gm {|B And A|} B` by metis_tac[Gm_landl] >>
+`Gm {|A|} A` by metis_tac[Gm_ax] >>
+`Gm {|B And A|} A` by metis_tac[Gm_landr] >>
+`Gm {|B And A|} (A And B)` by metis_tac[Gm_rand] >>
+`Gm ({|B And A|} + {||}) Δ` by metis_tac[Gm_cut] >>
+metis_tac[BAG_UNION_EMPTY]
+                              );
 
 (** Sequent Calculus (Gentzen System) for intuitionistic logic **)
 (* Gi is the 'deduciblility' relation for this system *)
@@ -268,21 +288,47 @@ val Gc_example1 = Q.prove(`GcThm (((P Imp Q) Imp P) Imp P)`,rw[GcThm] >>
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
+val Gm_GAMMA_NOT_EMPTY = Q.prove(`!A Γ. Gm Γ A ==> ?x. x <: Γ`,
+Induct_on `A`
+>- (rw[] >>
+   reverse (fs[Once Gm_cases])
+   >- (`BAG_INSERT A Γ'' <> {||}` by fs[BAG_INSERT_NOT_EMPTY] >>
+       fs[BAG_cases]
+   >> metis_tac[Gm_rules])
 
 val BAG_OF_SET_UNION_EQ_MERGE =
     Q.prove(`BAG_OF_SET (Γ ∪ Γ') =  (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
        simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
        simp[FUN_EQ_THM] >> rw[] >> fs[]);
 
+val Gm_BAG_UNION_WEAKENING = Q.prove(`Gm Γ A ==> Gm (Γ' + Γ) A`, rw[] >>
+Cases_on `Γ'`
+>- simp[BAG_UNION,EMPTY_BAG]
+>- (Cases_on `Γ`
+   >- simp[BAG_UNION_INSERT] >> prove_tac[Gm_lw]
+
+val Gm_BAG_MERGE_WEAKENING = Q.prove(`Gm Γ A ==> Gm (BAG_MERGE Γ Γ') A`, rw[] >>
+simp[BAG_MERGE] >> 
+)
+
+
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
  rw[Nm_rules,Gm_rules] >> 
  >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
      metis_tac[Gm_rules])
- >- (rw[BAG_OF_SET_UNION_EQ_MERGE] >>
-     simp[]
-
-))
+ >- (*skipped*)
+ >- (`Gm {|A|} A` by metis_tac[Gm_ax] >>
+     `Gm {|A And B|} A` by metis_tac[Gm_landl] >>
+     `Gm ((BAG_OF_SET Γ) + {||}) A` by metis_tac[Gm_cut] >>
+     metis_tac[BAG_UNION_EMPTY])
+ >- (`Gm {|A'|} A'` by metis_tac[Gm_ax] >>
+     `Gm {|A And A'|} A'` by metis_tac[Gm_landr] >>
+     `Gm ((BAG_OF_SET Γ) + {||}) A'` by metis_tac[Gm_cut] >>
+     metis_tac[BAG_UNION_EMPTY])
+ >- (*skipped*)
+ >- ()
+    )
 
 
 (* Theorem Gm_Nm `∀Γ A.Gm Γ A ==> Nm (SET_OF_BAG Γ) A` () *)
