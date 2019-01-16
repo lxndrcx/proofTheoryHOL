@@ -1,3 +1,4 @@
+
 (* ========================================================================== *)
 (* Equivalence of Sequent Calculus and Natural Deduction                      *)
 (* Working from Troelstra and Schwichtenburg - Basic Proof Theory 2nd Edition *)
@@ -282,36 +283,10 @@ metis_tac[BAG_UNION_EMPTY]);
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
-val Gm_GAMMA_NOT_EMPTY = Q.prove(`!A Γ. Gm Γ A ==> ?x. x <: Γ`,
-Induct_on `A`
->- (rw[] >>
-   reverse (fs[Once Gm_cases])
-   >- (`BAG_INSERT A Γ'' <> {||}` by fs[BAG_INSERT_NOT_EMPTY] >>
-       fs[BAG_cases]
-   >> metis_tac[Gm_rules])
-
 val BAG_OF_SET_UNION_EQ_MERGE =
     Q.prove(`BAG_OF_SET (Γ ∪ Γ') =  (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
        simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
        simp[FUN_EQ_THM] >> rw[] >> fs[]);
-
-val Gm_BAG_UNION_WEAKENING = Q.prove(`Gm Γ A ==> Gm (Γ' + Γ) A`, rw[] >>
-Cases_on `Γ'`
->- simp[BAG_UNION,EMPTY_BAG]
->- (Cases_on `Γ`
-   >- simp[BAG_UNION_INSERT] >> prove_tac[Gm_lw]
-
-val Gm_BAG_MERGE_WEAKENING = Q.prove(`Gm Γ A ==> Gm (BAG_MERGE Γ Γ') A`, rw[] >>
-simp[BAG_MERGE] >> 
-);
-
-val Gm_lw_SUB_BAG = Q.prove(`Gm Γ A /\ Γ ≤ Γ' ==> Gm Γ' A`,
- simp[Once Gm_cases] >> (* DISJ2_TAC >> DISJ1_TAC *)
- rw[] >>
- `Gm (BAG_INSERT B Γ) A` by metis_tac[Gm_lw] >>
- metis_tac[]
-); (* SUB_BAG_INSERT_I SUB_BAG_REFL SUB_BAG_EXISTS *)
-
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
