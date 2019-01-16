@@ -37,7 +37,7 @@ val Top_def = Define `Top = Bot Imp Bot`;
    open assumptions, as in T&S 2.1.8-2.1.9 (p.41--44) *)
 
 val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). Nm {A} A) (* Base case *)
+(! (A :'a formula). Nm {A} A) (* Base case *)
 /\ (!A B D1 D2. (Nm D1 A) /\ (Nm D2 B)
    ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
@@ -47,9 +47,8 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
    ==> Nm (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3 D4. (Nm D1 (A Or B)) /\
-(Nm D2 C) /\ (Nm D3 C) /\
-(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nm D4 C)`; (* Or Elim *)
+/\ (!A B C D1 D2 D3. (Nm D1 (A Or B)) /\
+(Nm D2 C) /\ (Nm D3 C) ==> Nm ((D1 UNION D2 UNION D3) DIFF {A;B}) C)`; (* Or Elim *)
 
 val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
      Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
@@ -57,7 +56,7 @@ val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
 (** Natural Deduction for intuitionistic logic **)
 (* Ni is the 'deduciblility' relation for this system *)
 val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). Ni {A} A) (* Base case *)
+(! (A :'a formula). Ni {A} A) (* Base case *)
 /\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B)
    ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
@@ -67,9 +66,8 @@ val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln `
    ==> Ni (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3 D4. (Ni D1 (A Or B)) /\
-(Ni D2 C) /\ (Ni D3 C) /\
-(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Ni D4 C) (* Or Elim *)
+/\ (!A B C D1 D2 D3. (Ni D1 (A Or B)) /\
+(Ni D2 C) /\ (Ni D3 C) ==> Ni ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *)
 /\ (!A D. (Ni D Bot) ==> (Ni D A))`; (* Intuitionistic Absurdity Rule *)
 
 val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe,
@@ -78,7 +76,7 @@ val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe,
 (** Natural Deduction for classical logic **)
 (* Nc is the 'deduciblility' relation for this system *)
 val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln `
-(! (A :'a formula) (D :'a formula set). Nc {A} A) (* Base case *)
+(! (A :'a formula). Nc {A} A) (* Base case *)
 /\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B)
    ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
@@ -88,9 +86,8 @@ val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln `
    ==> Nc (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3 D4. (Nc D1 (A Or B)) /\
-(Nc D2 C) /\ (Nc D3 C) /\
-(D4 = ((D1 UNION D2 UNION D3) DIFF {A;B})) ==> Nc D4 C) (* Or Elim *)
+/\ (!A B C D1 D2 D3. (Nc D1 (A Or B)) /\
+(Nc D2 C) /\ (Nc D3 C) ==> Nc ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *)
 /\ (!A D. (Nc D (Bot))
    ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *)
 
