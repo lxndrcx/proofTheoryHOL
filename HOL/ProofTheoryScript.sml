@@ -125,8 +125,7 @@ val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
-(!A:'a formula. Gm {|A|} A) (* Ax *)
-/\ (!Γ A C. Gm Γ C ==> Gm (BAG_INSERT A Γ) C) (* Left Weakening *)
+(!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> Gm Γ A) (* Ax *)
 /\ (!A Γ C. (Gm ({|A;A|} + Γ) C)
    ==> Gm ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gm (BAG_INSERT A Γ) C)
@@ -148,7 +147,7 @@ val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
    ==> (Gm Γ (A Imp B))) (* Right Imp *)
 ∧  (∀A B Γ Γ'. (Gm Γ A) ∧ (Gm (BAG_INSERT A Γ') B) ==> Gm (Γ + Γ') B)` (* Cut *)
 
-val [Gm_ax, Gm_lw, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
+val [Gm_ax, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
      Gm_lor, Gm_rorl, Gm_rorr, Gm_limp, Gm_rimp, Gm_cut] = CONJUNCTS Gm_rules;
 
 val GmThm = Define `GmThm A = Gm EMPTY_BAG A`;
@@ -160,19 +159,19 @@ val Gm_example2 = Q.prove (`GmThm ((A Imp (A Imp B)) Imp (A Imp B))`,
 rw[GmThm] >>
 `Gm {|(A Imp A Imp B)|} (A Imp B)` suffices_by metis_tac[Gm_rules] >>
 `Gm {|A;(A Imp A Imp B)|} (B)` suffices_by metis_tac[Gm_rules] >>
-`Gm {|A|} (A)` by metis_tac[Gm_ax] >>
-`Gm {|B|} (B)` by metis_tac[Gm_ax] >>
-`Gm {|A;B|} (B)` by simp[Gm_lw] >>
-`Gm {|B;A|} (B)` by simp[BAG_INSERT_commutes] >>
+`Gm {|A|} (A)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
+`Gm {|B;A|} (B)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
+(* `Gm {|A;B|} (B)` by simp[Gm_lw] >> *)
+(* `Gm {|B;A|} (B)` by simp[BAG_INSERT_commutes] >> *)
 `Gm {|(A Imp B);A|} (B)` by metis_tac[Gm_rules] >>
 `Gm {|(A Imp A Imp B);A|} (B)` suffices_by metis_tac[BAG_INSERT_commutes] >>
 metis_tac[Gm_rules]);
 
 val Gm_land_commutes =
     Q.prove(`Gm {| A And B |} Δ ==> Gm {| B And A |} Δ`, rw[] >>
-`Gm {|B|} B` by metis_tac[Gm_ax] >>
+`Gm {|B|} B` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
 `Gm {|B And A|} B` by metis_tac[Gm_landl] >>
-`Gm {|A|} A` by metis_tac[Gm_ax] >>
+`Gm {|A|} A` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
 `Gm {|B And A|} A` by metis_tac[Gm_landr] >>
 `Gm {|B And A|} (A And B)` by metis_tac[Gm_rand] >>
 `Gm ({|B And A|} + {||}) Δ` by metis_tac[Gm_cut] >>
@@ -295,6 +294,9 @@ val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
 
 val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
                           Induct_on `Gm` >> rw[Gm_rules]);
+
+val Gm_wk_BAG_OF_SET = Q.prove(`!Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A`,
+ 
 
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
