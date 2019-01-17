@@ -11,6 +11,8 @@ open pred_setTheory pred_setLib;
 
 val _ = new_theory "ProofTheory";
 
+val proof_ss = arith_ss ++ BAG_ss ++ PRED_SET_ss;
+
 val _ = Datatype `formula =
 Var 'a
 | Or formula formula
@@ -289,16 +291,50 @@ val BAG_OF_SET_DIFF = Q.prove(
 `BAG_OF_SET (Γ DIFF Γ') = BAG_FILTER (COMPL Γ') (BAG_OF_SET Γ)`,
 simp[DIFF_DEF] >> simp[BAG_OF_SET] >> simp[BAG_FILTER_DEF] >> metis_tac[]);
 
+val BAG_OF_SET_INSERT = Q.prove(
+`!e s. BAG_OF_SET (e INSERT s) = BAG_MERGE {|e|} (BAG_OF_SET s)`,
+RW_TAC proof_ss [BAG_OF_SET,INSERT_DEF,BAG_MERGE,EMPTY_BAG] >>
+rw[FUN_EQ_THM,BAG_INSERT] >> rw[] 
+ >- (fs[IN_DEF] >>
+     `s e = F` by metis_tac[] >>
+     fs[COND_CLAUSES])
+ >- (`(x = e) = F` by metis_tac[] >>
+     fs[COND_CLAUSES])
+ >- (`(x = e) = F` by metis_tac[] >>
+     `(s x) = T` by metis_tac[] >>
+     fs[COND_CLAUSES]));
+
+(* IN PROGRESS *)
+val FINITE_BAG_OF_SET = Q.prove(
+`!Γ. FINITE Γ ==> FINITE_BAG (BAG_OF_SET Γ)`,
+Induct_on `Γ` >>
+rw[] >>
+simp[BAG_OF_SET_INSERT] >>
+rw[BAG_MERGE] >>
+rw[FINITE_BAG] >>
+`FINITE_BAG (BAG_INSERT e (BAG_OF_SET Γ))` by metis_tac[BAG_INSERT,FINITE_BAG] >>
+
 val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
                           Induct_on `Nm` >> rw[Nm_rules]);
 
 val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
                           Induct_on `Gm` >> rw[Gm_rules]);
 
-val Gm_wk_BAG_OF_SET = Q.prove(`!Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A`,
- 
+(* IN PROGRESS *)
+(* val Gm_wk_BAG_OF_SET = Q.prove(`!Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A`, *)
+(* rpt strip_tac >> *)
+(* `FINITE_BAG Γ` by metis_tac[Gm_G_FINITE] >> *)
+(* Q.UNDISCH_TAC `Gm Γ A` >> *)
+(* Q.UNDISCH_TAC `FINITE_BAG Γ` >> *)
+(* Q.SPEC_TAC (`Γ`,`Γ`) >> *)
+(* Induct_on `Γ` >> *)
+(* rw[] >> *)
+(* `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >> *)
+
+(* simp[SET_OF_BAG] *)
 
 
+(* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
  rw[Gm_rules] >>
@@ -323,6 +359,7 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  )
     )
 
+(* IN PROGRESS *)
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
 Induct_on `Gm` >>
