@@ -287,7 +287,7 @@ val BAG_OF_SET_UNION_EQ_MERGE =
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
- rw[Nm_rules,Gm_rules] >> 
+ rw[Gm_rules] >> 
  >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
      metis_tac[Gm_rules])
  >- (*skipped*)
@@ -306,6 +306,16 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
     )
 
 
-(* Theorem Gm_Nm `∀Γ A.Gm Γ A ==> Nm (SET_OF_BAG Γ) A` () *)
+Theorem Gm_Nm `∀Γ A. Gm Γ A ==> Nm (SET_OF_BAG Γ) A` (
+Induct_on `Gm` >>
+rw[Nm_rules]
+>- (
+`A IN SET_OF_BAG Γ` by metis_tac[IN_SET_OF_BAG] >>
+Cases_on `Γ` >- (fs[SET_OF_BAG_EQ_EMPTY])
+             >- (fs[SET_OF_BAG_INSERT]
+                   >- (rw[] >> )
+  )
+)
+)
 
 val _ = export_theory()
