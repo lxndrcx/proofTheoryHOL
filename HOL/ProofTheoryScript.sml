@@ -7,7 +7,7 @@
 
 open HolKernel boolLib Parse bossLib;
 open bagLib bagSimps bagTheory;
-open pred_setTheory;
+open pred_setTheory pred_setLib;
 
 val _ = new_theory "ProofTheory";
 
@@ -281,10 +281,21 @@ metis_tac[BAG_UNION_EMPTY]);
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
-val BAG_OF_SET_UNION_EQ_MERGE = Q.prove(
+val BAG_OF_SET_UNION = Q.prove(
 `BAG_OF_SET (Γ ∪ Γ') = (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
  simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
  simp[FUN_EQ_THM] >> rw[] >> fs[]);
+
+val BAG_OF_SET_DIFF = Q.prove(
+`BAG_OF_SET (Γ DIFF Γ') = BAG_FILTER (COMPL Γ') (BAG_OF_SET Γ)`,
+simp[DIFF_DEF] >> simp[BAG_OF_SET] >> simp[BAG_FILTER_DEF] >> metis_tac[]);
+
+val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
+                          Induct_on `Nm` >> rw[Nm_rules]);
+
+val Gm_Γ_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
+                          Induct_on `Gm` >> rw[Gm_rules]);
+
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
@@ -305,15 +316,6 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      
  )
     )
-val Nm_D_finite = Q.prove(`!D A. Nm D A ==> FINITE D`,
-Induct_on `Nm` >> rw[Nm_rules]);
-
-val Gm_Γ_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
-Induct_on `Gm` >>
-rw[]
-
-val Nm_weakening = Q.prove(`!D A. Nm D A ==> !D'. Nm (D ∪ D') A`,
-  
 
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> Nm (SET_OF_BAG Γ) A` (
 Induct_on `Gm` >>
