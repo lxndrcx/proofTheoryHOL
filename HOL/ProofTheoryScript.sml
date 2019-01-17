@@ -293,13 +293,13 @@ simp[DIFF_DEF] >> simp[BAG_OF_SET] >> simp[BAG_FILTER_DEF] >> metis_tac[]);
 val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
                           Induct_on `Nm` >> rw[Nm_rules]);
 
-val Gm_Γ_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
+val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
                           Induct_on `Gm` >> rw[Gm_rules]);
 
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
- rw[Gm_rules] >> 
+ rw[Gm_rules] >>
  >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
      metis_tac[Gm_rules])
  >- (*skipped*)
@@ -312,21 +312,32 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      `Gm ((BAG_OF_SET Γ) + {||}) A'` by metis_tac[Gm_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (*skipped*)
- >- (
-     
+ >- (simp[BAG_OF_SET_DIFF] >>
+     `FINITE Γ` by metis_tac[Nm_D_FINITE] >>
+     Q.UNDISCH_TAC `FINITE Γ` >>
+     Q.SPEC_TAC (`Γ`,`D`) >>
+     SET_INDUCT_TAC
+       >- (*unfinished*)
  )
     )
 
-Theorem Gm_Nm `∀Γ A. Gm Γ A ==> Nm (SET_OF_BAG Γ) A` (
+(* Apparently Nm takes a subset here!? *)
+Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
 Induct_on `Gm` >>
 rw[Nm_rules]
+>- (`Nm (SET_OF_BAG (EL_BAG A)) A` suffices_by simp[EL_BAG] >>
+    simp[SET_OF_EL_BAG] >> metis_tac[Nm_ax])
+>- (`Nm {A} A` by metis_tac[Nm_ax] >>
+    `Nm ({A} ∪ (SET_OF_BAG Γ)) (A And A')` by metis_tac[Nm_andi] >>
+    simp[SET_OF_BAG_INSERT] >>
+    `{A} ∪ SET_OF_BAG Γ = A INSERT SET_OF_BAG Γ` by simp[UNION_DEF,INSERT_DEF] >>
+    metis_tac[Nm_ander])
+>- (fs[SET_OF_BAG_UNION] >> fs[SET_OF_BAG])
 >- (
-(* `A IN SET_OF_BAG Γ` by metis_tac[IN_SET_OF_BAG] >> *)
-Cases_on `Γ` >- (fs[SET_OF_BAG_EQ_EMPTY])
-             >- (fs[BAG_INSERT_UNION]
-                   >- (rw[] >> )
-  )
-)
+    fs[SET_OF_BAG_INSERT] >>
+    `Nm {A And B} (A And B)` by metis_tac[Nm_rules] >>
+    `Nm ({A And B} ∪ (A INSERT SET_OF_BAG Γ)) ((A And B) And A')` by metis_tac[Nm_rules] >>
+    `Nm ({A And B} ∪ (A INSERT SET_OF_BAG Γ)) A'` by metis_tac[Nm_rules] >>
 )
 
 val _ = export_theory()
