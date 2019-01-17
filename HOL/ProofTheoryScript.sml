@@ -53,50 +53,50 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
 val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
      Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
 
-(** Natural Deduction for intuitionistic logic **)
-(* Ni is the 'deduciblility' relation for this system *)
-val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln `
-(! (A :'a formula). Ni {A} A) (* Base case *)
-/\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B)
-   ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *)
-/\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *)
-/\ (!A B D. (Ni D B) ==> Ni (D DIFF {A}) (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A)
-   ==> Ni (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *)
-/\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3. (Ni D1 (A Or B)) /\
-(Ni D2 C) /\ (Ni D3 C) ==> Ni ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *)
-/\ (!A D. (Ni D Bot) ==> (Ni D A))`; (* Intuitionistic Absurdity Rule *)
+(* (** Natural Deduction for intuitionistic logic **) *)
+(* (* Ni is the 'deduciblility' relation for this system *) *)
+(* val (Ni_rules, Ni_ind, Ni_cases) = Hol_reln ` *)
+(* (! (A :'a formula). Ni {A} A) (* Base case *) *)
+(* /\ (!A B D1 D2. (Ni D1 A) /\ (Ni D2 B) *)
+(*    ==> (Ni (D1 UNION D2) (A And B))) (* And Intro *) *)
+(* /\ (!A B D. (Ni D (A And B)) ==> Ni D A) (* And Elimination Left Conjunct *) *)
+(* /\ (!A B D. (Ni D (A And B)) ==> Ni D B) (* And Elim Right Conjunct *) *)
+(* /\ (!A B D. (Ni D B) ==> Ni (D DIFF {A}) (A Imp B)) (* Imp Intro *) *)
+(* /\ (!A B D1 D2. (Ni D1 (A Imp B)) /\ (Ni D2 A) *)
+(*    ==> Ni (D1 UNION D2) B) (* Imp Elim *) *)
+(* /\ (!A B D. Ni D A ==> Ni D (A Or B)) (* Or Intro right *) *)
+(* /\ (!A B D. Ni D B ==> Ni D (A Or B)) (* Or Intro left *) *)
+(* /\ (!A B C D1 D2 D3. (Ni D1 (A Or B)) /\ *)
+(* (Ni D2 C) /\ (Ni D3 C) ==> Ni ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *) *)
+(* /\ (!A D. (Ni D Bot) ==> (Ni D A))`; (* Intuitionistic Absurdity Rule *) *)
 
-val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe,
-     Ni_orir, Ni_oril, Ni_ore, Ni_absurd] = CONJUNCTS Ni_rules;
+(* val [Ni_ax, Ni_andi, Ni_andel, Ni_ander, Ni_impi, Ni_impe, *)
+(*      Ni_orir, Ni_oril, Ni_ore, Ni_absurd] = CONJUNCTS Ni_rules; *)
 
-(** Natural Deduction for classical logic **)
-(* Nc is the 'deduciblility' relation for this system *)
-val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln `
-(! (A :'a formula). Nc {A} A) (* Base case *)
-/\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B)
-   ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *)
-/\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *)
-/\ (!A B D. (Nc D B) ==> Nc (D DIFF {A}) (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A)
-   ==> Nc (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *)
-/\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3. (Nc D1 (A Or B)) /\
-(Nc D2 C) /\ (Nc D3 C) ==> Nc ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *)
-/\ (!A D. (Nc D (Bot))
-   ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *)
+(* (** Natural Deduction for classical logic **) *)
+(* (* Nc is the 'deduciblility' relation for this system *) *)
+(* val (Nc_rules, Nc_ind, Nc_cases) = Hol_reln ` *)
+(* (! (A :'a formula). Nc {A} A) (* Base case *) *)
+(* /\ (!A B D1 D2. (Nc D1 A) /\ (Nc D2 B) *)
+(*    ==> (Nc (D1 UNION D2) (A And B))) (* And Intro *) *)
+(* /\ (!A B D. (Nc D (A And B)) ==> Nc D A) (* And Elimination Left Conjunct *) *)
+(* /\ (!A B D. (Nc D (A And B)) ==> Nc D B) (* And Elim Right Conjunct *) *)
+(* /\ (!A B D. (Nc D B) ==> Nc (D DIFF {A}) (A Imp B)) (* Imp Intro *) *)
+(* /\ (!A B D1 D2. (Nc D1 (A Imp B)) /\ (Nc D2 A) *)
+(*    ==> Nc (D1 UNION D2) B) (* Imp Elim *) *)
+(* /\ (!A B D. Nc D A ==> Nc D (A Or B)) (* Or Intro right *) *)
+(* /\ (!A B D. Nc D B ==> Nc D (A Or B)) (* Or Intro left *) *)
+(* /\ (!A B C D1 D2 D3. (Nc D1 (A Or B)) /\ *)
+(* (Nc D2 C) /\ (Nc D3 C) ==> Nc ((D1 UNION D2 UNION D3) DIFF {A;B}) C) (* Or Elim *) *)
+(* /\ (!A D. (Nc D (Bot)) *)
+(*    ==> Nc (D DIFF {Not A}) A)`; (* Classical absurdidty rule *) *)
 
-val [Nc_ax, Nc_andi, Nc_andel, Nc_ander, Nc_impi, Nc_impe,
-     Nc_orir, Nc_oril, Nc_ore, Nc_absurd] = CONJUNCTS Nc_rules;
+(* val [Nc_ax, Nc_andi, Nc_andel, Nc_ander, Nc_impi, Nc_impe, *)
+(*      Nc_orir, Nc_oril, Nc_ore, Nc_absurd] = CONJUNCTS Nc_rules; *)
 
 val NmThm = Define `NmThm A = Nm EMPTY A`;
-val NiThm = Define `NiThm A = Ni EMPTY A`;
-val NcThm = Define `NcThm A = Nc EMPTY A`;
+(* val NiThm = Define `NiThm A = Ni EMPTY A`; *)
+(* val NcThm = Define `NcThm A = Nc EMPTY A`; *)
 
 (* Example deductions *)
 val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
@@ -111,12 +111,12 @@ val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
 `Nm EMPTY (A Imp (B Imp A))` by metis_tac[] >>
  rw[NmThm]);
 
-val Ni_example = Q.prove(`NiThm (Bot Imp A)`,
-`Ni {Bot} Bot` by rw[Ni_rules] >>
-`Ni {Bot} A` by rw[Ni_rules] >>
-`{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >>
-`Ni EMPTY (Bot Imp A)` by metis_tac[Ni_rules] >>
-rw[NiThm]);
+(* val Ni_example = Q.prove(`NiThm (Bot Imp A)`, *)
+(* `Ni {Bot} Bot` by rw[Ni_rules] >> *)
+(* `Ni {Bot} A` by rw[Ni_rules] >> *)
+(* `{} = ({Bot} DIFF {Bot})` by rw[DIFF_DEF] >> *)
+(* `Ni EMPTY (Bot Imp A)` by metis_tac[Ni_rules] >> *)
+(* rw[NiThm]); *)
 
 (** Sequent Calculus (Gentzen System) for minimal logic **)
 (* Gm is the 'deduciblility' relation for this system *)
@@ -125,7 +125,8 @@ rw[NiThm]);
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
-(!Γ A:'a formula. A <: Γ ==> Gm Γ A) (* Ax *)
+(!A:'a formula. Gm {|A|} A) (* Ax *)
+/\ (!Γ A C. Gm Γ C ==> Gm (BAG_INSERT A Γ) C) (* Left Weakening *)
 /\ (!A Γ C. (Gm ({|A;A|} + Γ) C)
    ==> Gm ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gm (BAG_INSERT A Γ) C)
@@ -147,7 +148,7 @@ val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
    ==> (Gm Γ (A Imp B))) (* Right Imp *)
 ∧  (∀A B Γ Γ'. (Gm Γ A) ∧ (Gm (BAG_INSERT A Γ') B) ==> Gm (Γ + Γ') B)` (* Cut *)
 
-val [Gm_ax, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
+val [Gm_ax, Gm_lw, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
      Gm_lor, Gm_rorl, Gm_rorr, Gm_limp, Gm_rimp, Gm_cut] = CONJUNCTS Gm_rules;
 
 val GmThm = Define `GmThm A = Gm EMPTY_BAG A`;
@@ -159,19 +160,19 @@ val Gm_example2 = Q.prove (`GmThm ((A Imp (A Imp B)) Imp (A Imp B))`,
 rw[GmThm] >>
 `Gm {|(A Imp A Imp B)|} (A Imp B)` suffices_by metis_tac[Gm_rules] >>
 `Gm {|A;(A Imp A Imp B)|} (B)` suffices_by metis_tac[Gm_rules] >>
-`Gm {|A|} (A)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
-`Gm {|B;A|} (B)` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
-(* `Gm {|A;B|} (B)` by simp[Gm_lw] >> *)
-(* `Gm {|B;A|} (B)` by simp[BAG_INSERT_commutes] >> *)
+`Gm {|A|} (A)` by metis_tac[Gm_ax] >>
+`Gm {|B|} (B)` by metis_tac[Gm_ax] >>
+`Gm {|A;B|} (B)` by simp[Gm_lw] >>
+`Gm {|B;A|} (B)` by simp[BAG_INSERT_commutes] >>
 `Gm {|(A Imp B);A|} (B)` by metis_tac[Gm_rules] >>
 `Gm {|(A Imp A Imp B);A|} (B)` suffices_by metis_tac[BAG_INSERT_commutes] >>
 metis_tac[Gm_rules]);
 
 val Gm_land_commutes =
     Q.prove(`Gm {| A And B |} Δ ==> Gm {| B And A |} Δ`, rw[] >>
-`Gm {|B|} B` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+`Gm {|B|} B` by metis_tac[Gm_ax] >>
 `Gm {|B And A|} B` by metis_tac[Gm_landl] >>
-`Gm {|A|} A` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+`Gm {|A|} A` by metis_tac[Gm_ax] >>
 `Gm {|B And A|} A` by metis_tac[Gm_landr] >>
 `Gm {|B And A|} (A And B)` by metis_tac[Gm_rand] >>
 `Gm ({|B And A|} + {||}) Δ` by metis_tac[Gm_cut] >>
@@ -280,10 +281,10 @@ metis_tac[BAG_UNION_EMPTY]);
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
-val BAG_OF_SET_UNION_EQ_MERGE =
-    Q.prove(`BAG_OF_SET (Γ ∪ Γ') =  (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
-       simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
-       simp[FUN_EQ_THM] >> rw[] >> fs[]);
+val BAG_OF_SET_UNION_EQ_MERGE = Q.prove(
+`BAG_OF_SET (Γ ∪ Γ') = (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
+ simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
+ simp[FUN_EQ_THM] >> rw[] >> fs[]);
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
@@ -304,15 +305,23 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      
  )
     )
+val Nm_D_finite = Q.prove(`!D A. Nm D A ==> FINITE D`,
+Induct_on `Nm` >> rw[Nm_rules]);
 
+val Gm_Γ_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
+Induct_on `Gm` >>
+rw[]
+
+val Nm_weakening = Q.prove(`!D A. Nm D A ==> !D'. Nm (D ∪ D') A`,
+  
 
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> Nm (SET_OF_BAG Γ) A` (
 Induct_on `Gm` >>
 rw[Nm_rules]
 >- (
-`A IN SET_OF_BAG Γ` by metis_tac[IN_SET_OF_BAG] >>
+(* `A IN SET_OF_BAG Γ` by metis_tac[IN_SET_OF_BAG] >> *)
 Cases_on `Γ` >- (fs[SET_OF_BAG_EQ_EMPTY])
-             >- (fs[SET_OF_BAG_INSERT]
+             >- (fs[BAG_INSERT_UNION]
                    >- (rw[] >> )
   )
 )
