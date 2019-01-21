@@ -8,6 +8,7 @@
 open HolKernel boolLib Parse bossLib;
 open bagLib bagSimps bagTheory;
 open pred_setTheory pred_setLib;
+open arithmeticTheory;
 
 val _ = new_theory "ProofTheory";
 
@@ -127,7 +128,7 @@ val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
-(!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> Gm Γ A) (* Ax *)
+(!(A:'a formula) Γ. (A <: Γ) ==> Gm Γ A) (* Ax *)
 /\ (!A Γ C. (Gm ({|A;A|} + Γ) C)
    ==> Gm ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gm (BAG_INSERT A Γ) C)
@@ -282,18 +283,16 @@ metis_tac[BAG_UNION_EMPTY]);
 (*                                                                            *)
 (*                                                                            *)
 (* ========================================================================== *)
-val BAG_OF_SET_UNION = Q.prove(
-`BAG_OF_SET (Γ ∪ Γ') = (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))`,
- simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
+Theorem BAG_OF_SET_UNION `∀Γ Γ'. BAG_OF_SET (Γ ∪ Γ') = (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))` (
+ rpt strip_tac >> simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
  simp[FUN_EQ_THM] >> rw[] >> fs[]);
 
-val BAG_OF_SET_DIFF = Q.prove(
-`BAG_OF_SET (Γ DIFF Γ') = BAG_FILTER (COMPL Γ') (BAG_OF_SET Γ)`,
+Theorem BAG_OF_SET_DIFF `BAG_OF_SET (Γ DIFF Γ') = BAG_FILTER (COMPL Γ') (BAG_OF_SET Γ)` (
 simp[DIFF_DEF] >> simp[BAG_OF_SET] >> simp[BAG_FILTER_DEF] >> metis_tac[]);
 
-val BAG_OF_SET_INSERT = Q.prove(
-`!e s. BAG_OF_SET (e INSERT s) = BAG_MERGE {|e|} (BAG_OF_SET s)`,
-RW_TAC proof_ss [BAG_OF_SET,INSERT_DEF,BAG_MERGE,EMPTY_BAG] >>
+Theorem BAG_OF_SET_INSERT
+`!e s. BAG_OF_SET (e INSERT s) = BAG_MERGE {|e|} (BAG_OF_SET s)` (
+rw[BAG_OF_SET,INSERT_DEF,BAG_MERGE,EMPTY_BAG] >>
 rw[FUN_EQ_THM,BAG_INSERT] >> rw[] 
  >- (fs[IN_DEF] >>
      `s e = F` by metis_tac[] >>
@@ -304,21 +303,26 @@ rw[FUN_EQ_THM,BAG_INSERT] >> rw[]
      `(s x) = T` by metis_tac[] >>
      fs[COND_CLAUSES]));
 
-(* IN PROGRESS *)
-val FINITE_BAG_OF_SET = Q.prove(
-`!Γ. FINITE Γ ==> FINITE_BAG (BAG_OF_SET Γ)`,
-Induct_on `Γ` >>
-rw[] >>
-simp[BAG_OF_SET_INSERT] >>
-rw[BAG_MERGE] >>
-rw[FINITE_BAG] >>
-`FINITE_BAG (BAG_INSERT e (BAG_OF_SET Γ))` by metis_tac[BAG_INSERT,FINITE_BAG] >>
+Theorem BAG_MERGE_EMPTY `∀b. ((BAG_MERGE {||} b) = b) /\ ((BAG_MERGE b {||}) = b)` (rw[] >> simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
+
+(* Theorem FINITE_BAG_MERGE `∀Γ Γ'. FINITE_BAG Γ ∧ FINITE_BAG Γ' ==> FINITE_BAG (BAG_MERGE Γ Γ')` ( *)
+
+  
+      (* (* IN PROGRESS *) *)
+(* val FINITE_BAG_OF_SET = Q.prove( *)
+(* `!Γ. FINITE Γ ==> FINITE_BAG (BAG_OF_SET Γ)`, *)
+(* Induct_on `Γ` >> *)
+(* rw[] >> *)
+(* simp[BAG_OF_SET_INSERT] >> *)
+(* rw[BAG_MERGE] >> *)
+(* rw[FINITE_BAG] >> *)
+(* `FINITE_BAG (BAG_INSERT e (BAG_OF_SET Γ))` by metis_tac[BAG_INSERT,FINITE_BAG] >> *)
 
 val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
                           Induct_on `Nm` >> rw[Nm_rules]);
 
-val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
-                          Induct_on `Gm` >> rw[Gm_rules]);
+(* val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`, *)
+(*                           Induct_on `Gm` >> rw[Gm_rules]); *)
 
 (* IN PROGRESS *)
 (* val Gm_wk_BAG_OF_SET = Q.prove(`!Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A`, *)
@@ -333,7 +337,42 @@ val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`,
 
 (* simp[SET_OF_BAG] *)
 
-Theorem Gm_weakening `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ∧ FINITE_BAG Γ' ⇒ Gm Γ' A`
+(* Theorem Gm_lw `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ∧ FINITE_BAG Γ' ⇒ Gm Γ' A` *)
+(* (Induct_on `Gm` >> rw[] *)
+(* >- (irule Gm_ax >> fs[SUB_BAG, BAG_IN]) *)
+(* >- (‘∃Γ₂. Γ' = {|A|} ⊎ Γ₂’ *)
+(*        by (qexists_tac ‘Γ' - {|A|}’ >> irule SUB_BAG_DIFF_EQ >> *)
+(*            metis_tac[SUB_BAG_UNION_down]) >> *)
+(*     rw[] >> irule Gm_lc >> first_x_assum irule >> simp[] >> fs[]) *)
+(* >- (‘∃Γ₂. Γ' = BAG_INSERT (A And B) Γ₂’ *)
+(*       by (qexists_tac ‘Γ' - {|A And B|}’ >> fs[BAG_INSERT_UNION] >> *)
+(*           irule SUB_BAG_DIFF_EQ >> metis_tac[SUB_BAG_UNION_down]) >> *)
+(*     rw[] >> irule Gm_landl >> first_x_assum irule >> fs[SUB_BAG_INSERT]) *)
+(* >- (‘∃Γ₂. Γ' = BAG_INSERT (A And B) Γ₂’ *)
+(*       by (qexists_tac ‘Γ' - {|A And B|}’ >> fs[BAG_INSERT_UNION] >> *)
+(*           irule SUB_BAG_DIFF_EQ >> metis_tac[SUB_BAG_UNION_down]) >> *)
+(*     rw[] >> irule Gm_landr >> first_x_assum irule >> fs[SUB_BAG_INSERT]) *)
+(* >- (irule Gm_rand >> simp[]) *)
+(* >- (‘∃Γ₂. Γ' = BAG_INSERT (A Or B) Γ₂’ *)
+(*       by (qexists_tac ‘Γ' - {|A Or B|}’ >> fs[BAG_INSERT_UNION] >> *)
+(*           irule SUB_BAG_DIFF_EQ >> metis_tac[SUB_BAG_UNION_down]) >> *)
+(*     rw[] >> fs[SUB_BAG_INSERT] >> irule Gm_lor >> conj_tac >> *)
+(*     first_x_assum (fn th => irule th >> fs[SUB_BAG_INSERT] >> NO_TAC)) *)
+(* >- simp[Gm_rorl] *)
+(* >- simp[Gm_rorr] *)
+(* >- (‘∃Γ₂. Γ' = BAG_INSERT (A Imp B) Γ₂’ *)
+(*       by (qexists_tac ‘Γ' - {|A Imp B|}’ >> fs[BAG_INSERT_UNION] >> *)
+(*           irule SUB_BAG_DIFF_EQ >> metis_tac[SUB_BAG_UNION_down]) >> *)
+(*     rw[] >> irule Gm_limp >> fs[SUB_BAG_INSERT]) *)
+(* >- simp[SUB_BAG_INSERT, Gm_rimp] *)
+(* >- (rename [‘Γ₁ ⊎ Γ₂ ≤ Γ₃’] >> *)
+(*     ‘∃Γ₀. Γ₃ = Γ₀ ⊎ Γ₁ ⊎ Γ₂’ *)
+(*       by metis_tac[SUB_BAG_EXISTS, COMM_BAG_UNION, ASSOC_BAG_UNION] >> *)
+(*     rw[] >> irule Gm_cut >> *)
+(*     rename [‘Gm (BAG_INSERT A _) B’] >> qexists_tac ‘A’ >> *)
+(*     conj_tac >> first_x_assum irule >> fs[SUB_BAG_INSERT])); *)
+
+Theorem Gm_lw `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ⇒ Gm Γ' A`
 (Induct_on `Gm` >> rw[]
 >- (irule Gm_ax >> fs[SUB_BAG, BAG_IN])
 >- (‘∃Γ₂. Γ' = {|A|} ⊎ Γ₂’
@@ -368,14 +407,15 @@ Theorem Gm_weakening `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ∧ FINITE_BAG Γ'
     rename [‘Gm (BAG_INSERT A _) B’] >> qexists_tac ‘A’ >>
     conj_tac >> first_x_assum irule >> fs[SUB_BAG_INSERT]));
 
+val Gm_lw_BAG_MERGE = Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A`,
+rw[] >> irule Gm_lw >>
+  
 
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
  rw[Gm_rules] >>
- >- (`BAG_OF_SET {A} = {|A|}` by simp[EMPTY_BAG,BAG_OF_SET,BAG_INSERT] >>
-     simp[Gm_rules])
- >- (irule Gm_rand >> conj_tac >> Gm_ax
+ >- (irule Gm_rand >> conj_tac >> )
  >- (`Gm {|A|} A` by metis_tac[Gm_ax] >>
      `Gm {|A And B|} A` by metis_tac[Gm_landl] >>
      `Gm ((BAG_OF_SET Γ) + {||}) A` by metis_tac[Gm_cut] >>
