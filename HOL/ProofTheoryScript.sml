@@ -370,6 +370,8 @@ val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
 val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A`,
   rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[SUB_BAG_INSERT_I]);
 
+val DISTINCT_SUB_BAG = Define `∀a b. DISTINCT_SUB_BAG a b = (a ≤ b) /\ (BAG_ALL_DISTINCT a)`;
+
 (* Theorem Gm_lc_BAG_MERGE `∀Γ Γ' A. Gm (Γ ⊎ Γ') A ==> Gm (BAG_MERGE Γ Γ') A` ( *)
 (*   rw[] >> fs[BAG_UNION,BAG_MERGE] >> *)
 (*   Cases_on `Γ'` >- fs[EMPTY_BAG] *)
@@ -379,7 +381,7 @@ val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B 
 (* Theorem Gm_lc_SET_OF_BAG `∀Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A` ( *)
 (*   Induct_on `Gm` >> rw[Gm_rules] *)
 (*     >- fs[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,BAG_UNION] *)
-(*     >- fs[BAG_IN,BAG_INN] *)
+(*     >- fs[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,BAG_IN] *)
 
 (*   rw[] >> simp[BAG_OF_SET,SET_OF_BAG] >> Cases_on `Γ` *)
 (*     >- fs[EMPTY_BAG_alt] *)
@@ -425,9 +427,8 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
 Induct_on `Gm` >>
-rw[Nm_rules]
->- (`Nm (SET_OF_BAG (EL_BAG A)) A` suffices_by simp[EL_BAG] >>
-    simp[SET_OF_EL_BAG] >> metis_tac[Nm_ax])
+rw[]
+>- (Q.EXISTS_TAC `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[Nm_ax])
 >- (`Nm {A} A` by metis_tac[Nm_ax] >>
     `Nm ({A} ∪ (SET_OF_BAG Γ)) (A And A')` by metis_tac[Nm_andi] >>
     simp[SET_OF_BAG_INSERT] >>
