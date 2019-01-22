@@ -51,7 +51,7 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
 /\ (!A B C D1 D2 D3. (Nm D1 (A Or B)) /\
-(Nm D2 C) /\ (Nm D3 C) ==> Nm ((D1 UNION D2 UNION D3) DIFF {A;B}) C)`; (* Or Elim *)
+(Nm D2 C) /\ (Nm D3 C) ==> Nm ((D1 UNION (D2 DIFF {A}) UNION (D3 DIFF {B}))) C)`; (* Or Elim *)
 
 val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
      Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
@@ -306,6 +306,7 @@ rw[FUN_EQ_THM,BAG_INSERT] >> rw[]
 Theorem BAG_MERGE_SUB_BAG_UNION `∀s t. ((BAG_MERGE s t) ≤ (s ⊎ t))` (
   simp[SUB_BAG] >> simp[BAG_MERGE,BAG_UNION] >> rw[BAG_INN]);
 
+
 Theorem BAG_MERGE_EMPTY `∀b. ((BAG_MERGE {||} b) = b) /\ ((BAG_MERGE b {||}) = b)` (rw[] >> simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
 val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
@@ -363,6 +364,24 @@ rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ₁` >> simp[] >>
 val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
   rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[]);
 
+val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A`,
+  rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[SUB_BAG_INSERT_I]);
+
+(* Theorem Gm_lc_BAG_MERGE `∀Γ Γ' A. Gm (Γ ⊎ Γ') A ==> Gm (BAG_MERGE Γ Γ') A` ( *)
+(*   rw[] >> fs[BAG_UNION,BAG_MERGE] >> *)
+(*   Cases_on `Γ'` >- fs[EMPTY_BAG] *)
+(*     >- (Cases_on `Γ` *)
+(*       >- (fs[EMPTY_BAG] >> fs[BAG_INSERT] >> *)
+
+(* Theorem Gm_lc_SET_OF_BAG `∀Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A` ( *)
+(*   Induct_on `Gm` >> rw[Gm_rules] *)
+(*     >- fs[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,BAG_UNION] *)
+(*     >- fs[BAG_IN,BAG_INN] *)
+
+(*   rw[] >> simp[BAG_OF_SET,SET_OF_BAG] >> Cases_on `Γ` *)
+(*     >- fs[EMPTY_BAG_alt] *)
+(*     >- fs[BAG_INN,BAG_INSERT] *)
+
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
@@ -384,9 +403,23 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  >- (irule Gm_rimp >>
      simp[BAG_OF_SET_DIFF, BAG_INSERT_FILTER_COMP_OF_SET,BAG_OF_SET_INSERT, Gm_lw_BAG_MERGE])
  >- (simp[BAG_OF_SET_UNION] >>
-`Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'` suffices_by metis_tac[Gm_lw_BAG_UNION]
- )
+    `Gm (BAG_INSERT A' (BAG_OF_SET Γ')) A'` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+    `Gm (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'` by metis_tac[Gm_limp] >>
+    `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'` by metis_tac[Gm_cut] >>
+    (* Needs Lemma *)
     )
+  >- (simp[BAG_OF_SET_DIFF,BAG_OF_SET_UNION] >>
+      qabbrev_tac `Γ₀ = (BAG_OF_SET Γ)` >>
+      qabbrev_tac `Γ₁ = (BAG_OF_SET Γ')` >>
+      qabbrev_tac `Γ₂ = (BAG_OF_SET Γ'')` >>
+      simp[BAG_FILTER_DEF,COMPL_DEF] >>
+      (* `Gm (BAG_MERGE Γ₀ Γ₁) A'` by metis_tac[Gm_lw_BAG_MERGE] >> *)
+      (* `Gm (BAG_INSERT A (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
+      (* `Gm (BAG_INSERT B (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
+      (* `Gm (BAG_INSERT (A Or B) (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
+      `Gm (BAG_MERGE (BAG_MERGE Γ₀ Γ₁) Γ₂) A'` by metis_tac[Gm_lw_BAG_MERGE]
+
+ )
 
 (* IN PROGRESS *)
 (* Apparently Nm takes a subset here!? *)
