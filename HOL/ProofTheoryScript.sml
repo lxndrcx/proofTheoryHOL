@@ -303,10 +303,17 @@ rw[FUN_EQ_THM,BAG_INSERT] >> rw[]
      `(s x) = T` by metis_tac[] >>
      fs[COND_CLAUSES]));
 
+Theorem BAG_MERGE_SUB_BAG_UNION `∀s t. ((BAG_MERGE s t) ≤ (s ⊎ t))` (
+  simp[SUB_BAG] >> simp[BAG_MERGE,BAG_UNION] >> rw[BAG_INN]);
+
 Theorem BAG_MERGE_EMPTY `∀b. ((BAG_MERGE {||} b) = b) /\ ((BAG_MERGE b {||}) = b)` (rw[] >> simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
 val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
                           Induct_on `Nm` >> rw[Nm_rules]);
+
+Theorem BAG_INSERT_FILTER_COMP_OF_SET `∀s a. (BAG_INSERT a (BAG_FILTER (COMPL {a}) (BAG_OF_SET s))) = (BAG_OF_SET (a INSERT s))` (
+  simp[BAG_OF_SET,BAG_INSERT,BAG_FILTER_DEF,COMPL_DEF,INSERT_DEF] >>
+  rw[FUN_EQ_THM] >> metis_tac[]);
 
 (* val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`, *)
 (*                           Induct_on `Gm` >> rw[Gm_rules]); *)
@@ -353,6 +360,9 @@ val Gm_lw_BAG_MERGE = Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. Gm (BAG_MERGE Γ
 rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ₁` >> simp[] >>
  simp[SUB_BAG] >> simp[BAG_INN_BAG_MERGE]);
 
+val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
+  rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[]);
+
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
@@ -371,13 +381,10 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      `Gm {|A And A'|} A'` by metis_tac[Gm_landr] >>
      `Gm ((BAG_OF_SET Γ) + {||}) A'` by metis_tac[Gm_cut] >>
      metis_tac[BAG_UNION_EMPTY])
- >- (irule Gm_rimp >> simp[BAG_OF_SET_DIFF]
- >- (simp[BAG_OF_SET_DIFF] >>
-     `FINITE Γ` by metis_tac[Nm_D_FINITE] >>
-     Q.UNDISCH_TAC `FINITE Γ` >>
-     Q.SPEC_TAC (`Γ`,`D`) >>
-     SET_INDUCT_TAC
-       >- (*unfinished*)
+ >- (irule Gm_rimp >>
+     simp[BAG_OF_SET_DIFF, BAG_INSERT_FILTER_COMP_OF_SET,BAG_OF_SET_INSERT, Gm_lw_BAG_MERGE])
+ >- (simp[BAG_OF_SET_UNION] >>
+`Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'` suffices_by metis_tac[Gm_lw_BAG_UNION]
  )
     )
 
