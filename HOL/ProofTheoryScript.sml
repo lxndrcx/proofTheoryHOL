@@ -45,13 +45,13 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
    ==> (Nm (D1 UNION D2) (A And B))) (* And Intro *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D A) (* And Elimination Left Conjunct *)
 /\ (!A B D. (Nm D (A And B)) ==> Nm D B) (* And Elim Right Conjunct *)
-/\ (!A B D. (Nm D B) ==> Nm (D DIFF {A}) (A Imp B)) (* Imp Intro *)
+/\ (!A B D. (Nm (A INSERT D) B) ==> Nm D (A Imp B)) (* Imp Intro *)
 /\ (!A B D1 D2. (Nm D1 (A Imp B)) /\ (Nm D2 A)
    ==> Nm (D1 UNION D2) B) (* Imp Elim *)
 /\ (!A B D. Nm D A ==> Nm D (A Or B)) (* Or Intro right *)
 /\ (!A B D. Nm D B ==> Nm D (A Or B)) (* Or Intro left *)
-/\ (!A B C D1 D2 D3. (Nm D1 (A Or B)) /\
-(Nm D2 C) /\ (Nm D3 C) ==> Nm ((D1 UNION (D2 DIFF {A}) UNION (D3 DIFF {B}))) C)`; (* Or Elim *)
+/\ (!A B C D. (Nm D (A Or B)) /\
+(Nm (A INSERT D) C) /\ (Nm (B INSERT D) C) ==> Nm D C)`; (* Or Elim *)
 
 val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
      Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
@@ -103,15 +103,13 @@ val NmThm = Define `NmThm A = Nm EMPTY A`;
 
 (* Example deductions *)
 val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
-`Nm {A} A` by rw[Nm_rules] >>
-`Nm {B} B` by rw[Nm_rules] >>
+`Nm {A} A` by rw[Nm_ax] >>
+`Nm {B} B` by rw[Nm_ax] >>
 `{A} UNION {B} = {A;B}` by simp[UNION_DEF,INSERT_DEF] >>
-`Nm {A;B} (A And B)` by metis_tac[Nm_rules] >>
-`Nm {A;B} (A)` by metis_tac[Nm_rules] >>
-`Nm ({A;B} DIFF {B}) (B Imp A)` by metis_tac[Nm_rules] >>
-`Nm (({A;B} DIFF {B}) DIFF {A}) (A Imp (B Imp A))` by metis_tac[Nm_rules] >>
-`(({A;B} DIFF {B}) DIFF {A}) = EMPTY` by (rw[]) >>
-`Nm EMPTY (A Imp (B Imp A))` by metis_tac[] >>
+`Nm {A;B} (A And B)` by metis_tac[Nm_andi] >>
+`Nm {A;B} (A)` by metis_tac[Nm_andel] >>
+`Nm {A} (B Imp A)` by (irule Nm_impi >> simp[INSERT_COMM]) >>
+`Nm {} (A Imp (B Imp A))` by metis_tac[Nm_impi] >>
  rw[NmThm]);
 
 (* val Ni_example = Q.prove(`NiThm (Bot Imp A)`, *)
@@ -306,6 +304,7 @@ rw[FUN_EQ_THM,BAG_INSERT] >> rw[]
 Theorem BAG_MERGE_SUB_BAG_UNION `∀s t. ((BAG_MERGE s t) ≤ (s ⊎ t))` (
   simp[SUB_BAG] >> simp[BAG_MERGE,BAG_UNION] >> rw[BAG_INN]);
 
+Theorem BAG_UNION_COMM `∀a b. a ⊎ b = b ⊎ a` (rw[BAG_UNION]);
 
 Theorem BAG_MERGE_EMPTY `∀b. ((BAG_MERGE {||} b) = b) /\ ((BAG_MERGE b {||}) = b)` (rw[] >> simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
@@ -315,6 +314,10 @@ val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
 Theorem BAG_INSERT_FILTER_COMP_OF_SET `∀s a. (BAG_INSERT a (BAG_FILTER (COMPL {a}) (BAG_OF_SET s))) = (BAG_OF_SET (a INSERT s))` (
   simp[BAG_OF_SET,BAG_INSERT,BAG_FILTER_DEF,COMPL_DEF,INSERT_DEF] >>
   rw[FUN_EQ_THM] >> metis_tac[]);
+
+Theorem BAG_MERGE_ELBAG_SUB_BAG_INSERT `∀A b. (BAG_MERGE {|A|} b) ≤ (BAG_INSERT A b)` (
+  rw[] >> simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG] >>
+    simp[SUB_BAG,BAG_INN] >> rw[]);
 
 (* val Gm_G_FINITE = Q.prove(`!Γ A. Gm Γ A ==> FINITE_BAG Γ`, *)
 (*                           Induct_on `Gm` >> rw[Gm_rules]); *)
@@ -401,24 +404,21 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      `Gm ((BAG_OF_SET Γ) + {||}) A'` by metis_tac[Gm_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (irule Gm_rimp >>
-     simp[BAG_OF_SET_DIFF, BAG_INSERT_FILTER_COMP_OF_SET,BAG_OF_SET_INSERT, Gm_lw_BAG_MERGE])
+     fs[BAG_OF_SET_INSERT] >>
+     `(BAG_MERGE {|A|} (BAG_OF_SET Γ)) ≤ (BAG_INSERT A (BAG_OF_SET Γ))` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT] >>
+     metis_tac[Gm_lw])
  >- (simp[BAG_OF_SET_UNION] >>
     `Gm (BAG_INSERT A' (BAG_OF_SET Γ')) A'` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
     `Gm (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'` by metis_tac[Gm_limp] >>
     `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'` by metis_tac[Gm_cut] >>
     (* Needs Lemma *)
     )
-  >- (simp[BAG_OF_SET_DIFF,BAG_OF_SET_UNION] >>
-      qabbrev_tac `Γ₀ = (BAG_OF_SET Γ)` >>
-      qabbrev_tac `Γ₁ = (BAG_OF_SET Γ')` >>
-      qabbrev_tac `Γ₂ = (BAG_OF_SET Γ'')` >>
-      simp[BAG_FILTER_DEF,COMPL_DEF] >>
-      (* `Gm (BAG_MERGE Γ₀ Γ₁) A'` by metis_tac[Gm_lw_BAG_MERGE] >> *)
-      (* `Gm (BAG_INSERT A (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
-      (* `Gm (BAG_INSERT B (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
-      (* `Gm (BAG_INSERT (A Or B) (BAG_MERGE Γ₀ Γ₁)) A'` by metis_tac[Gm_lw_BAG_INSERT] *)
-      `Gm (BAG_MERGE (BAG_MERGE Γ₀ Γ₁) Γ₂) A'` by metis_tac[Gm_lw_BAG_MERGE]
-
+  >- (fs[BAG_OF_SET_INSERT] >> 
+      `Gm (BAG_INSERT A (BAG_OF_SET Γ)) A'` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
+      `Gm (BAG_INSERT B (BAG_OF_SET Γ)) A'` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
+      `Gm (BAG_INSERT (A Or B) (BAG_OF_SET Γ)) A'` by metis_tac[Gm_lor] >>
+      `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ)) A'` by metis_tac[Gm_cut] >>
+      (* Needs Lemma *)
  )
 
 (* IN PROGRESS *)
