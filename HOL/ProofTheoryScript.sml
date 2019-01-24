@@ -423,23 +423,62 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
       (* Needs Lemma *)
  )
 
+
+val Nm_lw = Q.prove(`∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A`,
+  Induct_on `Nm` >> rw[] 
+    >- (`Nm {B} B` by metis_tac[Nm_ax] >>
+        `Nm {A} A` by metis_tac[Nm_ax] >>
+        `Nm {B;A} (B And A)` by metis_tac[Nm_andi,INSERT_SING_UNION] >>
+        metis_tac[Nm_ander])
+    >- (simp[Once INSERT_SING_UNION] >> simp[UNION_ASSOC] >> irule Nm_andi >>
+        `Nm (B' INSERT D) A` by metis_tac[] >> fs[Once INSERT_SING_UNION])
+    >- (fs[Once INSERT_SING_UNION] >> metis_tac[Nm_andel])
+    >- (fs[Once INSERT_SING_UNION] >> metis_tac[Nm_ander])
+    >- (fs[Once INSERT_SING_UNION] >> irule Nm_impi >>
+        `Nm ({B} ∪ (A INSERT D)) A'` by metis_tac[] >>
+        `Nm ({A} ∪ ({B} ∪ D)) A'`
+          by metis_tac[INSERT_SING_UNION,UNION_COMM,UNION_ASSOC] >>
+        simp[Once INSERT_SING_UNION])
+    >- (fs[Once INSERT_SING_UNION] >>
+        `Nm ({B} ∪ D) (A Imp A')` by metis_tac[] >>
+        `Nm ({B} ∪ D') A` by metis_tac[] >>
+        `Nm (({B} ∪ D) ∪ ({B} ∪ D')) A'` by metis_tac[Nm_impe] >>
+        metis_tac[UNION_ASSOC,UNION_COMM,UNION_IDEMPOT])
+    >- (fs[Once INSERT_SING_UNION] >>
+        irule Nm_orir >> metis_tac[])
+    >- (fs[Once INSERT_SING_UNION] >>
+        irule Nm_oril >> metis_tac[])
+    >- (fs[Once INSERT_SING_UNION] >>
+        `Nm ({B'} ∪ (A INSERT D)) A'` by metis_tac[] >>
+        `Nm ((A INSERT D) ∪ {B'}) A'` by metis_tac[UNION_COMM] >>
+        `Nm (A INSERT (D ∪ {B'})) A'` by metis_tac[INSERT_UNION_EQ] >>
+        `Nm (A INSERT ({B'} ∪ D)) A'` by metis_tac[UNION_COMM] >>
+        `Nm ({B'} ∪ (B INSERT D)) A'` by metis_tac[] >>
+        `Nm ((B INSERT D) ∪ {B'}) A'` by metis_tac[UNION_COMM] >>
+        `Nm (B INSERT (D ∪ {B'})) A'` by metis_tac[INSERT_UNION_EQ] >>
+        `Nm (B INSERT ({B'} ∪ D)) A'` by metis_tac[UNION_COMM] >>
+        `Nm ({B'} ∪ D) (A Or B)` by metis_tac[] >>
+        metis_tac[Nm_ore]));
+  
 (* IN PROGRESS *)
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
 Induct_on `Gm` >>
-rw[]
->- (Q.EXISTS_TAC `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[Nm_ax])
->- (`Nm {A} A` by metis_tac[Nm_ax] >>
-    `Nm ({A} ∪ (SET_OF_BAG Γ)) (A And A')` by metis_tac[Nm_andi] >>
-    simp[SET_OF_BAG_INSERT] >>
-    `{A} ∪ SET_OF_BAG Γ = A INSERT SET_OF_BAG Γ` by simp[UNION_DEF,INSERT_DEF] >>
-    metis_tac[Nm_ander])
->- (fs[SET_OF_BAG_UNION] >> fs[SET_OF_BAG])
+conj_tac
+  >- (rpt strip_tac >> Q.EXISTS_TAC `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[Nm_ax]) >>
+conj_tac
+>- (rpt strip_tac >> Q.EXISTS_TAC `Γ'` >> fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]) >>
+conj_tac
+>- (rpt strip_tac >> rename [`Nm _ C`] >>
+    (* `Nm (SET_OF_BAG (BAG_INSERT A Γ)) C` by ( *)
+    `Nm {A And B} (A And B)` by metis_tac[Nm_ax] >>
+    `Nm {A And B} A` by metis_tac[Nm_andel] >>
+    qexists_tac `(SET_OF_BAG (BAG_INSERT (A And B) Γ))` >> simp[] >>
+    ) >>
+conj_tac
 >- (
-    fs[SET_OF_BAG_INSERT] >>
-    `Nm {A And B} (A And B)` by metis_tac[Nm_rules] >>
-    `Nm ({A And B} ∪ (A INSERT SET_OF_BAG Γ)) ((A And B) And A')` by metis_tac[Nm_rules] >>
-    `Nm ({A And B} ∪ (A INSERT SET_OF_BAG Γ)) A'` by metis_tac[Nm_rules] >>
+  ) >>
+conj_tac
 )
 
 val _ = export_theory()
