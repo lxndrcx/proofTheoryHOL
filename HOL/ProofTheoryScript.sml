@@ -480,12 +480,40 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
         `Nm (A INSERT (SET_OF_BAG Γ)) C` by metis_tac[SET_OF_BAG_INSERT] >>
         `Nm (SET_OF_BAG Γ) (A Imp C)` by metis_tac[Nm_impi] >>
         `Nm ((SET_OF_BAG Γ) ∪ {A And B}) C` by metis_tac[Nm_impe] >>
-        `Nm ((A And B) INSERT (SET_OF_BAG Γ)) C` by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
-        qexists_tac `(SET_OF_BAG (BAG_INSERT (A And B) Γ))` >> simp[SET_OF_BAG_INSERT])
-    >- ( (*skipped, same problem as last *)
+        `Nm ((A And B) INSERT (SET_OF_BAG Γ)) C` 
+          by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+        qexists_tac `(SET_OF_BAG (BAG_INSERT (A And B) Γ))` >>
+        simp[SET_OF_BAG_INSERT])
+    >- (rename [`Nm _ C`] >>
+        `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >>
+        `Nm {A And B} (A And B)` by metis_tac[Nm_ax] >>
+        `Nm {A And B} B` by metis_tac[Nm_ander] >>
+        `Nm ((SET_OF_BAG (BAG_INSERT B Γ))) C` by metis_tac[] >>
+        `Nm (B INSERT (SET_OF_BAG Γ)) C` by metis_tac[SET_OF_BAG_INSERT] >>
+        `Nm (SET_OF_BAG Γ) (B Imp C)` by metis_tac[Nm_impi] >>
+        `Nm ((SET_OF_BAG Γ) ∪ {A And B}) C` by metis_tac[Nm_impe] >>
+        `Nm ((A And B) INSERT (SET_OF_BAG Γ)) C` 
+          by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+        qexists_tac `(SET_OF_BAG (BAG_INSERT (A And B) Γ))` >>
+        simp[SET_OF_BAG_INSERT])
     >- (qexists_tac `Γ' ∪ Γ''` >> simp[] >>
         metis_tac[Nm_andi])
-    >- ( (*skipped, same prob *))
+    >- (rename [`Nm _ C`] >>
+        `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >>
+        fs[SET_OF_BAG_INSERT] >>
+        `Nm (A INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
+          by (first_assum irule >> qexists_tac `Γ'` >> simp[] >> metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >> 
+        `Nm (B INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
+          by (first_assum irule >> qexists_tac `Γ''` >> simp[] >>
+            metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
+        qexists_tac `(A Or B) INSERT (SET_OF_BAG Γ)` >>
+        simp[SUBSET_INSERT_RIGHT] >>
+        `Nm {(A Or B)} (A Or B)` by metis_tac[Nm_ax] >>
+        `Nm ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)`
+          by metis_tac[SUBSET_UNION] >>
+        `Nm ((A Or B) INSERT (SET_OF_BAG Γ)) (A Or B)`
+          by metis_tac[INSERT_SING_UNION] >>
+        metis_tac[Nm_ore])
     >- (qexists_tac `Γ'` >> simp[Nm_orir])
     >- (qexists_tac `Γ'` >> simp[Nm_oril])
     >- ( (*skipped*))
