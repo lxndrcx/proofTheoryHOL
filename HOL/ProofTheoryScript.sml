@@ -355,13 +355,12 @@ Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D'
            fs[] >>
            metis_tac[Nm_lw])));
 
-  
 (* IN PROGRESS *)
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
   Induct_on `Gm` >> rw[]
     >- (Q.EXISTS_TAC `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[Nm_ax])
-    >- (Q.EXISTS_TAC `Γ'` >> fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]) 
+    >- (Q.EXISTS_TAC `Γ'` >> fs[SET_OF_BAG,BAG_UNION,BAG_INSERT])
     >- (rename [`Nm _ C`] >>
         `Nm {A And B} (A And B)` by metis_tac[Nm_ax] >>
         `Nm {A And B} A` by metis_tac[Nm_andel] >>
@@ -372,39 +371,52 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
                     by metis_tac[DECOMPOSITION] >>
                   fs[] >>
                   `(A INSERT Γ0) DELETE A = Γ0`
-                   by (dsimp[EXTENSION] >> metis_tac[]) >>
+                   by (dsimp[EXTENSION] >>
+                       metis_tac[]) >>
                   simp[Nm_impi])
               >- (simp[DELETE_NON_ELEMENT_RWT,Nm_impi])) >>
-
         `Nm ((Γ' DELETE A) ∪ {A And B}) C` by metis_tac[Nm_impe] >>
-        `Nm ((A And B) INSERT (Γ' DELETE A)) C` 
+        `Nm ((A And B) INSERT (Γ' DELETE A)) C`
                   by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
         qexists_tac `(A And B) INSERT Γ' DELETE A` >>
         fs[SET_OF_BAG_INSERT] >>
         fs[SUBSET_DEF] >>
         metis_tac[])
-    >- (* (rename [`Nm _ C`] >> *)
-       (*  `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >> *)
-       (*  `Nm {A And B} (A And B)` by metis_tac[Nm_ax] >> *)
-       (*  `Nm {A And B} B` by metis_tac[Nm_ander] >> *)
-       (*  `Nm ((SET_OF_BAG (BAG_INSERT B Γ))) C` by metis_tac[] >> *)
-       (*  `Nm (B INSERT (SET_OF_BAG Γ)) C` by metis_tac[SET_OF_BAG_INSERT] >> *)
-       (*  `Nm (SET_OF_BAG Γ) (B Imp C)` by metis_tac[Nm_impi] >> *)
-       (*  `Nm ((SET_OF_BAG Γ) ∪ {A And B}) C` by metis_tac[Nm_impe] >> *)
-       (*  `Nm ((A And B) INSERT (SET_OF_BAG Γ)) C`  *)
-       (*    by metis_tac[UNION_COMM,INSERT_SING_UNION] >> *)
-       (*  qexists_tac `(SET_OF_BAG (BAG_INSERT (A And B) Γ))` >> *)
-       (*  simp[SET_OF_BAG_INSERT]) *)
+    >- (rename [`Nm _ C`] >>
+        `Nm {A And B} (A And B)` by metis_tac[Nm_ax] >>
+        `Nm {A And B} B` by metis_tac[Nm_ander] >>
+        `Nm (B INSERT Γ') C` by metis_tac[Nm_lw] >>
+        `Nm (Γ' DELETE B) (B Imp C)`
+          by (Cases_on `B ∈ Γ'`
+              >- (`?Γ0. (Γ' = B INSERT Γ0) /\ B NOTIN Γ0`
+                    by metis_tac[DECOMPOSITION] >>
+                  fs[] >>
+                  `(B INSERT Γ0) DELETE B = Γ0`
+                    by (dsimp[EXTENSION] >>
+                        metis_tac[]) >>
+                  simp[Nm_impi])
+              >- (simp[DELETE_NON_ELEMENT_RWT,Nm_impi])) >>
+        `Nm ((Γ' DELETE B) ∪ {A And B}) C` by metis_tac[Nm_impe] >>
+        `Nm ((A And B) INSERT (Γ' DELETE B)) C`
+          by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+        qexists_tac `(A And B) INSERT Γ' DELETE B` >>
+        fs[SET_OF_BAG_INSERT] >>
+        fs[SUBSET_DEF] >>
+        metis_tac[])
     >- (qexists_tac `Γ' ∪ Γ''` >> simp[] >>
         metis_tac[Nm_andi])
     >- (rename [`Nm _ C`] >>
-        `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >>
         fs[SET_OF_BAG_INSERT] >>
         `Nm (A INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
-          by (first_assum irule >> qexists_tac `Γ'` >> simp[] >> metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >> 
+          by (first_assum irule >>
+              qexists_tac `Γ'` >>
+              simp[] >>
+              metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
         `Nm (B INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
-          by (first_assum irule >> qexists_tac `Γ''` >> simp[] >>
-            metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
+          by (first_assum irule >>
+              qexists_tac `Γ''` >>
+              simp[] >>
+              metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
         qexists_tac `(A Or B) INSERT (SET_OF_BAG Γ)` >>
         simp[SUBSET_INSERT_RIGHT] >>
         `Nm {(A Or B)} (A Or B)` by metis_tac[Nm_ax] >>
