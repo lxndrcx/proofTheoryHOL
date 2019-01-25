@@ -217,9 +217,11 @@ val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
 val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A`,
   rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[SUB_BAG_INSERT_I]);
 
-val DISTINCT_SUB_BAG = Define `∀a b. DISTINCT_SUB_BAG a b = (a ≤ b) /\ (BAG_ALL_DISTINCT a)`;
+val DISTINCT_SUB_BAG = Define
+    `∀a b. DISTINCT_SUB_BAG a b = (a ≤ b) /\ (BAG_ALL_DISTINCT a)`;
 
-(* Theorem Gm_lc_BAG_MERGE `∀Γ Γ' A. Gm (Γ ⊎ Γ') A ==> Gm (BAG_MERGE Γ Γ') A` ( *)
+(* Theorem Gm_lc_BAG_MERGE
+`∀Γ Γ' A. Gm (Γ ⊎ Γ') A ==> Gm (BAG_MERGE Γ Γ') A` ( *)
 (*   rw[] >> fs[BAG_UNION,BAG_MERGE] >> *)
 (*   Cases_on `Γ'` >- fs[EMPTY_BAG] *)
 (*     >- (Cases_on `Γ` *)
@@ -227,19 +229,31 @@ val DISTINCT_SUB_BAG = Define `∀a b. DISTINCT_SUB_BAG a b = (a ≤ b) /\ (BAG_
 
 val _ = overload_on ("crunch", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
 
-Theorem Gm_lc_SET_OF_BAG `∀Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A` (
+val crunch_INSERT =
+    Q.prove(`∀a b. (crunch (BAG_INSERT a b)) = BAG_MERGE {|a|} (crunch b)`,
+    rw[BAG_OF_SET_INSERT,SET_OF_BAG_INSERT]);
+
+val crunch_UNION =
+    Q.prove(`∀a b. crunch (a ⊎ b) = BAG_MERGE (crunch a) (crunch b)`,
+    rw[SET_OF_BAG_UNION,BAG_OF_SET_UNION]);
+
+
+(* I Have no idea what I'm doing here, :( *)
+    Theorem Gm_crunch `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` (
   Induct_on `Gm` >> rw[Gm_rules]
     >- fs[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,BAG_UNION]
-    >- (fs[SET_OF_BAG_INSERT,BAG_OF_SET_INSERT] >>
-
+    >- (fs[crunch_INSERT] >>
 
  (*          prove crunch lemmas: *)
 (*         c (BI e b) = if e in B then c(b) else BI e (c b) *)
-val BAG_INSERT_crunch = Q.prove(`∀e b. crunch (BAG_INSERT e b) = (BAG_MERGE {e} (crunch b))`,
-  Cases_on `b` >- simp[BAG_OF_SET,SET_OF_BAG,BAG_INSERT]
-           >- (rw[] >> simp[BAG_OF_SET,SET_OF_BAG]
-(* or do inversions. *)
+(* val BAG_INSERT_crunch = *)
+(*   Q.prove(`∀e b. crunch (BAG_INSERT e b) = BAG_MERGE {|e|} (crunch b)`, *)
+(*     Cases_on `b` >- rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,EMPTY_BAG,BAG_MERGE] *)
+(*                  >- (rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT, *)
+(*                        EMPTY_BAG,BAG_MERGE,BAG_IN,BAG_INN] >> *)
+(*                      simp[FUN_EQ_THM] >> rw[] >> *)
 
+(* or do inversions. *)
 
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
@@ -261,20 +275,30 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      metis_tac[BAG_UNION_EMPTY])
  >- (irule Gm_rimp >>
      fs[BAG_OF_SET_INSERT] >>
-     `(BAG_MERGE {|A|} (BAG_OF_SET Γ)) ≤ (BAG_INSERT A (BAG_OF_SET Γ))` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT] >>
+     `(BAG_MERGE {|A|} (BAG_OF_SET Γ)) ≤ (BAG_INSERT A (BAG_OF_SET Γ))`
+       by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT] >>
      metis_tac[Gm_lw])
  >- (simp[BAG_OF_SET_UNION] >>
-    `Gm (BAG_INSERT A' (BAG_OF_SET Γ')) A'` by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
-    `Gm (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'` by metis_tac[Gm_limp] >>
-    `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'` by metis_tac[Gm_cut] >>
-    (* Needs Lemma *)
+    `Gm (BAG_INSERT A' (BAG_OF_SET Γ')) A'`
+      by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+    `Gm (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'`
+      by metis_tac[Gm_limp] >>
+    `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'`
+      by metis_tac[Gm_cut] >>
+    `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` by cheat >>(* Needs Lemma *)
+    `Gm (crunch (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ')) A'` by metis_tac[] >>
+    fs[crunch_UNION]
     )
-  >- (fs[BAG_OF_SET_INSERT] >> 
-      `Gm (BAG_INSERT A (BAG_OF_SET Γ)) A'` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
-      `Gm (BAG_INSERT B (BAG_OF_SET Γ)) A'` by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
+  >- (fs[BAG_OF_SET_INSERT] >>
+      `Gm (BAG_INSERT A (BAG_OF_SET Γ)) A'`
+        by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
+      `Gm (BAG_INSERT B (BAG_OF_SET Γ)) A'`
+        by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
       `Gm (BAG_INSERT (A Or B) (BAG_OF_SET Γ)) A'` by metis_tac[Gm_lor] >>
       `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ)) A'` by metis_tac[Gm_cut] >>
-      (* Needs Lemma *)
+      `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` by cheat >>(* Needs Lemma *)
+      `Gm (crunch (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ)) A'` by metis_tac[] >>
+      fs[crunch_UNION]
  )
 
 
@@ -314,11 +338,22 @@ Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
         `Nm ({B'} ∪ D) (A Or B)` by metis_tac[] >>
         metis_tac[Nm_ore]));
 
- Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D' A` (GEN_TAC >> Induct_on `CARD D'` >> rw[] >- metis_tac[CARD_EQ_0,SUBSET_EMPTY]
-        >- (Cases_on `D=D'` >- metis_tac[]
->- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀` by
-(`?e. e ∈ D' /\ e NOTIN D` by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >> qexists_tac `D' DELETE e` >> qexists_tac `e` >> simp[] >> fs[SUBSET_DEF]) >>
-rw[] >> fs[] >> metis_tac[Nm_lw])));
+Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D' A` (
+ GEN_TAC >>
+ Induct_on `CARD D'` >>
+ rw[]
+   >- metis_tac[CARD_EQ_0,SUBSET_EMPTY]
+   >- (Cases_on `D=D'` >- metis_tac[]
+       >- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
+             by (`?e. e ∈ D' /\ e NOTIN D`
+                   by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
+                 qexists_tac `D' DELETE e` >>
+                 qexists_tac `e` >>
+                 simp[] >>
+                 fs[SUBSET_DEF]) >>
+           rw[] >>
+           fs[] >>
+           metis_tac[Nm_lw])));
 
   
 (* IN PROGRESS *)
