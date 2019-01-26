@@ -73,7 +73,7 @@ val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
 (* The consequent is always a single formula in the minimal logic *)
 
 val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
-(!(A:'a formula) Γ. (A <: Γ) ==> Gm Γ A) (* Ax *)
+(!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> Gm Γ A) (* Ax *)
 /\ (!A Γ C. (Gm ({|A;A|} + Γ) C)
    ==> Gm ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gm (BAG_INSERT A Γ) C)
@@ -157,8 +157,10 @@ Theorem BAG_UNION_COMM `∀a b. a ⊎ b = b ⊎ a` (rw[BAG_UNION]);
 
 Theorem BAG_MERGE_EMPTY `∀b. ((BAG_MERGE {||} b) = b) /\ ((BAG_MERGE b {||}) = b)` (rw[] >> simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
-val Nm_D_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
+val Nm_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
                           Induct_on `Nm` >> rw[Nm_rules]);
+val Gm_FINITE = Q.prove(`!D A. Gm D A ==> FINITE_BAG D`,
+                          Induct_on `Gm` >> rw[Gm_rules]);
 
 Theorem BAG_INSERT_FILTER_COMP_OF_SET `∀s a. (BAG_INSERT a (BAG_FILTER (COMPL {a}) (BAG_OF_SET s))) = (BAG_OF_SET (a INSERT s))` (
   simp[BAG_OF_SET,BAG_INSERT,BAG_FILTER_DEF,COMPL_DEF,INSERT_DEF] >>
@@ -168,11 +170,8 @@ Theorem BAG_MERGE_ELBAG_SUB_BAG_INSERT `∀A b. (BAG_MERGE {|A|} b) ≤ (BAG_INS
   rw[] >> simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG] >>
     simp[SUB_BAG,BAG_INN] >> rw[]);
 
-(* IN PROGRESS *)
-(* val Gm_wk_BAG_OF_SET = Q.prove(`!Γ A. Gm Γ A ==> Gm (BAG_OF_SET (SET_OF_BAG Γ)) A`, *)
-
 (* Thanks for this theorem Michael *)
-Theorem Gm_lw `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ⇒ Gm Γ' A`
+Theorem Gm_lw `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' /\ FINITE_BAG Γ' ⇒ Gm Γ' A`
 (Induct_on `Gm` >> rw[]
 >- (irule Gm_ax >> fs[SUB_BAG, BAG_IN])
 >- (‘∃Γ₂. Γ' = {|A|} ⊎ Γ₂’
@@ -207,9 +206,34 @@ Theorem Gm_lw `∀Γ A. Gm Γ A ⇒ ∀Γ'. Γ ≤ Γ' ⇒ Gm Γ' A`
     rename [‘Gm (BAG_INSERT A _) B’] >> qexists_tac ‘A’ >>
     conj_tac >> first_x_assum irule >> fs[SUB_BAG_INSERT]));
 
-val Gm_lw_BAG_MERGE = Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. Gm (BAG_MERGE Γ₂ Γ₁) A`,
-rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ₁` >> simp[] >>
- simp[SUB_BAG] >> simp[BAG_INN_BAG_MERGE]);
+Theorem BAG_MERGE_CARD
+`∀a b. FINITE_BAG a /\ FINITE_BAG b ==>
+                       BAG_CARD (BAG_MERGE a b) ≤ (BAG_CARD a + BAG_CARD b)` (
+  rw[] >>
+  `(BAG_MERGE a b) ≤ (a ⊎ b)`
+    by metis_tac[BAG_MERGE_SUB_BAG_UNION] >>
+  `FINITE_BAG (a ⊎ b)` by metis_tac[FINITE_BAG_UNION] >>
+  `BAG_CARD (BAG_MERGE a b) ≤ BAG_CARD (a ⊎ b)`
+    by metis_tac[SUB_BAG_CARD] >>
+  metis_tac[BAG_CARD_UNION]);
+
+Theorem FINITE_BAG_MERGE
+`∀a b. FINITE_BAG a /\ FINITE_BAG b ==> FINITE_BAG (BAG_MERGE a b)` (
+  rw[] >>
+  `BAG_MERGE a b ≤ a ⊎ b` by metis_tac[BAG_MERGE_SUB_BAG_UNION] >>
+  `FINITE_BAG (a ⊎ b)` by metis_tac[FINITE_BAG_UNION] >>
+  metis_tac[FINITE_SUB_BAG]);
+
+
+val Gm_lw_BAG_MERGE =
+    Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A`,
+            rw[] >>
+            irule Gm_lw >>
+            simp[Gm_FINITE,FINITE_BAG_MERGE] >>
+            Q.EXISTS_TAC `Γ₁` >>
+            simp[] >>
+            simp[SUB_BAG] >>
+            simp[BAG_INN_BAG_MERGE]);
 
 val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
   rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[]);
