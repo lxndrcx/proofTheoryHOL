@@ -224,6 +224,14 @@ Theorem FINITE_BAG_MERGE
   `FINITE_BAG (a ⊎ b)` by metis_tac[FINITE_BAG_UNION] >>
   metis_tac[FINITE_SUB_BAG]);
 
+Theorem FINITE_BAG_OF_SET
+`∀s. FINITE s ==> FINITE_BAG (BAG_OF_SET s)` (
+  Induct_on `s` >> 
+  simp[SET_OF_EMPTY] >>
+  rw[] >> 
+  simp[BAG_OF_SET_INSERT] >>
+  simp[FINITE_BAG_MERGE]);
+
 
 val Gm_lw_BAG_MERGE =
     Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A`,
@@ -269,17 +277,24 @@ val unibag_UNION =
     Q.prove(`∀a b. unibag (a ⊎ b) = BAG_MERGE (unibag a) (unibag b)`,
     rw[SET_OF_BAG_UNION,BAG_OF_SET_UNION]);
 
+val unibag_IN =
+    Q.prove(`∀e b. BAG_IN e b ==> BAG_IN e (unibag b)`,
+    rw[IN_SET_OF_BAG,BAG_IN_BAG_OF_SET]);
+
+val unibag_FINITE =
+    Q.prove(`∀b. FINITE_BAG b = FINITE_BAG (unibag b)`,
+    rw[FINITE_SET_OF_BAG, 
 
 (* I Have no idea what I'm doing here, :( *)
-    Theorem Gm_crunch `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` (
+Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
   Induct_on `Gm` >> rw[Gm_rules]
-    >- fs[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,BAG_UNION]
-    >- (fs[crunch_INSERT] >>
+    >- (irule Gm_ax >> simp[unibag_IN] >> 
+    >- (fs[unibag_INSERT] >>
 
- (*          prove crunch lemmas: *)
+ (*          prove unibag lemmas: *)
 (*         c (BI e b) = if e in B then c(b) else BI e (c b) *)
-(* val BAG_INSERT_crunch = *)
-(*   Q.prove(`∀e b. crunch (BAG_INSERT e b) = BAG_MERGE {|e|} (crunch b)`, *)
+(* val BAG_INSERT_unibag = *)
+(*   Q.prove(`∀e b. unibag (BAG_INSERT e b) = BAG_MERGE {|e|} (unibag b)`, *)
 (*     Cases_on `b` >- rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,EMPTY_BAG,BAG_MERGE] *)
 (*                  >- (rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT, *)
 (*                        EMPTY_BAG,BAG_MERGE,BAG_IN,BAG_INN] >> *)
