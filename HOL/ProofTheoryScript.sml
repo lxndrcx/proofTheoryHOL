@@ -227,22 +227,30 @@ Theorem FINITE_BAG_MERGE
 
 val Gm_lw_BAG_MERGE =
     Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A`,
-            rw[] >>
-            irule Gm_lw >>
-            simp[Gm_FINITE,FINITE_BAG_MERGE] >>
-            Q.EXISTS_TAC `Γ₁` >>
-            simp[] >>
-            simp[SUB_BAG] >>
-            simp[BAG_INN_BAG_MERGE]);
+  rw[] >>
+  irule Gm_lw >>
+  `FINITE_BAG Γ₁` by metis_tac[Gm_FINITE] >>
+  simp[FINITE_BAG_MERGE] >>
+  Q.EXISTS_TAC `Γ₁` >>
+  simp[] >>
+  simp[SUB_BAG] >>
+  simp[BAG_INN_BAG_MERGE]);
 
-val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. Gm (Γ ⊎ Γ') A`,
-  rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[]);
+val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. FINITE_BAG Γ' ==> Gm (Γ ⊎ Γ') A`,
+  rw[] >> 
+  irule Gm_lw >>
+  `FINITE_BAG Γ` by metis_tac[Gm_FINITE] >>
+  simp[FINITE_BAG_UNION] >>
+  Q.EXISTS_TAC `Γ` >> 
+  simp[]);
 
 val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A`,
-  rw[] >> irule Gm_lw >> Q.EXISTS_TAC `Γ` >> simp[SUB_BAG_INSERT_I]);
-
-val DISTINCT_SUB_BAG = Define
-    `∀a b. DISTINCT_SUB_BAG a b = (a ≤ b) /\ (BAG_ALL_DISTINCT a)`;
+  rw[] >>
+  irule Gm_lw >>
+  `FINITE_BAG Γ` by metis_tac[Gm_FINITE] >>
+  simp[FINITE_BAG_INSERT] >>
+  Q.EXISTS_TAC `Γ` >>
+  simp[SUB_BAG_INSERT_I]);
 
 (* Theorem Gm_lc_BAG_MERGE
 `∀Γ Γ' A. Gm (Γ ⊎ Γ') A ==> Gm (BAG_MERGE Γ Γ') A` ( *)
@@ -251,14 +259,14 @@ val DISTINCT_SUB_BAG = Define
 (*     >- (Cases_on `Γ` *)
 (*       >- (fs[EMPTY_BAG] >> fs[BAG_INSERT] >> *)
 
-val _ = overload_on ("crunch", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
+val _ = overload_on ("unibag", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
 
-val crunch_INSERT =
-    Q.prove(`∀a b. (crunch (BAG_INSERT a b)) = BAG_MERGE {|a|} (crunch b)`,
+val unibag_INSERT =
+    Q.prove(`∀a b. (unibag (BAG_INSERT a b)) = BAG_MERGE {|a|} (unibag b)`,
     rw[BAG_OF_SET_INSERT,SET_OF_BAG_INSERT]);
 
-val crunch_UNION =
-    Q.prove(`∀a b. crunch (a ⊎ b) = BAG_MERGE (crunch a) (crunch b)`,
+val unibag_UNION =
+    Q.prove(`∀a b. unibag (a ⊎ b) = BAG_MERGE (unibag a) (unibag b)`,
     rw[SET_OF_BAG_UNION,BAG_OF_SET_UNION]);
 
 
