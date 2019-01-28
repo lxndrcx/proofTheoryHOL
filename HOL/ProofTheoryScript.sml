@@ -438,20 +438,22 @@ Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
 
 Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D' A` (
  GEN_TAC >>
- Induct_on `CARD D'` >>
- rw[]
-   >- metis_tac[CARD_EQ_0,SUBSET_EMPTY]
-   >- (Cases_on `D=D'` >- metis_tac[]
-       >- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
-             by (`?e. e ∈ D' /\ e NOTIN D`
+ Induct_on `CARD D'`
+   >- (rw[] >>
+       metis_tac[CARD_EQ_0,SUBSET_EMPTY])
+   >- (rw[] >>
+       Cases_on `D=D'`
+         >- metis_tac[]
+         >- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
+               by (`?e. e ∈ D' /\ e NOTIN D`
                    by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
-                 qexists_tac `D' DELETE e` >>
-                 qexists_tac `e` >>
-                 simp[] >>
-                 fs[SUBSET_DEF]) >>
-           rw[] >>
-           fs[] >>
-           metis_tac[Nm_lw])));
+                   qexists_tac `D' DELETE e` >>
+                   qexists_tac `e` >>
+                   simp[] >>
+                   fs[SUBSET_DEF]) >>
+             rw[] >>
+             fs[] >>
+             metis_tac[Nm_lw])));
 
 (* IN PROGRESS *)
 (* Apparently Nm takes a subset here!? *)
