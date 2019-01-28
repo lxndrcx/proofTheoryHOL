@@ -320,6 +320,36 @@ val unibag_FINITE =
 (*                 fs[COND_CLAUSES]) >> *)
 (*           fs[] *)
 
+Theorem unibag_ALL_DISTINCT `∀b. BAG_ALL_DISTINCT (unibag b)` (
+  rw[BAG_ALL_DISTINCT]);
+
+Theorem unibag_IN `∀e b. BAG_IN e b ==> BAG_IN e (unibag b)` (
+  rw[BAG_IN]);
+
+val unibag_thm = CONJ BAG_OF_SET SET_OF_BAG;
+
+val unibag_of_INSERT = Q.prove(`∀e b. 
+((BAG_IN e b) ==> (BAG_MERGE {|e|} (unibag b) = (unibag b)))
+∧ (¬(BAG_IN e b) ==> (BAG_MERGE {|e|} (unibag b) = BAG_INSERT e (unibag b)))`,
+  rw[]
+    >- (`BAG_ALL_DISTINCT (unibag b)` by metis_tac[unibag_ALL_DISTINCT] >>
+        `BAG_ALL_DISTINCT {|e|}` by simp[BAG_ALL_DISTINCT_THM] >>
+        `BAG_ALL_DISTINCT (BAG_MERGE {|e|} (unibag b))`
+          by simp[BAG_ALL_DISTINCT_BAG_MERGE] >>
+        qspecl_then [`BAG_MERGE {|e|} (unibag b)`,`unibag b`] mp_tac
+          BAG_ALL_DISTINCT_EXTENSION >>
+        rw[] >>
+        metis_tac[])
+    >- (`BAG_ALL_DISTINCT (unibag b)` by metis_tac[unibag_ALL_DISTINCT] >>
+        `BAG_ALL_DISTINCT {|e|}` by simp[BAG_ALL_DISTINCT_THM] >>
+        `BAG_ALL_DISTINCT (BAG_MERGE {|e|} (unibag b))`
+          by simp[BAG_ALL_DISTINCT_BAG_MERGE] >>
+        `BAG_ALL_DISTINCT (BAG_INSERT e (unibag b))`
+          by simp[BAG_ALL_DISTINCT] >>
+        qspecl_then [`BAG_MERGE {|e|} (unibag b)`,`BAG_INSERT e (unibag b)`] 
+          mp_tac BAG_ALL_DISTINCT_EXTENSION >>
+        rw[]));
+
 Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
   Induct_on `Gm` >> rw[Gm_rules]
     >- (irule Gm_ax >> 
