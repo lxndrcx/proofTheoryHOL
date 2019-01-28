@@ -378,14 +378,18 @@ Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
                   metis_tac[Gm_lw_BAG_INSERT])
               )
           >- (Cases_on `BAG_IN (A And B) Γ`
-              >- (simp[unibag_MERGE_cases] >>
-                  `?Γ'. (unibag Γ) = BAG_INSERT (A And B) Γ'` 
-                    by metis_tac[unibag_IN,BAG_DECOMPOSE] >>
-                  
-              (* BM uΓ = uΓ = INS *)
+              >- (fs[unibag_MERGE_cases] >>
+                  `FINITE_BAG (unibag Γ)` 
+                    by metis_tac[Gm_FINITE, FINITE_BAG_THM] >>
+                  `Gm (BAG_INSERT (A And B) (unibag Γ)) A'` 
+                    by metis_tac[Gm_landl] >>
+                  `Gm (BAG_MERGE {|A And B|} (unibag Γ)) A'` 
+                    by metis_tac[Gm_INSERT_TO_MERGE] >>
+                  metis_tac[unibag_MERGE_cases])
               >- (fs[unibag_MERGE_cases] >>
                   metis_tac[Gm_landl])
               )
+           >- 
 
 
         
