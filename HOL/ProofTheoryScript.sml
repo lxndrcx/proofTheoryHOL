@@ -508,7 +508,8 @@ Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
           >- (fs[unibag_EL_MERGE_cases] >>
               `Gm ((unibag Γ) ⊎ (unibag Γ')) A'` by metis_tac[Gm_cut] >>
               (* use lemma here *)
-              
+              (* or switch to context sharing cut, but that would be heaps
+                  of work too. *)
 
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
