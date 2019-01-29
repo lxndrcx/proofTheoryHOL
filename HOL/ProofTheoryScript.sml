@@ -264,6 +264,7 @@ val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B 
   simp[SUB_BAG_INSERT_I]);
 
 val _ = overload_on ("unibag", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
+(* Alt names: scrunch, trample, squash, jam *)
 
 val unibag_INSERT =
     Q.prove(`∀a b. (unibag (BAG_INSERT a b)) = BAG_MERGE {|a|} (unibag b)`,
@@ -332,6 +333,62 @@ val Gm_INSERT_TO_MERGE =
                       fs[COND_CLAUSES]) >>
                 fs[]))));
 
+(* val Gm_UNION_TO_MERGE = *)
+(*     Q.prove(`∀b. FINITE_BAG b ==> ∀Γ Γ' B. (b = Γ' ⊎ Γ) /\ Gm b B *)
+(*            ==> Gm (BAG_MERGE Γ' Γ) B`, *)
+(*     Induct_on `b` >> *)
+(*     rw[BAG_MERGE_EMPTY] >> *)
+(*     `BAG_IN e Γ' ∨ BAG_IN e Γ` by metis_tac[BAG_INSERT_EQ_UNION] *)
+(*       >- (`?Γ''. Γ' = BAG_INSERT e Γ''` by metis_tac[BAG_DECOMPOSE] >> *)
+(*           first_x_assum (fn th => qspecl_then [`Γ`,`BAG_INSERT e Γ''`,`B`]  *)
+(*                            mp_tac th) >> *)
+(*           rw[] >> *)
+(*           `Gm (BAG_INSERT e Γ'' ⊎ Γ) B` by metis_tac[] >> *)
+(*           `b = (Γ'' ⊎ Γ)` by metis_tac[BAG_INSERT_ONE_ONE,ASSOC_BAG_UNION] >> *)
+
+val BAG_UNION_ONE_ONE = Q.prove(`∀e b. {|e|} ⊎ {|e|} ⊎ b = {|e;e|} ⊎ b`,
+  rw[BAG_UNION,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+  Cases_on `x=e` >>
+  simp[]);
+
+val BAG_MERGE_BAG_INSERT = 
+  Q.prove(`∀e b b'.
+  ((b e ≤ b' e) ==> ((BAG_MERGE b (BAG_INSERT e b'))
+                    = (BAG_INSERT e (BAG_MERGE b b')))) ∧
+  ((b' e < b e) ==> ((BAG_MERGE b (BAG_INSERT e b')) = (BAG_MERGE b b')))`,
+    rw[]
+    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        rw[] >>
+        fs[])
+    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        reverse (rw[])
+        >- (Cases_on `x=e`
+            >> fs[])
+        >> fs[]));
+
+
+val Gm_UNION_TO_MERGE =
+    Q.prove(`∀Γ Γ'. FINITE_BAG Γ /\ FINITE_BAG Γ' ==> ∀B. Gm (Γ' ⊎ Γ) B
+                                                  ==> Gm (BAG_MERGE Γ' Γ) B`,
+    rw[] >>
+    Induct_on `Γ` >>
+    rw[BAG_MERGE_EMPTY] >>
+    Cases_on `BAG_IN e Γ`
+      >- (`?b. Γ = BAG_INSERT e b` by metis_tac[BAG_DECOMPOSE] >>
+          fs[BAG_INSERT_UNION] >>
+          `Gm ((EL_BAG e ⊎ (EL_BAG e ⊎ b)) ⊎ Γ') B` 
+            by metis_tac[COMM_BAG_UNION] >>
+          `Gm (({|e;e|} ⊎ b) ⊎ Γ') B`
+            by (fs[EL_BAG] >> 
+                fs[ASSOC_BAG_UNION] >>
+                fs[BAG_UNION_ONE_ONE]) >>
+          `Gm ({|e|} ⊎ (b ⊎ Γ')) B` by metis_tac[Gm_lc,ASSOC_BAG_UNION] >>
+          simp[EL_BAG,COMM_BAG_UNION]
+
+
+
+
+
 Theorem unibag_ALL_DISTINCT `∀b. BAG_ALL_DISTINCT (unibag b)` (
   rw[BAG_ALL_DISTINCT]);
 
@@ -340,7 +397,7 @@ Theorem unibag_IN `∀e b. BAG_IN e b ==> BAG_IN e (unibag b)` (
 
 val unibag_thm = CONJ BAG_OF_SET SET_OF_BAG;
 
-Theorem unibag_MERGE_cases `∀e b.
+Theorem unibag_EL_MERGE_cases `∀e b.
 ((BAG_IN e b) ==> (BAG_MERGE {|e|} (unibag b) = (unibag b)))
 ∧ (¬(BAG_IN e b) ==> (BAG_MERGE {|e|} (unibag b) = BAG_INSERT e (unibag b)))` (
   rw[]
@@ -372,54 +429,54 @@ Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
     >- (fs[unibag_INSERT] >>
         Cases_on `BAG_IN A Γ`
           >- (Cases_on `BAG_IN (A And B) Γ`
-              >- fs[unibag_MERGE_cases]
-              >- (fs[unibag_MERGE_cases] >>
+              >- fs[unibag_EL_MERGE_cases]
+              >- (fs[unibag_EL_MERGE_cases] >>
                   metis_tac[Gm_lw_BAG_INSERT]))
           >- (Cases_on `BAG_IN (A And B) Γ`
-              >- (fs[unibag_MERGE_cases] >>
+              >- (fs[unibag_EL_MERGE_cases] >>
                   `FINITE_BAG (unibag Γ)` 
                     by metis_tac[Gm_FINITE, FINITE_BAG_THM] >>
                   `Gm (BAG_INSERT (A And B) (unibag Γ)) A'`
                     by metis_tac[Gm_landl] >>
                   `Gm (BAG_MERGE {|A And B|} (unibag Γ)) A'`
                     by metis_tac[Gm_INSERT_TO_MERGE] >>
-                  metis_tac[unibag_MERGE_cases])
-              >- (fs[unibag_MERGE_cases] >>
+                  metis_tac[unibag_EL_MERGE_cases])
+              >- (fs[unibag_EL_MERGE_cases] >>
                   metis_tac[Gm_landl]))
     >- (fs[unibag_INSERT] >>
         Cases_on `BAG_IN B Γ`
           >- (Cases_on `BAG_IN (A And B) Γ`
-                >- fs[unibag_MERGE_cases]
-                >- (fs[unibag_MERGE_cases] >>
+                >- fs[unibag_EL_MERGE_cases]
+                >- (fs[unibag_EL_MERGE_cases] >>
                     metis_tac[Gm_lw_BAG_INSERT]))
           >- (Cases_on `BAG_IN (A And B) Γ`
-              >- (fs[unibag_MERGE_cases] >>
+              >- (fs[unibag_EL_MERGE_cases] >>
                   `FINITE_BAG (unibag Γ)` 
                     by metis_tac[Gm_FINITE, FINITE_BAG_THM] >>
                   `Gm (BAG_INSERT (A And B) (unibag Γ)) A'`
                     by metis_tac[Gm_landr] >>
                   `Gm (BAG_MERGE {|A And B|} (unibag Γ)) A'`                   by metis_tac[Gm_INSERT_TO_MERGE] >>
                     by metis_tac[Gm_INSERT_TO_MERGE] >>
-                  metis_tac[unibag_MERGE_cases])
-              >- (fs[unibag_MERGE_cases] >>
+                  metis_tac[unibag_EL_MERGE_cases])
+              >- (fs[unibag_EL_MERGE_cases] >>
                     metis_tac[Gm_landr]))
     >- (fs[unibag_INSERT] >>
         Cases_on `BAG_IN A Γ`
           >- (Cases_on `BAG_IN B Γ`
             >- (Cases_on `BAG_IN (A Or B) Γ`
-                >- fs[unibag_MERGE_cases]
-                >- (fs[unibag_MERGE_cases] >>
+                >- fs[unibag_EL_MERGE_cases]
+                >- (fs[unibag_EL_MERGE_cases] >>
                     metis_tac[Gm_lw_BAG_INSERT]))
             >- (Cases_on `BAG_IN (A Or B) Γ`
-                >- fs[unibag_MERGE_cases]
-                >- (fs[unibag_MERGE_cases] >>
+                >- fs[unibag_EL_MERGE_cases]
+                >- (fs[unibag_EL_MERGE_cases] >>
                     metis_tac[Gm_lw_BAG_INSERT]))
           >- (Cases_on `BAG_IN B Γ`
-              >- (fs[unibag_MERGE_cases] >>
+              >- (fs[unibag_EL_MERGE_cases] >>
                   `FINITE_BAG {|A Or B|}`
                     by metis_tac[FINITE_BAG_THM] >>
                   metis_tac[Gm_lw_BAG_MERGE])
-              >- (fs[unibag_MERGE_cases] >>
+              >- (fs[unibag_EL_MERGE_cases] >>
                   `Gm (BAG_INSERT (A Or B) (unibag Γ)) A'`
                     by metis_tac[Gm_lor] >>
                   `FINITE_BAG (unibag Γ)` 
@@ -429,34 +486,30 @@ Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
              )))
     >- (fs[unibag_INSERT] >>
         Cases_on `BAG_IN B Γ`
-          >- (fs[unibag_MERGE_cases] >>
+          >- (fs[unibag_EL_MERGE_cases] >>
               `FINITE_BAG {|A Imp B|}` by metis_tac[FINITE_BAG_THM] >>
               metis_tac[Gm_lw_BAG_MERGE])
-          >- (fs[unibag_MERGE_cases] >>
+          >- (fs[unibag_EL_MERGE_cases] >>
               `Gm (BAG_INSERT (A Imp B) (unibag Γ)) A'` by metis_tac[Gm_limp] >>
               `FINITE_BAG (unibag Γ)` 
                 by metis_tac[Gm_FINITE, FINITE_BAG_THM] >>
               fs[Gm_INSERT_TO_MERGE]))
     >- (fs[unibag_INSERT] >>
         Cases_on `BAG_IN A Γ`
-          >- (fs[unibag_MERGE_cases] >>
+          >- (fs[unibag_EL_MERGE_cases] >>
               `Gm (BAG_INSERT A (unibag Γ)) A'` 
                 by metis_tac[Gm_lw_BAG_INSERT] >>
               `Gm (unibag Γ) (A Imp A')` by metis_tac[Gm_rimp])
-          >- (fs[unibag_MERGE_cases] >>
+          >- (fs[unibag_EL_MERGE_cases] >>
               metis_tac[Gm_rimp]))
-    >- 
-
- (*          prove unibag lemmas: *)
-(*         c (BI e b) = if e in B then c(b) else BI e (c b) *)
-(* val BAG_INSERT_unibag = *)
-(*   Q.prove(`∀e b. unibag (BAG_INSERT e b) = BAG_MERGE {|e|} (unibag b)`, *)
-(*     Cases_on `b` >- rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT,EMPTY_BAG,BAG_MERGE] *)
-(*                  >- (rw[BAG_OF_SET,SET_OF_BAG,BAG_INSERT, *)
-(*                        EMPTY_BAG,BAG_MERGE,BAG_IN,BAG_INN] >> *)
-(*                      simp[FUN_EQ_THM] >> rw[] >> *)
-
-(* or do inversions. *)
+    >- (fs[unibag_INSERT,unibag_UNION] >>
+        Cases_on `BAG_IN A Γ'`
+          >- (fs[unibag_EL_MERGE_cases] >>
+              `FINITE_BAG (unibag Γ)` by metis_tac[Gm_FINITE] >>
+              metis_tac[Gm_lw_BAG_MERGE])
+          >- (fs[unibag_EL_MERGE_cases] >>
+              `Gm ((unibag Γ) ⊎ (unibag Γ')) A'` by metis_tac[Gm_cut] >>
+              (* use lemma here *)
 
 (* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
