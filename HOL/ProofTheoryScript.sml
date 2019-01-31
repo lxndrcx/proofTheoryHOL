@@ -229,30 +229,95 @@ Theorem BAG_MERGE_EQ_EMPTY[simp]
   first_x_assum (qspec_then `x` mp_tac) >>
   simp[] );
 
-Theorem FINITE_BAG_INSERT[simp] `∀e b. FINITE_BAG b <=> FINITE_BAG (BAG_INSERT e b)`(
+Theorem FINITE_BAG_INSERT[simp] `∀e b. FINITE_BAG b 
+                                   <=> FINITE_BAG (BAG_INSERT e b)` (
   rw[]);
 
-Theorem BAG_INSERT_EQ_BAG_MERGE 
+val BAG_UNION_ONE_ONE = Q.prove(`∀e b. {|e|} ⊎ {|e|} ⊎ b = {|e;e|} ⊎ b`,
+  rw[BAG_UNION,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+  Cases_on `x=e` >>
+  simp[]);
+
+Theorem BAG_MERGE_BAG_INSERT
+`∀e a b.
+((a e ≤ b e) ==> ((BAG_MERGE a (BAG_INSERT e b))
+                   = (BAG_INSERT e (BAG_MERGE a b)))) ∧
+((b e < a e) ==> ((BAG_MERGE a (BAG_INSERT e b)) 
+                   = (BAG_MERGE a b))) ∧
+((a e < b e) ==> ((BAG_MERGE (BAG_INSERT e a) b)
+                   = ((BAG_MERGE a b)))) ∧
+((b e ≤ a e) ==> ((BAG_MERGE (BAG_INSERT e a) b) 
+                   = (BAG_INSERT e (BAG_MERGE a b)))) ∧
+((a e = b e) ==> ((BAG_MERGE (BAG_INSERT e a) (BAG_INSERT e b))
+                   = (BAG_INSERT e (BAG_MERGE a b))))` (
+  rw[]
+    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        rw[] >- (Cases_on `x=e` >> fs[]) >> fs[])
+    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        reverse (rw[]) >- (Cases_on `x=e` >> fs[]) >> fs[])
+    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        rw[] >- (Cases_on `x=e` >> fs[]) >> fs[])
+    >> (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
+        rw[] >> fs[]));
+
+Theorem BAG_INSERT_EQ_BAG_MERGE
 `∀e b c d. (BAG_INSERT e b = BAG_MERGE c d)
-            ==> ((?a. (BAG_MERGE c d = BAG_INSERT e (BAG_MERGE a d))) ∨
-                (?a. (BAG_MERGE c d = BAG_INSERT e (BAG_MERGE c a))))`
+            ==> (?a b. (BAG_MERGE c d = BAG_INSERT e (BAG_MERGE a b)))` (
   rw[] >>
   `BAG_IN e (BAG_MERGE c d)` by metis_tac[BAG_IN_BAG_INSERT] >>
-  fs[BAG_IN_BAG_MERGE] 
-  >- (`?a. c = BAG_INSERT e a` by metis_tac[BAG_DECOMPOSE] >>
-      fs[] >> rw[] >>
-      Cases_on `d e ≤ a e`
-        >- (fs[BAG_MERGE_BAG_INSERT] >>
-            disj1_tac >>
-            qexists_tac `a` >>
-            metis_tac[])
-        >- (fs[BAG_MERGE_BAG_INSERT] >>
-            disj1_tac >>
-            qexists_tac `a (|e |-> a e - 1|)` >>
-            simp[FUN_EQ_THM] >>
-            simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG] >>
-            rw[]
-              >- rw[]
+  fs[BAG_IN_BAG_MERGE]
+  >- (Cases_on `BAG_IN e d`
+      >- (`?Σ. c = BAG_INSERT e Σ` by metis_tac[BAG_DECOMPOSE] >>
+          `?Δ. d = BAG_INSERT e Δ` by metis_tac[BAG_DECOMPOSE] >>
+          Cases_on `c e < d e`
+          >- (qexists_tac `c` >>
+              qexists_tac `Δ` >>
+              `c e ≤ Δ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+              simp[BAG_INSERT] >>
+              fs[] >> rw[] >>
+              fs[BAG_INSERT])
+          >- (Cases_on `d e = c e`
+              >- (qexists_tac `Σ` >>
+                  qexists_tac `Δ` >>
+                  `Δ e = Σ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+                  fs[] >> rw[] >>
+                  fs[BAG_INSERT])
+              >- (`d e < c e` by metis_tac[LESS_LESS_CASES] >>
+                  qexists_tac `Σ` >>
+                  qexists_tac `d` >>
+                  `d e ≤ Σ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+                  fs[] >> rw[] >>
+                  fs[BAG_INSERT])))
+      >- (`?Σ. c = BAG_INSERT e Σ` by metis_tac[BAG_DECOMPOSE] >>
+          `d e ≤ Σ e` by fs[BAG_IN,BAG_INN] >>
+          metis_tac[BAG_MERGE_BAG_INSERT]))
+  >- (Cases_on `BAG_IN e c`
+      >- (`?Σ. c = BAG_INSERT e Σ` by metis_tac[BAG_DECOMPOSE] >>
+          `?Δ. d = BAG_INSERT e Δ` by metis_tac[BAG_DECOMPOSE] >>
+          Cases_on `c e < d e`
+            >- (qexists_tac `c` >>
+                qexists_tac `Δ` >>
+                `c e ≤ Δ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+                simp[BAG_INSERT] >>
+                fs[] >> rw[] >>
+                fs[BAG_INSERT])
+            >- (Cases_on `d e = c e`
+                >- (qexists_tac `Σ` >>
+                    qexists_tac `Δ` >>
+                    `Δ e = Σ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+                    fs[] >> rw[] >>
+                    fs[BAG_INSERT])
+                >- (`d e < c e` by metis_tac[LESS_LESS_CASES] >>
+                    qexists_tac `Σ` >>
+                    qexists_tac `d` >>
+                    `d e ≤ Σ e` suffices_by metis_tac[BAG_MERGE_BAG_INSERT] >>
+                    fs[] >> rw[] >>
+                    fs[BAG_INSERT])
+                    ))
+      >- (`?Δ. d = BAG_INSERT e Δ` by metis_tac[BAG_DECOMPOSE] >>
+          `c e ≤ Δ e` by fs[BAG_IN,BAG_INN] >>
+          metis_tac[BAG_MERGE_BAG_INSERT])));
+
 
 
 Theorem FINITE_BAG_MERGE[simp]
@@ -384,30 +449,6 @@ val Gm_INSERT_TO_MERGE =
                       fs[COND_CLAUSES]) >>
                 fs[]))));
 
-val BAG_UNION_ONE_ONE = Q.prove(`∀e b. {|e|} ⊎ {|e|} ⊎ b = {|e;e|} ⊎ b`,
-  rw[BAG_UNION,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-  Cases_on `x=e` >>
-  simp[]);
-
-Theorem BAG_MERGE_BAG_INSERT
-`∀e b b'.
-((b e ≤ b' e) ==> ((BAG_MERGE b (BAG_INSERT e b'))
-                   = (BAG_INSERT e (BAG_MERGE b b')))) ∧
-((b' e < b e) ==> ((BAG_MERGE b (BAG_INSERT e b')) 
-                   = (BAG_MERGE b b'))) ∧
-((b' e < b e) ==> ((BAG_MERGE (BAG_INSERT e b') b)
-                   = ((BAG_MERGE b' b)))) ∧
-((b e ≤ b' e) ==> ((BAG_MERGE (BAG_INSERT e b') b) 
-                   = (BAG_INSERT e (BAG_MERGE b' b))))` (
-  rw[]
-    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-        rw[] >- (Cases_on `x=e` >> fs[]) >> fs[])
-    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-        reverse (rw[]) >- (Cases_on `x=e` >> fs[]) >> fs[])
-    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-        rw[] >- (Cases_on `x=e` >> fs[]) >> fs[])
-    >- (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-        rw[] >> fs[]));
 
 Theorem unibag_ALL_DISTINCT `∀b. BAG_ALL_DISTINCT (unibag b)` (
   rw[BAG_ALL_DISTINCT]);
