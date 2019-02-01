@@ -260,7 +260,7 @@ Theorem BAG_MERGE_BAG_INSERT
     >> (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
         rw[] >> fs[]));
 
-Theorem BAG_INSERT_EQ_BAG_MERGE
+Theorem BAG_INSERT_EQ_BAG_MERGE_DECOMPOSE (* probably a waste of time :( *)
 `∀e b c d. (BAG_INSERT e b = BAG_MERGE c d)
             ==> (?a b. (BAG_MERGE c d = BAG_INSERT e (BAG_MERGE a b)))` (
   rw[] >>
@@ -318,7 +318,15 @@ Theorem BAG_INSERT_EQ_BAG_MERGE
           `c e ≤ Δ e` by fs[BAG_IN,BAG_INN] >>
           metis_tac[BAG_MERGE_BAG_INSERT])));
 
-
+Theorem BAG_INSERT_EQ_BAG_DELETE
+`∀a b c e Σ Δ. (BAG_INSERT e a = BAG_MERGE b c) 
+                ∧ (BAG_DELETE b e Σ) 
+                ∧ (BAG_DELETE c e Δ)
+            ==> ((BAG_MERGE b c = BAG_INSERT e (BAG_MERGE Σ Δ)))` (
+  rw[BAG_DELETE] >>
+  fs[BAG_INSERT,BAG_MERGE,EMPTY_BAG,FUN_EQ_THM] >>
+  rw[] >> 
+  fs[]);
 
 Theorem FINITE_BAG_MERGE[simp]
 `∀a b. FINITE_BAG (BAG_MERGE a b) <=> FINITE_BAG a /\ FINITE_BAG b ` (
@@ -332,7 +340,15 @@ Theorem FINITE_BAG_MERGE[simp]
              ==> FINITE_BAG a /\ FINITE_BAG b` suffices_by metis_tac[] >>
         Induct_on `c` >>
         rw[]
-          >- (`BAG_IN e (BAG_MERGE a b)` by metis_tac[BAG_IN_BAG_INSERT]
+          >- (`?Σ Δ. BAG_MERGE a b = BAG_INSERT e (BAG_MERGE Σ Δ)` 
+                by metis_tac[BAG_INSERT_EQ_BAG_MERGE] >>
+              fs[] >> rw[] >>
+              first_x_assum (qspecl_then [`Σ`,`Δ`] mp_tac) >>
+              rw[] >>
+              (* need lemma to say what Σ and Δ are. *)
+
+
+          >- (`BAG_IN e (BAG_MERGE a b)` by metis_tac[BAG_IN_BAG_INSERT] >>
               fs[BAG_IN_BAG_MERGE]
               >- (`?a'. a = BAG_INSERT e a'` by metis_tac[BAG_DECOMPOSE] >>
                   fs[] >>
@@ -340,7 +356,7 @@ Theorem FINITE_BAG_MERGE[simp]
                     >- (fs[BAG_MERGE_BAG_INSERT] >>
                         metis_tac[])
                     >- (`a' e < b e` by simp[] >>
-                        fs[BAG_MERGE_BAG_INSERT]
+                        `?Σ Δ. simp[BAG_INSERT_EQ_BAG_MERGE]
 
 
 
