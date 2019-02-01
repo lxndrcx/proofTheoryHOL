@@ -583,7 +583,6 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
       `Gm (unibag (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ)) A'` by metis_tac[Gm_unibag] >>
       fs[unibag_UNION]));
 
-
 Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
   Induct_on `Nm` >> rw[] 
     >- (`Nm {B} B` by metis_tac[Nm_ax] >>
@@ -691,21 +690,28 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
         metis_tac[Nm_andi])
     >- (rename [`Nm _ C`] >>
         fs[SET_OF_BAG_INSERT] >>
+        `FINITE_BAG Γ` by metis_tac[Gm_FINITE,FINITE_BAG_INSERT] >>
         `Nm (A INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
-          by (first_assum irule >>
+          by (irule Nm_lw_SUBSET >>
+              simp[] >>
               qexists_tac `Γ'` >>
               simp[] >>
               metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
         `Nm (B INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
-          by (first_assum irule >>
+          by (irule Nm_lw_SUBSET >>
+              simp[] >>
               qexists_tac `Γ''` >>
               simp[] >>
               metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
         qexists_tac `(A Or B) INSERT (SET_OF_BAG Γ)` >>
         simp[SUBSET_INSERT_RIGHT] >>
         `Nm {(A Or B)} (A Or B)` by metis_tac[Nm_ax] >>
+        `FINITE ({A Or B} ∪ (SET_OF_BAG Γ))`
+          by (`FINITE (SET_OF_BAG Γ)` 
+                by metis_tac[FINITE_SET_OF_BAG] >>
+              metis_tac[FINITE_UNION,FINITE_DEF]) >>
         `Nm ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)`
-          by metis_tac[SUBSET_UNION] >>
+          by metis_tac[SUBSET_UNION,Nm_lw_SUBSET] >>
         `Nm ((A Or B) INSERT (SET_OF_BAG Γ)) (A Or B)`
           by metis_tac[INSERT_SING_UNION] >>
         metis_tac[Nm_ore])
@@ -713,14 +719,17 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
     >- (qexists_tac `Γ'` >> simp[Nm_oril])
     >- (rename [`Nm _ C`] >>
         fs[SET_OF_BAG_INSERT] >>
-        `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >>
+        `FINITE_BAG Γ` by metis_tac[Gm_FINITE,FINITE_BAG_INSERT] >>
+        `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >>
         `Nm {A Imp B} (A Imp B)` by metis_tac[Nm_ax] >>
-        `Nm (SET_OF_BAG Γ) A` by metis_tac[] >>
+        `Nm (SET_OF_BAG Γ) A` by metis_tac[Nm_lw_SUBSET] >>
         `Nm ({A Imp B} ∪ (SET_OF_BAG Γ)) B` by metis_tac[Nm_impe] >>
-        `Nm ((A Imp B) INSERT (SET_OF_BAG Γ)) B` by metis_tac[INSERT_SING_UNION] >>
+        `Nm ((A Imp B) INSERT (SET_OF_BAG Γ)) B`
+          by metis_tac[INSERT_SING_UNION] >>
         qexists_tac `(A Imp B) INSERT SET_OF_BAG Γ` >>
-        simp[] >> (*TODO*)
-       )
+        simp[SUBSET_INSERT_RIGHT] >>
+        
+        )
     >- ( (*TODO*))
     >- (simp[SET_OF_BAG_UNION] >> (*skipped, similar problem*)
         `∀D A. Nm D A ==> ∀D'. D ⊆ D' ==> Nm D' A` by cheat >>
