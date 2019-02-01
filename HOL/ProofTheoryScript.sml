@@ -361,7 +361,6 @@ Theorem FINITE_BAG_MERGE[simp]
         rw[] >>
         metis_tac[FINITE_BAG_DIFF_dual,FINITE_BAG]));
 
-
 Theorem FINITE_BAG_OF_SET (* maybe should be <=> *)
 `∀s. FINITE s ==> FINITE_BAG (BAG_OF_SET s)` (
   Induct_on `s` >> 
@@ -531,7 +530,6 @@ Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
         `FINITE_BAG ({|B|} ⊎ Γ0)` by fs[] >>
         metis_tac[unibag_AA_EQ_A]));
 
-(* IN PROGRESS *)
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
  rw[Gm_rules]
@@ -558,30 +556,32 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
      irule Gm_lw >>
      simp[] >>
      drule Gm_FINITE >>
-     simp[] (* here *)
-     )
+     rw[] >>
+     qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET Γ)` >>
+     simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
  >- (simp[BAG_OF_SET_UNION] >>
+    `FINITE_BAG (BAG_OF_SET Γ')` by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET] >>
     `Gm (BAG_INSERT A' (BAG_OF_SET Γ')) A'`
-      by metis_tac[Gm_ax,BAG_IN_BAG_INSERT] >>
+      by simp[Gm_ax,BAG_IN_BAG_INSERT] >>
     `Gm (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'`
       by metis_tac[Gm_limp] >>
     `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'`
       by metis_tac[Gm_cut] >>
-    `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` by cheat >>(* Needs Lemma *)
-    `Gm (crunch (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ')) A'` by metis_tac[] >>
-    fs[crunch_UNION]
-    )
+    `Gm (unibag (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ')) A'` by metis_tac[Gm_unibag] >>
+    fs[unibag_UNION])
   >- (fs[BAG_OF_SET_INSERT] >>
+      `FINITE_BAG (BAG_INSERT A (BAG_OF_SET Γ))` 
+        by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET,FINITE_BAG_INSERT] >>
       `Gm (BAG_INSERT A (BAG_OF_SET Γ)) A'`
         by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
+      `FINITE_BAG (BAG_INSERT B (BAG_OF_SET Γ))` 
+        by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET,FINITE_BAG_INSERT] >>
       `Gm (BAG_INSERT B (BAG_OF_SET Γ)) A'`
         by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gm_lw] >>
       `Gm (BAG_INSERT (A Or B) (BAG_OF_SET Γ)) A'` by metis_tac[Gm_lor] >>
       `Gm ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ)) A'` by metis_tac[Gm_cut] >>
-      `∀Γ A. Gm Γ A ==> Gm (crunch Γ) A` by cheat >>(* Needs Lemma *)
-      `Gm (crunch (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ)) A'` by metis_tac[] >>
-      fs[crunch_UNION]
- )
+      `Gm (unibag (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ)) A'` by metis_tac[Gm_unibag] >>
+      fs[unibag_UNION]));
 
 
 Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
