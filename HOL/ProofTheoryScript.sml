@@ -318,7 +318,7 @@ Theorem BAG_INSERT_EQ_BAG_MERGE_DECOMPOSE (* probably a waste of time :( *)
           `c e ≤ Δ e` by fs[BAG_IN,BAG_INN] >>
           metis_tac[BAG_MERGE_BAG_INSERT])));
 
-Theorem BAG_INSERT_EQ_BAG_DELETE
+Theorem BAG_INSERT_EQ_MERGE_DELETE
 `∀a b c e Σ Δ. (BAG_INSERT e a = BAG_MERGE b c) 
                 ∧ (BAG_DELETE b e Σ) 
                 ∧ (BAG_DELETE c e Δ)
@@ -328,10 +328,23 @@ Theorem BAG_INSERT_EQ_BAG_DELETE
   rw[] >> 
   fs[]);
 
+Theorem BAG_INSERT_EQ_MERGE_DIFF
+`∀a b c e. (BAG_INSERT e a = BAG_MERGE b c) 
+            ==> ((BAG_MERGE b c = BAG_INSERT e (BAG_MERGE (b - {|e|}) (c - {|e|}))))` (
+  rw[BAG_DIFF] >>
+    fs[BAG_INSERT,BAG_MERGE,EMPTY_BAG,FUN_EQ_THM] >>
+    reverse(rw[])
+    >- (`b e - 1 + 1 = b e` suffices_by simp[EQ_SYM_EQ] >>
+        irule SUB_ADD >>
+        `c e ≤ b e` by simp[] >>
+        first_x_assum (qspec_then `e` mp_tac) >>
+        rw[]) >>
+    fs[]);
+
 Theorem FINITE_BAG_MERGE[simp]
 `∀a b. FINITE_BAG (BAG_MERGE a b) <=> FINITE_BAG a /\ FINITE_BAG b ` (
   rw[] >>
-  reverse(EQ_TAC) >>
+  reverse(EQ_TAC)
     >- (`BAG_MERGE a b ≤ a ⊎ b` by metis_tac[BAG_MERGE_SUB_BAG_UNION] >>
         rw[] >>
         `FINITE_BAG (a ⊎ b)` by metis_tac[FINITE_BAG_UNION] >>
@@ -339,25 +352,14 @@ Theorem FINITE_BAG_MERGE[simp]
     >- (`∀c:'a bag. FINITE_BAG c ==> ∀a b. (c = BAG_MERGE a b)
              ==> FINITE_BAG a /\ FINITE_BAG b` suffices_by metis_tac[] >>
         Induct_on `c` >>
-        rw[]
-          >- (`?Σ Δ. BAG_MERGE a b = BAG_INSERT e (BAG_MERGE Σ Δ)` 
-                by metis_tac[BAG_INSERT_EQ_BAG_MERGE] >>
-              fs[] >> rw[] >>
-              first_x_assum (qspecl_then [`Σ`,`Δ`] mp_tac) >>
-              rw[] >>
-              (* need lemma to say what Σ and Δ are. *)
-
-
-          >- (`BAG_IN e (BAG_MERGE a b)` by metis_tac[BAG_IN_BAG_INSERT] >>
-              fs[BAG_IN_BAG_MERGE]
-              >- (`?a'. a = BAG_INSERT e a'` by metis_tac[BAG_DECOMPOSE] >>
-                  fs[] >>
-                  Cases_on `b e ≤ a' e`
-                    >- (fs[BAG_MERGE_BAG_INSERT] >>
-                        metis_tac[])
-                    >- (`a' e < b e` by simp[] >>
-                        `?Σ Δ. simp[BAG_INSERT_EQ_BAG_MERGE]
-
+        rw[] >> 
+        `BAG_MERGE a b = BAG_INSERT e (BAG_MERGE (a - {|e|}) (b - {|e|}))`
+          by metis_tac[BAG_INSERT_EQ_MERGE_DIFF] >>
+        fs[] >>
+        rw[] >>
+        first_x_assum (qspecl_then [`a - {|e|}`,`b - {|e|}`] mp_tac) >>
+        rw[] >>
+        metis_tac[FINITE_BAG_DIFF_dual,FINITE_BAG]));
 
 
 Theorem FINITE_BAG_OF_SET (* maybe should be <=> *)
