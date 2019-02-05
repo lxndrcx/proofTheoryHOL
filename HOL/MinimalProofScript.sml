@@ -503,21 +503,26 @@ Theorem unibag_DECOMPOSE `unibag Γ ≠ Γ ==> ?A Γ0. Γ = {|A;A|} ⊎ Γ0` (
         rw[])
     >- fs[BAG_IN,BAG_INN]);
 
-Theorem Gm_unibag `∀Γ A. Gm Γ A ==> Gm (unibag Γ) A` (
-  `∀Γ. FINITE_BAG Γ ==> ∀A. Gm Γ A ==> Gm (unibag Γ) A` 
-    suffices_by metis_tac[Gm_FINITE] >>
-  gen_tac >>
-  Induct_on `BAG_CARD Γ` >>
-  rw[]
-    >- (`Γ = {||}` by metis_tac[BCARD_0] >>
-        fs[])
-    >- (Cases_on `unibag Γ = Γ` >- fs[] >>
-        drule_then strip_assume_tac unibag_DECOMPOSE >>
-        rename [`Γ = {|B;B|} ⊎ Γ0`,`SUC n = BAG_CARD Γ`] >>
-        `Gm ({|B|} ⊎ Γ0) A` by metis_tac[Gm_lc] >>
-        `BAG_CARD ({|B|} ⊎ Γ0) = n` by fs[BAG_CARD_THM] >>
-        `FINITE_BAG ({|B|} ⊎ Γ0)` by fs[] >>
-        metis_tac[unibag_AA_EQ_A]));
+Theorem unibag_SUB_BAG `∀b. unibag b ≤ b` 
+(rw[unibag_thm,SUB_BAG,BAG_IN,BAG_INN]);
+
+Theorem Gm_unibag `∀Γ A. Gm Γ A <=> Gm (unibag Γ) A` (
+rw[] >> EQ_TAC
+  >- (`∀Γ. FINITE_BAG Γ ==> ∀A. Gm Γ A ==> Gm (unibag Γ) A` 
+        suffices_by metis_tac[Gm_FINITE] >>
+      gen_tac >>
+      Induct_on `BAG_CARD Γ` >>
+      rw[]
+        >- (`Γ = {||}` by metis_tac[BCARD_0] >>
+            fs[])
+        >- (Cases_on `unibag Γ = Γ` >- fs[] >>
+            drule_then strip_assume_tac unibag_DECOMPOSE >>
+            rename [`Γ = {|B;B|} ⊎ Γ0`,`SUC n = BAG_CARD Γ`] >>
+            `Gm ({|B|} ⊎ Γ0) A` by metis_tac[Gm_lc] >>
+            `BAG_CARD ({|B|} ⊎ Γ0) = n` by fs[BAG_CARD_THM] >>
+            `FINITE_BAG ({|B|} ⊎ Γ0)` by fs[] >>
+            metis_tac[unibag_AA_EQ_A]))
+   >- metis_tac[unibag_SUB_BAG,Gm_lw,Gm_FINITE,unibag_FINITE]);
 
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
@@ -755,9 +760,6 @@ Theorem Gm_iff_Nm
       metis_tac[Nm_lw_SUBSET,Gm_FINITE,FINITE_SET_OF_BAG]) >>
   rw[] >>
   `Gm (unibag Γ) A` by metis_tac[Nm_Gm] >>
-  Cases_on `unibag Γ = Γ` >- fs[] >>
-  `FINITE_BAG Γ` by metis_tac[Gm_FINITE,unibag_FINITE] >>
-
-
+  metis_tac[Gm_unibag]);
 
 val _ = export_theory()
