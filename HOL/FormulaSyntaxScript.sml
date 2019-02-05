@@ -3,11 +3,11 @@ open HolKernel Parse boolLib bossLib;
 val _ = new_theory "FormulaSyntax";
 
 val _ = Datatype `formula =
-                  Var 'a
-| Or formula formula
-| And formula formula
-| Imp formula formula
-| Bot`;
+  Var 'a
+  | Or formula formula
+  | And formula formula
+  | Imp formula formula
+  | Bot`;
 
 val _ = set_fixity "Imp" (Infixr 460);
 val _ = set_fixity "BiImp" (Infix (NONASSOC, 450) );
