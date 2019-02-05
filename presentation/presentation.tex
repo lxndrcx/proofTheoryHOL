@@ -25,11 +25,11 @@
 	}
 \date{\today}
 
-\AtBeginSection[]{
-  \begin{frame}
-    \frametitle{Table of Contents}
-    \tableofcontents[currentsection]
-  \end{frame}}
+% \AtBeginSection[]{
+%   \begin{frame}
+%     \frametitle{Table of Contents}
+%     \tableofcontents[currentsection]
+%   \end{frame}}
 
 \begin{document}
 \thispagestyle{empty}
@@ -42,7 +42,11 @@
     \frametitle{Introduction}
     For my VRS project, I have been formalising some proof theory in an interactive theorem prover called HOL. 
 
+    \bigskip
     The proof I have been formalising is the equivalence between Natural Deduction and Sequent Calculus, for intuitionistic propositional logic.
+
+    \bigskip
+    This result comes from \emph{proof theory},  a branch of mathematical logic that analyses proofs and their calculi. 
 \end{frame}
 
 \section{Theorem Proving in HOL}
@@ -51,6 +55,7 @@
     \frametitle{Theorem Provers}
     \begin{itemize}
         \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
+        \item The prover I used (HOL4) is engineered so that theorems can only be produced under the control of a small trusted kernel.
         \item Proving a proposition in a proof assistant usually takes significantly more time than proving an informal proof on paper.
     \end{itemize}
 \end{frame}
@@ -60,113 +65,107 @@
     \begin{enumerate}
         \item Once a theorem is proved in a proof assistant, you can trust that it is a correct proof, provided that the proof assistant itself is sound.
         \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
+        \item I wanted to learn about theorem provers, and this seemed like a good project for that.
         % \item It is also fun (in my opinion).
     \end{enumerate}
 \end{frame}
 
-\begin{frame}
-	\frametitle{The HOL Theorem Prover}
-    \begin{itemize}
-        \item The HOL Theorem Prover is a proof assistant developed since the mid-80s. 
-        \item The version I have been using is called HOL4. 
-        \item HOL implements a Higher Order Logic which is a variant of Church's simple theory of types.
-        \item HOL is written in Standard ML (SML), which is also the language the user interacts with.
-    \end{itemize}
-\end{frame}
+% \begin{frame}
+% 	\frametitle{The HOL Theorem Prover}
+%     \begin{itemize}
+%         \item The HOL Theorem Prover is a proof assistant developed since the mid-80s. 
+%         \item The version I have been using is called HOL4. 
+%         \item HOL implements a Higher Order Logic which is a variant of Church's simple theory of types.
+%         \item HOL is written in Standard ML (SML), which is also the language the user interacts with.
+%     \end{itemize}
+% \end{frame}
 
-\begin{frame}
-    \frametitle{Theorems in HOL}
-    \begin{itemize}
-        \item Theorems in HOL are represented as an SML datatype, and the only way to produce them is to use sound inference rules on predefined axioms.
-        \item As a consequence, you can't prove something which is false, unless there is a fault with an axiom or inference rule.
-        \item HOL is heavily scrutinised by experts in the field, and is generally trusted to be sound.
-    \end{itemize}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Theorems in HOL}
+%     \begin{itemize}
+%         \item Theorems in HOL are represented as an SML datatype, and the only way to produce them is to use sound inference rules on predefined axioms.
+%         \item As a consequence, you can't prove something which is false, unless there is a fault with an axiom or inference rule.
+%         \item HOL is heavily scrutinised by experts in the field, and is generally trusted to be sound.
+%     \end{itemize}
+% \end{frame}
 
-\begin{frame}
-	\frametitle{Goal-directed Proof}
-    \begin{itemize}
-        \item When proving something in HOL, I have been using goal-directed proofs.
-        \item I state the goal I want to prove, and try to prove it using \emph{tactics}. Some tactics are very powerful and can prove simple goals without much help at all. Others goals require more work, often splitting into multiple sub-goals. 
-        \item Generally I work forwards (from assumptions) and backwards (from the conclusion/goal) at the same time.
-    \end{itemize}
-\end{frame}
+% \begin{frame}
+% 	\frametitle{Goal-directed Proof}
+%     \begin{itemize}
+%         \item When proving something in HOL, I have been using goal-directed proofs.
+%         \item I state the goal I want to prove, and try to prove it using \emph{tactics}. Some tactics are very powerful and can prove simple goals without much help at all. Others goals require more work, often splitting into multiple sub-goals. 
+%         \item Generally I work forwards (from assumptions) and backwards (from the conclusion/goal) at the same time.
+%     \end{itemize}
+% \end{frame}
 
 \section{Proof Theory and Logic}
 
-\begin{frame}
-    \frametitle{Proof Theory}
-    \begin{itemize}
-        \item Proof theory is a branch of mathematical logic that analyses proofs and their calculi. 
-        \item In proof theory the focus is the syntax of a logic, rather than its semantics.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
+\begin{frame}[fragile]
     % \frametitle{Propositional Logic Syntax}
-    \begin{defn}
-        A propositional logic formula $\varphi$ is defined inductively:
-        \[ \varphi ::= a ~|~ \varphi \lor \varphi ~|~ \varphi \land \varphi ~|~ \varphi \to \varphi ~|~ \bot \]
+    Proofs manipulate logic formulae, which are defined inductively:
+    \[ \varphi ::= a ~|~ \varphi \lor \varphi ~|~ \varphi \land \varphi ~|~ \varphi \to \varphi ~|~ \bot \]
+
+    \bigskip
+    In HOL:
+    \small
+    \begin{alltt}
+        val _ = Datatype `formula =
+            Var 'a
+            | Or formula formula
+            | And formula formula
+            | Imp formula formula
+            | Bot`;
+    \end{alltt}
+\end{frame}
+% \begin{frame}
+%     % \frametitle{Propositional Logic Syntax (cont.)}
+%     \begin{notn}
+%     Some abbreviations: 
+%         \[ \neg \varphi := \varphi \to \bot \]
+%         \[ \varphi \Leftrightarrow \psi := \varphi \to \psi \land \psi \to \varphi \]
+%         \[ \top := \bot \to \bot \]
+%         In HOL:
+%         \begin{alltt}
+%             val Not_def = Define `Not f = f Imp Bot`;\\
+%             val BiImp_def = \\
+%             ~Define `f BiImp f' = (f Imp f') And (f' Imp f)`;\\
+%             val Top_def = Define `Top = Bot Imp Bot`;\\
+%         \end{alltt}
+%     \end{notn}
+% \end{frame}
+\newcommand{\bs}{\char`\\}
+\begin{frame}[fragile]
+    \frametitle{Inference Rules}
+    An inference rule in a system $S$ is a condition under which a conclusion can be inferred from hypotheses:
+    \[
+        \AxiomC{$\Gamma_0 \Rightarrow_S \varphi_0$}
+        \AxiomC{$\dots$}
+        \AxiomC{$\Gamma_n \Rightarrow_S \varphi_n$}  
+        \TrinaryInfC{$\Delta \Rightarrow_S \psi$}
+        \DisplayProof
+    \]
+    Presented with hypotheses above and conclusion below.
+
+    \bigskip
     In HOL:
     \begin{alltt}
-        val _ = Datatype `formula =\\
-        Var 'a\\
-        | Or formula formula\\
-        | And formula formula\\
-        | Imp formula formula\\
-        | Bot`;
+        S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
     \end{alltt}
-    \end{defn}
-\end{frame}
-\begin{frame}
-    % \frametitle{Propositional Logic Syntax (cont.)}
-    \begin{notn}
-    Some abbreviations: 
-        \[ \neg \varphi := \varphi \to \bot \]
-        \[ \varphi \Leftrightarrow \psi := \varphi \to \psi \land \psi \to \varphi \]
-        \[ \top := \bot \to \bot \]
-        In HOL:
-        \begin{alltt}
-            val Not_def = Define `Not f = f Imp Bot`;\\
-            val BiImp_def = \\
-            ~Define `f BiImp f' = (f Imp f') And (f' Imp f)`;\\
-            val Top_def = Define `Top = Bot Imp Bot`;\\
-        \end{alltt}
-    \end{notn}
+
+    In HOL, \texttt{S} is a prefix binary relation, instead of infix ($\Rightarrow_S$).
 \end{frame}
 
-\begin{frame}
-    \frametitle{Inference Rules}
-    \begin{defn}
-        An inference rule in a system $S$ is a rule:
-        \[
-            \AxiomC{$\Gamma_0 \Rightarrow_S \varphi_0$}
-            \AxiomC{$\dots$}
-            \AxiomC{$\Gamma_n \Rightarrow_S \varphi_n$}  
-            \TrinaryInfC{$\Delta \Rightarrow_S \psi$}
-            \DisplayProof
-        \]
-        Presented with hypotheses above and conclusion below.
-        In HOL:
-        \begin{alltt}
-            % !$\Gamma_0$ ... $\Gamma_n$ $\Delta$ $\varphi_0$ ... $\varphi_n$ $\psi$. 
-            S $\Gamma_0 ~ \varphi_0$ /\char`\\\ ... /\char`\\\ S $\Gamma_n ~ \varphi_n$ 
-            ==> S $\Delta ~ \psi$
-        \end{alltt}
-    \end{defn}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Derivations}
-    \begin{defn}
-         You can derive $\Delta$ from $\Gamma$ in $S$, 
-         if there are 1 or more applications of inference rules in $S$ which, 
-         start with $\Gamma$ as assumption(s) and end with $\Delta$ as conclusion(s).
-    \end{defn}
-    \begin{notn}
-        I write $\Gamma \vdash_S \Delta$. 
-    \end{notn}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Derivations}
+%     \begin{defn}
+%          You can derive $\Delta$ from $\Gamma$ in $S$, 
+%          if there are 1 or more applications of inference rules in $S$ which, 
+%          start with $\Gamma$ as assumption(s) and end with $\Delta$ as conclusion(s).
+%     \end{defn}
+%     \begin{notn}
+%         I write $\Gamma \vdash_S \Delta$. 
+%     \end{notn}
+% \end{frame}
 
 \section{The Calculi}
 
@@ -193,22 +192,22 @@
         \DisplayProof
     \]
 \end{frame}
-\begin{frame}
-    \frametitle{Natural Deduction (cont.)}
-    In Hol:
-    \begin{alltt}
-        (! (A :'a formula).\ Nm \{A\} A)
+% \begin{frame}
+%     \frametitle{Natural Deduction (cont.)}
+%     In Hol:
+%     \begin{alltt}
+%         (! (A :'a formula).\ Nm \{A\} A)
 
-        /\char`\\\ (!A B D.\ (Nm (A INSERT D) B) ==> Nm D (A Imp B))
+%         /\char`\\\ (!A B D.\ (Nm (A INSERT D) B) ==> Nm D (A Imp B))
 
-        /\char`\\\ (!A B D1 D2.\ (Nm D1 (A Imp B)) /\char`\\\ (Nm D2 A)
+%         /\char`\\\ (!A B D1 D2.\ (Nm D1 (A Imp B)) /\char`\\\ (Nm D2 A)
 
-        ~ ==>\ Nm (D1 UNION D2) B)
-    \end{alltt}
-    \begin{notn}
-        I write \texttt{Nm} to indicate I am a minimal intuitionistic version of logic, without rules for $\bot$.
-    \end{notn}
-\end{frame}
+%         ~ ==>\ Nm (D1 UNION D2) B)
+%     \end{alltt}
+%     \begin{notn}
+%         I write \texttt{Nm} to indicate I am a minimal intuitionistic version of logic, without rules for $\bot$.
+%     \end{notn}
+% \end{frame}
 
 
 \begin{frame}
@@ -236,21 +235,21 @@
     \]
 \end{frame}
 
-\begin{frame}
-    \frametitle{Sequent Calculus (aka. Gentzen System)}
-    In HOL:
-    \begin{alltt}
-        (!(A:'a formula) \textGamma. (A <: \textGamma) /\char`\\\ FINITE_BAG \textGamma\\
-        ~ ==> Gm \textGamma A)\\
-        /\char`\\\ (!A B \textGamma C. (Gm \textGamma A) /\char`\\\ (Gm (BAG_INSERT B \textGamma) C)\\
-        ~ ==> (Gm (BAG_INSERT (A Imp B) \textGamma) C))\\
-        /\char`\\\ (!A B \textGamma. (Gm (BAG_INSERT A \textGamma) B)\\
-        ~ ==> (Gm \textGamma (A Imp B)))\\
-   \end{alltt}
-   \begin{notn}
-       In HOL, multisets are called bags.
-   \end{notn}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Sequent Calculus (aka. Gentzen System)}
+%     In HOL:
+%     \begin{alltt}
+%         (!(A:'a formula) \textGamma. (A <: \textGamma) /\char`\\\ FINITE_BAG \textGamma\\
+%         ~ ==> Gm \textGamma A)\\
+%         /\char`\\\ (!A B \textGamma C. (Gm \textGamma A) /\char`\\\ (Gm (BAG_INSERT B \textGamma) C)\\
+%         ~ ==> (Gm (BAG_INSERT (A Imp B) \textGamma) C))\\
+%         /\char`\\\ (!A B \textGamma. (Gm (BAG_INSERT A \textGamma) B)\\
+%         ~ ==> (Gm \textGamma (A Imp B)))\\
+%    \end{alltt}
+%    \begin{notn}
+%        In HOL, multisets are called bags.
+%    \end{notn}
+% \end{frame}
 
 \section{The Proof}
 
@@ -263,7 +262,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
     \frametitle{The Proof of Equivalence}
     Here is the statement in mathematical notation:
     \begin{thm}
@@ -276,72 +275,72 @@
     \end{alltt}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Proof of $N\Rightarrow G$}
+\begin{frame}[fragile]
+    \frametitle{Proof of $N\Rightarrow G$ in mathematics}
+\begin{alltt}
+Theorem Nm_Gm 
+    `!\textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
+\end{alltt}
+The proof is by rule induction (similar to structural induction). 
+
+Modus Ponens case:
+nice pic here
+\[\]
+
+\end{frame}
+
+\begin{frame}[fragile] 
+    \frametitle{Proof of $N\Rightarrow G$ in HOL}
+    \small
+\begin{alltt}
+(simp[BAG_OF_SET_UNION] >>
+`FINITE_BAG (BAG_OF_SET \textGamma')` 
+  by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET] >>
+`Gm (BAG_INSERT A' (BAG_OF_SET \textGamma')) A'`
+  by simp[Gm_ax,BAG_IN_BAG_INSERT] >>
+`Gm (BAG_INSERT (A Imp A') (BAG_OF_SET \textGamma')) A'`
+  by metis_tac[Gm_limp] >>
+`Gm ((BAG_OF_SET \textGamma) \(\cupplus\) (BAG_OF_SET \textGamma')) A'`
+  by metis_tac[Gm_cut] >>
+`Gm (unibag (BAG_OF_SET \textGamma \(\cupplus\) BAG_OF_SET \textGamma')) A'` 
+  by metis_tac[Gm_unibag] >>
+fs[unibag_UNION])
+\end{alltt}
+\end{frame}
+
+% \begin{frame}
+%     % \frametitle{Proof of $N\Rightarrow G$ (cont.)}
+%     Another goal is:
+%     \texttt{Gm (BAG_OF_SET \textGamma) (A Imp A')}
+
+%     With Hypotheses:\\
+%     \texttt{0.  Nm (A INSERT \textGamma) A'\\
+%          1.  Gm (BAG_OF_SET (A INSERT \textGamma)) A' }
+
+%      Proved with:
+%      \begin{alltt}
+%          >- (irule Gm_rimp >>\\
+%              fs[BAG_OF_SET_INSERT] >>\\
+%              irule Gm_lw >>\\
+%              simp[] >>\\
+%              drule Gm_FINITE >>\\
+%              rw[] >>\\
+%              qexists_tac `BAG_MERGE \{|A|\} (BAG_OF_SET \textGamma)` >>\\
+%              simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
+%      \end{alltt}
+% \end{frame}
+
+% \begin{frame}
+%     \frametitle{Proof of $N\Rightarrow G$ (cont.)}
+%     I won't go through any other parts of the proof, as it takes too long to explain. You get the idea...
+% \end{frame}
+
+\begin{frame}[fragile]{Proof of $G\Rightarrow N$}
+    The proof in the other direction seems to require a subset of the hypotheses:
     \begin{alltt}
-        Theorem Nm_Gm `!\textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A` (
-         
-        ~Induct_on `Nm` >> rw[Gm_rules]
+Theorem Gm_Nm 
+`!\textGamma A. Gm \textGamma A ==> ?\textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A` 
     \end{alltt}
-    The proof proceeds by rule induction, which is similar to structural induction. HOL splits each case into a sub-goal, when I rewrite (with \texttt{rw}).
-\end{frame}
-
-\begin{frame}
-    \frametitle{Proof of $N\Rightarrow G$ (cont.)}
-    The first goal is:
-
-    \texttt{Gm (BAG_OF_SET \{A\}) A}
-
-    This is solved by appealing to axiom, and simplifying with the relevant finiteness lemma (which I had to prove elsewhere):
-
-    \texttt{
-        >- (irule Gm_ax >> 
-            simp[FINITE_BAG_OF_SET])
-        }
-
-    Most other sub-goals are more complicated to solve.
-
-\end{frame}
-
-\begin{frame}
-    % \frametitle{Proof of $N\Rightarrow G$ (cont.)}
-    Another goal is:
-    \texttt{Gm (BAG_OF_SET \textGamma) (A Imp A')}
-
-    With Hypotheses:\\
-    \texttt{0.  Nm (A INSERT \textGamma) A'\\
-         1.  Gm (BAG_OF_SET (A INSERT \textGamma)) A' }
-
-     Proved with:
-     \begin{alltt}
-         >- (irule Gm_rimp >>\\
-             fs[BAG_OF_SET_INSERT] >>\\
-             irule Gm_lw >>\\
-             simp[] >>\\
-             drule Gm_FINITE >>\\
-             rw[] >>\\
-             qexists_tac `BAG_MERGE \{|A|\} (BAG_OF_SET \textGamma)` >>\\
-             simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
-     \end{alltt}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Proof of $N\Rightarrow G$ (cont.)}
-    I won't go through any other parts of the proof, as it takes too long to explain. You get the idea...
-\end{frame}
-
-\begin{frame}
-    \frametitle{Proof of $G\Rightarrow N$}
-    The proof in the other direction proceeds in a similar fashion:
-    \begin{alltt}
-        Theorem Gm_Nm `!\textGamma A. Gm \textGamma A\\
-        ~==> ?\textGamma'. \textGamma' ⊆ (SET_OF_BAG \textGamma) /\char`\\\ Nm \textGamma' A` (\\
-          Induct_on `Gm` >> rw[]\\
-            >- (qexists_tac `\{A\}` >> simp[SUBSET_DEF,SET_OF_BAG]\\ 
-            ~>> metis_tac[Nm_ax])\\
-            >- (...
-    \end{alltt}
-
 \end{frame}
 
 \section{Conclusion}
