@@ -1,9 +1,6 @@
 ## Summer Project 2018/2019: Equivalences of proof theories in HOL
 Done:
-- Defined N systems
-- Defined G systems
-
-In progress:
+- Proof in minimal intuitionistic logic
 
 TODO: 
-- prove something interesting
+- full intuitionistic and classical logic
