@@ -4,12 +4,17 @@
 \usepackage{bussproofs}
 \usepackage{alltt}
 \usepackage{MnSymbol}
+\usepackage{textgreek}
+% \usepackage{thmtools}
 % \usepackage{listings}             
 
+\newtheorem{thm}{Theorem}
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}
 \theoremstyle{remark}
 \newtheorem{notn}{Notation}
+% \declaretheorem[style=definition,name=Definition]{defn}
+% \decalretheorem[style=remark,name=Notation]{notn}
 
 \def\presentationtitle{Proof of calculi equivalence in HOL4}
 
@@ -45,7 +50,7 @@
 \begin{frame}
     \frametitle{Theorem Provers}
     \begin{itemize}
-        \item A \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
+        \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
         \item Proving a proposition in a proof assistant usually takes significantly more time than proving an informal proof on paper.
     \end{itemize}
 \end{frame}
@@ -55,7 +60,7 @@
     \begin{enumerate}
         \item Once a theorem is proved in a proof assistant, you can trust that it is a correct proof, provided that the proof assistant itself is sound.
         \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
-        \item It is also fun (in my opinion).
+        % \item It is also fun (in my opinion).
     \end{enumerate}
 \end{frame}
 
@@ -92,8 +97,8 @@
 \begin{frame}
     \frametitle{Proof Theory}
     \begin{itemize}
-        \item Proof theory is a branch of mathematical logic which analyses proofs and their calculi. 
-        \item Here the focus is on the syntax of a logic, rather than it's semantics.
+        \item Proof theory is a branch of mathematical logic that analyses proofs and their calculi. 
+        \item In proof theory the focus is the syntax of a logic, rather than its semantics.
     \end{itemize}
 \end{frame}
 
@@ -104,16 +109,11 @@
         \[ \varphi ::= a ~|~ \varphi \lor \varphi ~|~ \varphi \land \varphi ~|~ \varphi \to \varphi ~|~ \bot \]
     In HOL:
     \begin{alltt}
-        val _ = Datatype `formula =
-
-        Var 'a
-        
-        | Or formula formula
-        
-        | And formula formula
-        
-        | Imp formula formula
-        
+        val _ = Datatype `formula =\\
+        Var 'a\\
+        | Or formula formula\\
+        | And formula formula\\
+        | Imp formula formula\\
         | Bot`;
     \end{alltt}
     \end{defn}
@@ -127,13 +127,10 @@
         \[ \top := \bot \to \bot \]
         In HOL:
         \begin{alltt}
-            val Not_def = Define `Not f = f Imp Bot`;
-
-            val BiImp_def = 
-            
-            ~Define `f BiImp f' = (f Imp f') And (f' Imp f)`;
-
-            val Top_def = Define `Top = Bot Imp Bot`;
+            val Not_def = Define `Not f = f Imp Bot`;\\
+            val BiImp_def = \\
+            ~Define `f BiImp f' = (f Imp f') And (f' Imp f)`;\\
+            val Top_def = Define `Top = Bot Imp Bot`;\\
         \end{alltt}
     \end{notn}
 \end{frame}
@@ -184,9 +181,9 @@
         \DisplayProof 
     \]
     \[
-        \AxiomC{$\Gamma\setminus\{A\} \Rightarrow B$}
+        \AxiomC{$\Gamma \Rightarrow B$}
         \RightLabel{$\to i$}
-        \UnaryInfC{$\Gamma\Rightarrow A\to B$}
+        \UnaryInfC{$\Gamma\setminus\{A\}\Rightarrow A\to B$}
         \DisplayProof
         \hspace{0.5cm}
         \AxiomC{$\Gamma\Rightarrow A\to B$}
@@ -216,7 +213,7 @@
 
 \begin{frame}
     \frametitle{Sequent Calculus (aka. Gentzen System)}
-    Sequent Calculus ($G$) is supposedly more mathematically elegant, but perhaps somewhat less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e. $\{A,A\}\neq\{A\}$ as it would in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules.
+    Sequent Calculus ($G$) is more mathematically elegant, but perhaps less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e. $\{A,A\}\neq\{A\}$ as it would in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules.
 
     Here are some of them:
     \[
@@ -243,7 +240,121 @@
     \frametitle{Sequent Calculus (aka. Gentzen System)}
     In HOL:
     \begin{alltt}
+        (!(A:'a formula) \textGamma. (A <: \textGamma) /\char`\\\ FINITE_BAG \textGamma\\
+        ~ ==> Gm \textGamma A)\\
+        /\char`\\\ (!A B \textGamma C. (Gm \textGamma A) /\char`\\\ (Gm (BAG_INSERT B \textGamma) C)\\
+        ~ ==> (Gm (BAG_INSERT (A Imp B) \textGamma) C))\\
+        /\char`\\\ (!A B \textGamma. (Gm (BAG_INSERT A \textGamma) B)\\
+        ~ ==> (Gm \textGamma (A Imp B)))\\
+   \end{alltt}
+   \begin{notn}
+       In HOL, multisets are called bags.
+   \end{notn}
+\end{frame}
+
+\section{The Proof}
+
+\begin{frame}
+    \frametitle{The Proof of Equivalence}
+    \begin{itemize}
+        \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.\ exactly the same conclusions can be derived from the same hypotheses. Since $N$ uses sets and $G$ uses multisets, this became a bit trickier than expected. 
+        \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but so far I've only done the minimal intuitionistic version.
+        \item I have had to prove many lemmata which are not provided in HOL (I plan to contribute some of them).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Proof of Equivalence}
+    Here is the statement in mathematical notation:
+    \begin{thm}
+        \[\forall ~\Gamma ~A. ~\Gamma \vdash_N A ~\Leftrightarrow~ \Gamma \vdash_G A\]
+    \end{thm}
+    In HOL:
+
+    \begin{alltt}
+        !\textGamma A. Gm \textGamma A <=> Nm (SET_OF_BAG \textGamma) A
     \end{alltt}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Proof of $N\Rightarrow G$}
+    \begin{alltt}
+        Theorem Nm_Gm `!\textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A` (
+         
+        ~Induct_on `Nm` >> rw[Gm_rules]
+    \end{alltt}
+    The proof proceeds by rule induction, which is similar to structural induction. HOL splits each case into a sub-goal, when I rewrite (with \texttt{rw}).
+\end{frame}
+
+\begin{frame}
+    \frametitle{Proof of $N\Rightarrow G$ (cont.)}
+    The first goal is:
+
+    \texttt{Gm (BAG_OF_SET \{A\}) A}
+
+    This is solved by appealing to axiom, and simplifying with the relevant finiteness lemma (which I had to prove elsewhere):
+
+    \texttt{
+        >- (irule Gm_ax >> 
+            simp[FINITE_BAG_OF_SET])
+        }
+
+    Most other sub-goals are more complicated to solve.
+
+\end{frame}
+
+\begin{frame}
+    % \frametitle{Proof of $N\Rightarrow G$ (cont.)}
+    Another goal is:
+    \texttt{Gm (BAG_OF_SET \textGamma) (A Imp A')}
+
+    With Hypotheses:\\
+    \texttt{0.  Nm (A INSERT \textGamma) A'\\
+         1.  Gm (BAG_OF_SET (A INSERT \textGamma)) A' }
+
+     Proved with:
+     \begin{alltt}
+         >- (irule Gm_rimp >>\\
+             fs[BAG_OF_SET_INSERT] >>\\
+             irule Gm_lw >>\\
+             simp[] >>\\
+             drule Gm_FINITE >>\\
+             rw[] >>\\
+             qexists_tac `BAG_MERGE \{|A|\} (BAG_OF_SET \textGamma)` >>\\
+             simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
+     \end{alltt}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Proof of $N\Rightarrow G$ (cont.)}
+    I won't go through any other parts of the proof, as it takes too long to explain. You get the idea...
+\end{frame}
+
+\begin{frame}
+    \frametitle{Proof of $G\Rightarrow N$}
+    The proof in the other direction proceeds in a similar fashion:
+    \begin{alltt}
+        Theorem Gm_Nm `!\textGamma A. Gm \textGamma A\\
+        ~==> ?\textGamma'. \textGamma' ⊆ (SET_OF_BAG \textGamma) /\char`\\\ Nm \textGamma' A` (\\
+          Induct_on `Gm` >> rw[]\\
+            >- (qexists_tac `\{A\}` >> simp[SUBSET_DEF,SET_OF_BAG]\\ 
+            ~>> metis_tac[Nm_ax])\\
+            >- (...
+    \end{alltt}
+
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+        \item A lot of my time has been spent proving lemmata, mostly multiset/bag related.
+        \item While it has been lot of work, I have learnt a lot about interactive theorem proving.
+        \item I finished the proof for minimal intuitionistic logic.
+        % \item I will still try to do improve upon what I've done formalising extended logics (maybe even classical!).
+        \item My project will become an example within the distribution of HOL, and some of my lemmata will make it into the main distribution.
+    \end{itemize}
 \end{frame}
 
 \end{document}
