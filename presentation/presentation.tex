@@ -56,20 +56,28 @@
     \begin{itemize}
         \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
         \item The prover I used (HOL4) is engineered so that theorems can only be produced under the control of a small trusted kernel.
-        \item Proving a proposition in a proof assistant usually takes significantly more time than proving an informal proof on paper.
+        \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Why Bother?}
     \begin{enumerate}
-        \item Once a theorem is proved in a proof assistant, you can trust that it is a correct proof, provided that the proof assistant itself is sound.
+        \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
         \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
         \item I wanted to learn about theorem provers, and this seemed like a good project for that.
     \end{enumerate}
 \end{frame}
 
 \section{Proof Theory and Logic}
+
+\begin{frame}
+    \frametitle{Proofs about proofs}
+    I have been talking about proofs in HOL, which could be about any kind of mathematics, e.g., number theory, analysis, programming languages, etc. 
+    
+    \bigskip
+    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic used in the proofs I prove things about.  
+\end{frame}
 
 \begin{frame}[fragile]
     % \frametitle{Propositional Logic Syntax}
@@ -79,14 +87,14 @@
     \bigskip
     In HOL:
     \small
-    \begin{alltt}
-        val _ = Datatype `formula =
-            Var 'a
-            | Or formula formula
-            | And formula formula
-            | Imp formula formula
-            | Bot`;
-    \end{alltt}
+\begin{alltt}
+val _ = Datatype `formula =
+    Var 'a
+    | Or formula formula
+    | And formula formula
+    | Imp formula formula
+    | Bot`;
+\end{alltt}
 \end{frame}
 
 \newcommand{\bs}{\char`\\}
@@ -94,10 +102,11 @@
     \frametitle{Inference Rules}
     An inference rule in a system $S$ is a condition under which a conclusion can be inferred from hypotheses:
     \[
-        \AxiomC{$\Gamma_0 \Rightarrow_S \varphi_0$}
+        \AxiomC{$\Gamma_0 \vdash_S \varphi_0$}
         \AxiomC{$\dots$}
-        \AxiomC{$\Gamma_n \Rightarrow_S \varphi_n$}  
-        \TrinaryInfC{$\Delta \Rightarrow_S \psi$}
+        \AxiomC{$\Gamma_n \vdash_S \varphi_n$}  
+        \RightLabel{(rule)}
+        \TrinaryInfC{$\Delta \vdash_S \psi$}
         \DisplayProof
     \]
     Presented with hypotheses above and conclusion below.
@@ -108,7 +117,7 @@
         S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
     \end{alltt}
 
-    In HOL, \texttt{S} is a prefix binary relation, instead of infix ($\Rightarrow_S$).
+    In HOL, \texttt{S} is a prefix binary relation, instead of infix ($\vdash_S$).
 \end{frame}
 
 \section{The Calculi}
@@ -120,20 +129,20 @@
     \[
         \AxiomC{}
         \RightLabel{(Axiom)}
-        \UnaryInfC{$\{A\} \Rightarrow A$}
+        \UnaryInfC{$\{A\} \vdash_N A$}
         \DisplayProof 
         \hspace{0.5cm}
-        \AxiomC{$\Gamma \Rightarrow B$}
+        \AxiomC{$\Gamma \vdash_N B$}
         \RightLabel{$\to i$}
-        \UnaryInfC{$\Gamma\setminus\{A\}\Rightarrow A\to B$}
+        \UnaryInfC{$\Gamma\setminus\{A\}\vdash_N A\to B$}
         \DisplayProof
     \]
     The following elimination rule corresponds to modus ponens:
     \[
-        \AxiomC{$\Gamma\Rightarrow A\to B$}
-        \AxiomC{$\Delta\Rightarrow A$}
+        \AxiomC{$\Gamma\vdash_N A\to B$}
+        \AxiomC{$\Delta\vdash_N A$}
         \RightLabel{$\to e$}
-        \BinaryInfC{$\Gamma\cup\Delta\Rightarrow B$}
+        \BinaryInfC{$\Gamma\cup\Delta\vdash_N B$}
         \DisplayProof
     \]
 \end{frame}
@@ -141,25 +150,25 @@
 
 \begin{frame}
     \frametitle{Sequent Calculus (aka. Gentzen System)}
-    Sequent Calculus ($G$) is more mathematically elegant, but perhaps less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e. $\{A,A\}\neq\{A\}$ as it would be in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules.
+    Sequent Calculus ($G$) is more mathematically elegant, but perhaps less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e., $\{A,A\}\neq\{A\}$ as it would be in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules, and one axiom.
 
     Here are some of them:
     \[
         \AxiomC{}
         \RightLabel{(Axiom)}
-        \UnaryInfC{$\Gamma \cupplus \{A\}\Rightarrow A$}
+        \UnaryInfC{$\Gamma \cupplus \{A\}\vdash_G A$}
         \DisplayProof
     \]
     \[
-        \AxiomC{$\Gamma\Rightarrow A$}
-        \AxiomC{$\Gamma\cupplus\{B\}\Rightarrow C$}
+        \AxiomC{$\Gamma\vdash_G A$}
+        \AxiomC{$\Gamma\cupplus\{B\}\vdash_G C$}
         \RightLabel{L$\to$}
-        \BinaryInfC{$\Gamma\cupplus\{A\to B\}\Rightarrow C$}
+        \BinaryInfC{$\Gamma\cupplus\{A\to B\}\vdash_G C$}
         \DisplayProof
         \hspace{0.5cm}
-        \AxiomC{$\Gamma\cupplus\{A\}\Rightarrow B$}
+        \AxiomC{$\Gamma\cupplus\{A\}\vdash_G B$}
         \RightLabel{R$\to$}
-        \UnaryInfC{$\Gamma\Rightarrow A\to B$}
+        \UnaryInfC{$\Gamma\vdash_G A\to B$}
         \DisplayProof
     \]
 \end{frame}
@@ -178,6 +187,8 @@
 \begin{frame}[fragile]
     \frametitle{The Proof of Equivalence}
     Here is the statement in mathematical notation:
+    
+    (read $\Gamma\vdash_S A$ as ``$\Gamma$ derives $A$ in $S$'')
     \begin{thm}
         \[\forall ~\Gamma ~A. ~\Gamma \vdash_N A ~\Leftrightarrow~ \Gamma \vdash_G A\]
     \end{thm}
@@ -195,27 +206,37 @@
 Theorem Nm_Gm 
     `!\textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
 \end{alltt}
-The proof is by rule induction (similar to structural induction). 
+The proof is by rule induction. Each case corresponds to a rule in $N$.
 
-Modus Ponens case:
+Modus Ponens ($\to$e) case:
 \[
-    \AxiomC{$\Gamma_0\Rightarrow A\to B$}
-    \AxiomC{$\Gamma_1\Rightarrow A$}
-    \BinaryInfC{$\Gamma_0\cup\Gamma_1 \Rightarrow B$}
-    \DisplayProof\]
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_0\vdash_N A\to B$}
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_1\vdash_N A$}
+    \RightLabel{$\to$e}
+    \BinaryInfC{$\Gamma_0\cup\Gamma_1 \vdash_N B$}
+    \DisplayProof
+\]
 becomes
 \[
-    \AxiomC{IH}
-    \UnaryInfC{$\Gamma_0 \Rightarrow A \to B$}
-    \AxiomC{IH}
-    \UnaryInfC{$\Gamma_1 \Rightarrow A$}
-    \AxiomC{$\{B\} \Rightarrow B$}
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_0 \vdash_G A \to B$}
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_1 \vdash_G A$}
+    \AxiomC{}
+    \RightLabel{axiom}
+    \UnaryInfC{$\{B\} \vdash_G B$}
     \RightLabel{L$\to$}
-    \BinaryInfC{$\{A\to B\}\cupplus\Gamma_1\Rightarrow B$}
+    \BinaryInfC{$\{A\to B\}\cupplus\Gamma_1\vdash_G B$}
     \RightLabel{cut}
-    \BinaryInfC{$\Gamma_0\cupplus\Gamma_1\Rightarrow B$}
-    \RightLabel{(contraction)}
-    \UnaryInfC{$\text{set}(\Gamma_0\cupplus\Gamma_1)\Rightarrow B$}
+    \BinaryInfC{$\Gamma_0\cupplus\Gamma_1\vdash_G B$}
+    \RightLabel{contraction}
+    \UnaryInfC{$\text{set}(\Gamma_0\cupplus\Gamma_1)\vdash_G B$}
     \DisplayProof
 \]
 
