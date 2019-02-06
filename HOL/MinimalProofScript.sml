@@ -378,6 +378,7 @@ val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B 
 
 val _ = overload_on ("unibag", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
 (* Alt names: scrunch, trample, squash, jam *)
+val unibag_thm = CONJ BAG_OF_SET SET_OF_BAG;
 
 val unibag_INSERT =
     Q.prove(`∀a b. (unibag (BAG_INSERT a b)) = BAG_MERGE {|a|} (unibag b)`,
@@ -462,7 +463,6 @@ Theorem unibag_ALL_DISTINCT `∀b. BAG_ALL_DISTINCT (unibag b)` (
 Theorem unibag_IN `∀e b. BAG_IN e b ==> BAG_IN e (unibag b)` (
   rw[BAG_IN]);
 
-val unibag_thm = CONJ BAG_OF_SET SET_OF_BAG;
 
 Theorem unibag_EL_MERGE_cases `∀e b.
 ((BAG_IN e b) ==> (BAG_MERGE {|e|} (unibag b) = (unibag b)))
@@ -527,8 +527,8 @@ rw[] >> EQ_TAC
 Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
  Induct_on `Nm ` >>
  rw[Gm_rules]
- >- (irule Gm_ax >> 
-     simp[FINITE_BAG_OF_SET])
+ >- (irule Gm_ax >> simp[] >>
+     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF])
  >- (irule Gm_rand >> conj_tac
      >- (`Gm (BAG_OF_SET (Γ' ∪ Γ)) A` suffices_by metis_tac[UNION_COMM] >>
          simp[BAG_OF_SET_UNION] >>
