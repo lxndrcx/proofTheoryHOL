@@ -36,6 +36,121 @@ val (Nm_rules, Nm_ind, Nm_cases) = Hol_reln `
 
 val [Nm_ax, Nm_andi, Nm_andel, Nm_ander,
      Nm_impi, Nm_impe, Nm_orir, Nm_oril, Nm_ore] = CONJUNCTS Nm_rules;
+
+Theorem Nm_FINITE `!D A. Nm D A ==> FINITE D` (Induct_on `Nm` >> rw[])
+        
+val (Nmd_rules, Nmd_ind, Nmd_cases) = Hol_reln `
+(! (A :'a formula). Nmd {A} A) (* Base case *)
+/\ (!A B D1 D2. (Nmd D1 A) /\ (Nmd D2 B)
+                             ==> (Nmd (D1 UNION D2) (A And B))) (* And Intro *)
+/\ (!A B D. (Nmd D (A And B)) ==> Nmd D A) (* And Elimination Left Conjunct *)
+/\ (!A B D. (Nmd D (A And B)) ==> Nmd D B) (* And Elim Right Conjunct *)
+/\ (!A B D. (Nmd D B) ==> Nmd (D DELETE A) (A Imp B)) (* Imp Intro *)
+/\ (!A B D1 D2. (Nmd D1 (A Imp B)) /\ (Nmd D2 A)
+                                     ==> Nmd (D1 UNION D2) B) (* Imp Elim *)
+/\ (!A B D. Nmd D A ==> Nmd D (A Or B)) (* Or Intro right *)
+/\ (!A B D. Nmd D B ==> Nmd D (A Or B)) (* Or Intro left *)
+/\ (!A B C D D1 D2. (Nmd D (A Or B)) /\
+(Nmd D1 C) /\ (Nmd D2 C) ==> Nmd (D ∪ (D1 DELETE A) ∪ (D2 DELETE B)) C)`; (* Or Elim *)
+
+val [Nmd_ax, Nmd_andi, Nmd_andel, Nmd_ander,
+     Nmd_impi, Nmd_impe, Nmd_orir, Nmd_oril, Nmd_ore] = CONJUNCTS Nmd_rules;
+
+Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
+  rw[] >>
+`Nm {B} B` by metis_tac[Nm_ax] >>
+`Nm ({B} ∪ D) (B And A)` by metis_tac[Nm_andi] >>
+`Nm ({B} ∪ D) A` by metis_tac[Nm_ander] >>
+metis_tac[INSERT_SING_UNION]);
+
+Theorem Nmd_lw `∀D A. Nmd D A ==> ∀B. Nmd (B INSERT D) A` (
+  rw[] >>
+`Nmd {B} B` by metis_tac[Nmd_ax] >>
+`Nmd ({B} ∪ D) (B And A)` by metis_tac[Nmd_andi] >>
+`Nmd ({B} ∪ D) A` by metis_tac[Nmd_ander] >>
+metis_tac[INSERT_SING_UNION]);
+
+Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D' A` (
+  GEN_TAC >>
+          Induct_on `CARD D'`
+>- (rw[] >>
+      metis_tac[CARD_EQ_0,SUBSET_EMPTY])
+>- (rw[] >>
+      Cases_on `D=D'`
+>- metis_tac[]
+>- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
+by (`?e. e ∈ D' /\ e NOTIN D`
+by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
+qexists_tac `D' DELETE e` >>
+qexists_tac `e` >>
+simp[] >>
+fs[SUBSET_DEF]) >>
+rw[] >>
+fs[] >>
+metis_tac[Nm_lw])));
+
+Theorem Nm_impi_DELETE `∀D A B. Nm D A ==> Nm (D DELETE B) (B Imp A)` (
+  rw[] >>
+  `Nm (B INSERT D) A` by metis_tac[Nm_lw] >>
+  Cases_on `B ∈ D`
+    >- (`?D'. (D = B INSERT D') /\ B NOTIN D'`
+          by metis_tac[DECOMPOSITION] >>
+        fs[] >>
+        `(B INSERT D') DELETE B = D'`
+          by (dsimp[EXTENSION] >>
+              metis_tac[]) >>
+        simp[Nm_impi])
+    >- simp[DELETE_NON_ELEMENT_RWT,Nm_impi]);
+
+Theorem Nm_Nmd
+∀D A. Nm D A <=> Nmd D A
+Proof
+  `(∀D A:'a formula. Nm D A ==> Nmd D A) ∧
+   (∀D A:'a formula. Nmd D A ==> Nm D A)`
+    suffices_by metis_tac[] >>
+  conj_tac >>
+  >- (Induct_on `Nm` >>
+      rw[Nmd_rules]
+        >- metis_tac[Nmd_andel]
+        >- metis_tac[Nmd_ander]
+        >- (`Nmd ((A INSERT D) DELETE A) (A Imp B)`
+              by metis_tac[Nmd_impi] >>
+            Cases_on `A ∈ D`
+              >- (fs[DELETE_DEF] >>
+                  `Nmd (A INSERT (D DIFF {A})) (A Imp B)`
+                    by metis_tac[Nmd_lw] >>
+                  fs[Once INSERT_SING_UNION] >>
+                  `{A} ⊆ D` by simp[SUBSET_DEF] >>
+                  metis_tac[UNION_DIFF])
+              >- fs[DELETE_DEF,DELETE_NON_ELEMENT])
+        >- metis_tac[Nmd_impe]
+        >- (`Nmd (D ∪ ((A INSERT D) DELETE A) ∪ ((B INSERT D) DELETE B)) C`
+              by metis_tac[Nmd_ore] >>
+            fs[DELETE_DEF,UNION_DIFF_2]))
+  >- (Induct_on `Nmd` >>
+      rw[Nm_rules]
+        >- metis_tac[Nm_andel]
+        >- metis_tac[Nm_ander]
+        >- metis_tac[Nm_impi_DELETE]
+        >- metis_tac[Nm_impe]
+        >- `Nm (D ∪ (D1 DELETE A) ∪ (D2 DELETE B)) C`
+             by (irule Nm_lw_SUBSET >>
+                 reverse(rw[])
+                   >- (qexists_tac `D1` >>
+                       simp[Once UNION_COMM,Once UNION_ASSOC])
+                   >> metis_tac[Nm_FINITE]) >>
+           qabbrev_tac `Δ = (D ∪ D1 ∪ D2)` >>
+           `Nm Δ (A Or B)`
+             by (simp[Abbr`Δ`] >>
+                 irule Nm_lw_SUBSET >>
+                 reverse (rw[])
+                   >- (qexists_tac `D` >>
+                       rpt (simp[Once UNION_ASSOC, Once UNION_COMM]))
+                   >> metis_tac[Nm_FINITE]) >>
+           
+QED
+
+
 val NmThm = Define `NmThm A = Nm EMPTY A`;
 (* Example deductions *)
 val Nm_example = Q.prove(`NmThm (A Imp (B Imp A))`,
@@ -142,7 +257,6 @@ Theorem BAG_MERGE_EMPTY
   rw[] >> 
   simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
-Theorem Nm_FINITE `!D A. Nm D A ==> FINITE D` (Induct_on `Nm` >> rw[])
 Theorem Gm_FINITE `!D A. Gm D A ==> FINITE_BAG D` (Induct_on `Gm` >> rw[])
 
 Theorem BAG_INSERT_FILTER_COMP_OF_SET 
@@ -560,73 +674,7 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
       `Gm (unibag (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ)) A'` by metis_tac[Gm_unibag] >>
       fs[unibag_UNION]));
 
-Theorem Nm_lw `∀D A. Nm D A ==> ∀B. Nm (B INSERT D) A` (
-  Induct_on `Nm` >> rw[] 
-    >- (`Nm {B} B` by metis_tac[Nm_ax] >>
-        `Nm {A} A` by metis_tac[Nm_ax] >>
-        `Nm {B;A} (B And A)` by metis_tac[Nm_andi,INSERT_SING_UNION] >>
-        metis_tac[Nm_ander])
-    >- (simp[Once INSERT_SING_UNION] >> simp[UNION_ASSOC] >> irule Nm_andi >>
-        `Nm (B' INSERT D) A` by metis_tac[] >> fs[Once INSERT_SING_UNION])
-    >- (fs[Once INSERT_SING_UNION] >> metis_tac[Nm_andel])
-    >- (fs[Once INSERT_SING_UNION] >> metis_tac[Nm_ander])
-    >- (fs[Once INSERT_SING_UNION] >> irule Nm_impi >>
-        `Nm ({B} ∪ (A INSERT D)) A'` by metis_tac[] >>
-        `Nm ({A} ∪ ({B} ∪ D)) A'`
-          by metis_tac[INSERT_SING_UNION,UNION_COMM,UNION_ASSOC] >>
-        simp[Once INSERT_SING_UNION])
-    >- (fs[Once INSERT_SING_UNION] >>
-        `Nm ({B} ∪ D) (A Imp A')` by metis_tac[] >>
-        `Nm ({B} ∪ D') A` by metis_tac[] >>
-        `Nm (({B} ∪ D) ∪ ({B} ∪ D')) A'` by metis_tac[Nm_impe] >>
-        metis_tac[UNION_ASSOC,UNION_COMM,UNION_IDEMPOT])
-    >- (fs[Once INSERT_SING_UNION] >>
-        irule Nm_orir >> metis_tac[])
-    >- (fs[Once INSERT_SING_UNION] >>
-        irule Nm_oril >> metis_tac[])
-    >- (fs[Once INSERT_SING_UNION] >>
-        `Nm ({B'} ∪ (A INSERT D)) A'` by metis_tac[] >>
-        `Nm ((A INSERT D) ∪ {B'}) A'` by metis_tac[UNION_COMM] >>
-        `Nm (A INSERT (D ∪ {B'})) A'` by metis_tac[INSERT_UNION_EQ] >>
-        `Nm (A INSERT ({B'} ∪ D)) A'` by metis_tac[UNION_COMM] >>
-        `Nm ({B'} ∪ (B INSERT D)) A'` by metis_tac[] >>
-        `Nm ((B INSERT D) ∪ {B'}) A'` by metis_tac[UNION_COMM] >>
-        `Nm (B INSERT (D ∪ {B'})) A'` by metis_tac[INSERT_UNION_EQ] >>
-        `Nm (B INSERT ({B'} ∪ D)) A'` by metis_tac[UNION_COMM] >>
-        `Nm ({B'} ∪ D) (A Or B)` by metis_tac[] >>
-        metis_tac[Nm_ore]));
 
-Theorem Nm_lw_SUBSET `∀D'. FINITE D' ==> ∀D A. Nm D A  /\ D ⊆ D' ==> Nm D' A` (
- GEN_TAC >>
- Induct_on `CARD D'`
-   >- (rw[] >>
-       metis_tac[CARD_EQ_0,SUBSET_EMPTY])
-   >- (rw[] >>
-       Cases_on `D=D'`
-         >- metis_tac[]
-         >- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
-               by (`?e. e ∈ D' /\ e NOTIN D`
-                   by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
-                   qexists_tac `D' DELETE e` >>
-                   qexists_tac `e` >>
-                   simp[] >>
-                   fs[SUBSET_DEF]) >>
-             rw[] >>
-             fs[] >>
-             metis_tac[Nm_lw])));
-
-Theorem Nm_impi_DELETE `∀D A B. Nm D A ==> Nm (D DELETE B) (B Imp A)` (
-  rw[] >>
-  `Nm (B INSERT D) A` by metis_tac[Nm_lw] >>
-  Cases_on `B ∈ D`
-    >- (`?D'. (D = B INSERT D') /\ B NOTIN D'`
-          by metis_tac[DECOMPOSITION] >>
-        fs[] >>
-        `(B INSERT D') DELETE B = D'`
-          by (dsimp[EXTENSION] >>
-              metis_tac[]) >>
-        simp[Nm_impi])
->- (simp[DELETE_NON_ELEMENT_RWT,Nm_impi]));
 
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
