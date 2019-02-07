@@ -83,21 +83,6 @@ val [Gi_ax, Gm_bot, Gi_lc, Gi_landl, Gi_landr, Gi_rand,
 
 val GiThm = Define `GiThm A = Gi EMPTY_BAG A`;
 
-val Gi_example1 =
-    Q.prove(`GiThm ((A And B) Imp (B And A))`, rw[GiThm,Gi_rules]);
-
-val Gi_example2 = Q.prove (`GiThm ((A Imp (A Imp B)) Imp (A Imp B))`,
-rw[GiThm] >>
-`Gi {|(A Imp A Imp B)|} (A Imp B)` suffices_by metis_tac[Gi_rules] >>
-`Gi {|A;(A Imp A Imp B)|} (B)` suffices_by metis_tac[Gi_rules] >>
-`Gi {|A|} (A)` by metis_tac[Gi_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
-`Gi {|B;A|} (B)` by metis_tac[Gi_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
-(* `Gi {|A;B|} (B)` by simp[Gi_lw] >> *)
-(* `Gi {|B;A|} (B)` by simp[BAG_INSERT_commutes] >> *)
-`Gi {|(A Imp B);A|} (B)` by metis_tac[Gi_rules] >>
-`Gi {|(A Imp A Imp B);A|} (B)` suffices_by metis_tac[BAG_INSERT_commutes] >>
-metis_tac[Gi_rules]);
-
 val Gi_land_commutes =
     Q.prove(`Gi {| A And B |} Δ ==> Gi {| B And A |} Δ`, rw[] >>
 `Gi {|B|} B` by metis_tac[Gi_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
@@ -108,11 +93,6 @@ val Gi_land_commutes =
 `Gi ({|B And A|} + {||}) Δ` by metis_tac[Gi_cut] >>
 metis_tac[BAG_UNION_EMPTY]);
 
-(* ========================================================================== *)
-(* Proofs of equivalence of N and G Systems                                   *)
-(*                                                                            *)
-(*                                                                            *)
-(* ========================================================================== *)
 Theorem BAG_OF_SET_UNION `∀Γ Γ'. BAG_OF_SET (Γ ∪ Γ') = (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET Γ'))` (
  rpt strip_tac >> simp[UNION_DEF] >> simp[BAG_OF_SET] >> simp[BAG_MERGE] >>
  simp[FUN_EQ_THM] >> rw[] >> fs[]);
