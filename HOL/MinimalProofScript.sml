@@ -6,8 +6,8 @@
 (* ========================================================================== *)
 
 open HolKernel boolLib Parse bossLib;
-open bagLib bagSimps bagTheory;
-open pred_setTheory pred_setLib;
+open bagTheory;
+open pred_setTheory;
 
 open FormulaSyntaxTheory;
 
@@ -142,10 +142,8 @@ Theorem BAG_MERGE_EMPTY
   rw[] >> 
   simp[BAG_MERGE,FUN_EQ_THM,EMPTY_BAG]);
 
-val Nm_FINITE = Q.prove(`!D A. Nm D A ==> FINITE D`,
-                          Induct_on `Nm` >> rw[Nm_rules]);
-val Gm_FINITE = Q.prove(`!D A. Gm D A ==> FINITE_BAG D`,
-                          Induct_on `Gm` >> rw[Gm_rules]);
+Theorem Nm_FINITE `!D A. Nm D A ==> FINITE D` (Induct_on `Nm` >> rw[])
+Theorem Gm_FINITE `!D A. Gm D A ==> FINITE_BAG D` (Induct_on `Gm` >> rw[])
 
 Theorem BAG_INSERT_FILTER_COMP_OF_SET 
 `∀s a. (BAG_INSERT a (BAG_FILTER (COMPL {a}) (BAG_OF_SET s))) 
@@ -217,11 +215,6 @@ Theorem FINITE_BAG_INSERT[simp] `∀e b. FINITE_BAG b
                                    <=> FINITE_BAG (BAG_INSERT e b)` (
   rw[]);
 
-val BAG_UNION_ONE_ONE = Q.prove(`∀e b. {|e|} ⊎ {|e|} ⊎ b = {|e;e|} ⊎ b`,
-  rw[BAG_UNION,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-  Cases_on `x=e` >>
-  simp[]);
-
 Theorem BAG_MERGE_BAG_INSERT
 `∀e a b.
 ((a e ≤ b e) ==> ((BAG_MERGE a (BAG_INSERT e b))
@@ -245,27 +238,24 @@ Theorem BAG_MERGE_BAG_INSERT
         rw[] >> fs[]));
 
 Theorem BAG_INSERT_EQ_MERGE_DELETE
-`∀a b c e Σ Δ. (BAG_INSERT e a = BAG_MERGE b c) 
-                ∧ (BAG_DELETE b e Σ) 
-                ∧ (BAG_DELETE c e Δ)
+`∀a b c e Σ Δ. (BAG_INSERT e a = BAG_MERGE b c)
+                ∧ (BAG_DELETE b e Σ) ∧ (BAG_DELETE c e Δ)
             ==> ((BAG_MERGE b c = BAG_INSERT e (BAG_MERGE Σ Δ)))` (
   rw[BAG_DELETE] >>
   fs[BAG_INSERT,BAG_MERGE,EMPTY_BAG,FUN_EQ_THM] >>
-  rw[] >> 
-  fs[]);
+  rw[] >> fs[]);
 
 Theorem BAG_INSERT_EQ_MERGE_DIFF
 `∀a b c e. (BAG_INSERT e a = BAG_MERGE b c) 
-            ==> ((BAG_MERGE b c = BAG_INSERT e (BAG_MERGE (b - {|e|}) (c - {|e|}))))` (
-  rw[BAG_DIFF] >>
+      ==> ((BAG_MERGE b c = BAG_INSERT e (BAG_MERGE (b - {|e|}) (c - {|e|}))))`
+(rw[BAG_DIFF] >>
     fs[BAG_INSERT,BAG_MERGE,EMPTY_BAG,FUN_EQ_THM] >>
     reverse(rw[])
     >- (`b e - 1 + 1 = b e` suffices_by simp[EQ_SYM_EQ] >>
         irule arithmeticTheory.SUB_ADD >>
         `c e ≤ b e` by simp[] >>
         first_x_assum (qspec_then `e` mp_tac) >>
-        rw[]) >>
-    fs[]);
+        rw[]) >> fs[]);
 
 Theorem FINITE_BAG_MERGE[simp]
 `∀a b. FINITE_BAG (BAG_MERGE a b) <=> FINITE_BAG a /\ FINITE_BAG b ` (
@@ -348,19 +338,17 @@ Theorem FINITE_BAG_OF_SET
             first_x_assum (qspec_then `t DIFF {e}` mp_tac) >> DISCH_TAC >>
             metis_tac[FINITE_DIFF_down,FINITE_DEF])));
 
-val Gm_lw_BAG_MERGE =
-    Q.prove(`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A`,
+Theorem Gm_lw_BAG_MERGE
+`!Γ₁ A. Gm Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> Gm (BAG_MERGE Γ₂ Γ₁) A` (
   rw[] >>
   irule Gm_lw >>
   `FINITE_BAG Γ₁` by metis_tac[Gm_FINITE] >>
   simp[FINITE_BAG_MERGE] >>
   qexists_tac `Γ₁` >>
-  simp[] >>
-  simp[SUB_BAG] >>
-  simp[BAG_INN_BAG_MERGE]);
+  simp[SUB_BAG,BAG_INN_BAG_MERGE]);
 
-val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. FINITE_BAG Γ' 
-                               ==> Gm (Γ ⊎ Γ') A`,
+Theorem Gm_lw_BAG_UNION `∀Γ A. Gm Γ A ==> ∀Γ'. FINITE_BAG Γ'
+                               ==> Gm (Γ ⊎ Γ') A` (
   rw[] >> 
   irule Gm_lw >>
   `FINITE_BAG Γ` by metis_tac[Gm_FINITE] >>
@@ -368,7 +356,7 @@ val Gm_lw_BAG_UNION = Q.prove(`∀Γ A. Gm Γ A ==> ∀Γ'. FINITE_BAG Γ'
   qexists_tac `Γ` >> 
   simp[]);
 
-val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A`,
+Theorem Gm_lw_BAG_INSERT `∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A` (
   rw[] >>
   irule Gm_lw >>
   `FINITE_BAG Γ` by metis_tac[Gm_FINITE] >>
@@ -377,30 +365,28 @@ val Gm_lw_BAG_INSERT = Q.prove(`∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B 
   simp[SUB_BAG_INSERT_I]);
 
 val _ = overload_on ("unibag", ``\b. BAG_OF_SET (SET_OF_BAG b)``);
-(* Alt names: scrunch, trample, squash, jam *)
+
 val unibag_thm = CONJ BAG_OF_SET SET_OF_BAG;
 
-val unibag_INSERT =
-    Q.prove(`∀a b. (unibag (BAG_INSERT a b)) = BAG_MERGE {|a|} (unibag b)`,
+Theorem unibag_INSERT `∀a b. (unibag (BAG_INSERT a b))
+                       = BAG_MERGE {|a|} (unibag b)` (
     rw[BAG_OF_SET_INSERT,SET_OF_BAG_INSERT]);
 
-val unibag_UNION =
-    Q.prove(`∀a b. unibag (a ⊎ b) = BAG_MERGE (unibag a) (unibag b)`,
+Theorem unibag_UNION `∀a b. unibag (a ⊎ b) = BAG_MERGE (unibag a) (unibag b)` (
     rw[SET_OF_BAG_UNION,BAG_OF_SET_UNION]);
 
-val unibag_IN =
-    Q.prove(`∀e b. BAG_IN e b ==> BAG_IN e (unibag b)`,
+Theorem unibag_IN `∀e b. BAG_IN e b ==> BAG_IN e (unibag b)` (
     rw[IN_SET_OF_BAG,BAG_IN_BAG_OF_SET]);
 
-val unibag_EQ_BAG_INSERT =
-    Q.prove(`∀e b b'. (unibag b = BAG_INSERT e b') ==> ?c. (b' = unibag c)`,
+Theorem unibag_EQ_BAG_INSERT 
+`∀e b b'. (unibag b = BAG_INSERT e b') ==> ?c. (b' = unibag c)` (
     rw[] >>
     fs[unibag_thm,BAG_INSERT,FUN_EQ_THM,BAG_IN,BAG_INN] >>
     qexists_tac `b'` >>
     rw[] >>
     first_x_assum (qspec_then `x` mp_tac) >>
     rw[] >>
-    Induct_on `b' e` >- rw[] >>
+    Induct_on `b' e` >>
     rw[]);
 
 Theorem unibag_FINITE `∀b. FINITE_BAG b = FINITE_BAG (unibag b)`
@@ -424,9 +410,8 @@ val Gm_lc_AeA =
             fs[EL_BAG] >>
             simp[ASSOC_BAG_UNION]);
 
-val Gm_INSERT_TO_MERGE =
-    Q.prove(`∀Γ. FINITE_BAG Γ ==> ∀A B. Gm (BAG_INSERT A Γ) B
-             ==> Gm (BAG_MERGE {|A|} Γ) B`,
+Theorem Gm_INSERT_TO_MERGE `∀Γ. FINITE_BAG Γ ==> ∀A B. Gm (BAG_INSERT A Γ) B
+             ==> Gm (BAG_MERGE {|A|} Γ) B` (
     Induct_on `Γ` >>
     rw[]
     >- simp[BAG_MERGE_EMPTY] 
