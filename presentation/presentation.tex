@@ -73,10 +73,10 @@
 
 \begin{frame}
     \frametitle{Proofs about proofs}
-    I have been talking about proofs in HOL, which could be about any kind of mathematics, e.g., number theory, analysis, programming languages, etc. 
+    I have been talking about proofs in HOL, which could be based in any kind of mathematics, e.g., number theory, analysis, programming languages, etc. 
     
     \bigskip
-    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic used in the proofs I prove things about.  
+    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic which is used in the proof systems I am analysing.  
 \end{frame}
 
 \begin{frame}[fragile]
@@ -195,7 +195,7 @@ val _ = Datatype `formula =
     In HOL:
 
     \begin{alltt}
-        !\textGamma A. Gm \textGamma A <=> Nm (SET_OF_BAG \textGamma) A
+        \(\forall\) \textGamma A. Gm \textGamma A <=> Nm (SET_OF_BAG \textGamma) A
     \end{alltt}
 \end{frame}
 
@@ -204,7 +204,7 @@ val _ = Datatype `formula =
 \small
 \begin{alltt}
 Theorem Nm_Gm 
-    `!\textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
+    `\(\forall\) \textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
 \end{alltt}
 The proof is by rule induction. Each case corresponds to a rule in $N$.
 
@@ -265,7 +265,7 @@ fs[unibag_UNION])
     The proof in the other direction seems to require a subset of the hypotheses:
     \begin{alltt}
 Theorem Gm_Nm 
-`!\textGamma A. Gm \textGamma A ==> ?\textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A` 
+`\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A` 
     \end{alltt}
     % \includegraphics[width=\textwidth]{proof-complete-gn}
 \end{frame}
