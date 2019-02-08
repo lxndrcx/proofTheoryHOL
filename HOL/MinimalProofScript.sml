@@ -727,8 +727,6 @@ Theorem Nm_Gm `∀Γ A. Nm Γ A ==> Gm (BAG_OF_SET Γ) A` (
          suffices_by metis_tac[] >>
       rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM]));
 
-
-
 (* Apparently Nm takes a subset here!? *)
 Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
   Induct_on `Gm` >> rw[]
@@ -770,32 +768,34 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
     >- (qexists_tac `Γ' ∪ Γ''` >> simp[] >>
         metis_tac[Nm_andi])
     >- (rename [`Nm _ C`] >>
+        qabbrev_tac `Δ = (A Or B) INSERT (SET_OF_BAG Γ)` >>
         fs[SET_OF_BAG_INSERT] >>
         `FINITE_BAG Γ` by metis_tac[Gm_FINITE,FINITE_BAG_INSERT] >>
-        `Nm (A INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
+        `Nm (A INSERT Δ) C`
           by (irule Nm_lw_SUBSET >>
-              simp[] >>
+              simp[Abbr`Δ`] >>
               qexists_tac `Γ'` >>
               simp[] >>
               metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
-        `Nm (B INSERT ((A Or B) INSERT (SET_OF_BAG Γ))) C`
+        `Nm (B INSERT Δ) C`
           by (irule Nm_lw_SUBSET >>
-              simp[] >>
+              simp[Abbr`Δ`] >>
               qexists_tac `Γ''` >>
               simp[] >>
               metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
-        qexists_tac `(A Or B) INSERT (SET_OF_BAG Γ)` >>
-        simp[SUBSET_INSERT_RIGHT] >>
+        qexists_tac `Δ` >>
+        simp[] >>
         `Nm {(A Or B)} (A Or B)` by metis_tac[Nm_ax] >>
         `FINITE ({A Or B} ∪ (SET_OF_BAG Γ))`
-          by (`FINITE (SET_OF_BAG Γ)` 
+          by (`FINITE (SET_OF_BAG Γ)`
                 by metis_tac[FINITE_SET_OF_BAG] >>
               metis_tac[FINITE_UNION,FINITE_DEF]) >>
         `Nm ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)`
           by metis_tac[SUBSET_UNION,Nm_lw_SUBSET] >>
-        `Nm ((A Or B) INSERT (SET_OF_BAG Γ)) (A Or B)`
-          by metis_tac[INSERT_SING_UNION] >>
-        metis_tac[Nm_ore])
+        `Nm Δ (A Or B)`
+          by (simp[Abbr`Δ`] >>metis_tac[INSERT_SING_UNION]) >>
+        `Nm (Δ ∪ Δ ∪ Δ) C` by metis_tac[Nm_ore] >>
+        metis_tac[UNION_IDEMPOT])
     >- (qexists_tac `Γ'` >> simp[Nm_orir])
     >- (qexists_tac `Γ'` >> simp[Nm_oril])
     >- (rename [`Nm _ C`] >>
