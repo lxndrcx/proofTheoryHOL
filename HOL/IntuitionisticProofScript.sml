@@ -6,7 +6,7 @@
 (* ========================================================================== *)
 
 open HolKernel boolLib Parse bossLib;
-open bagTheory;
+open bagTheory unibagTheory;
 open pred_setTheory;
 
 open FormulaSyntaxTheory;
@@ -221,7 +221,7 @@ Theorem Gi_lw_BAG_INSERT `∀Γ A. Gi Γ A ==> ∀B Γ'. Gi (BAG_INSERT B Γ) A`
   rw[] >>
   irule Gi_lw >>
   `FINITE_BAG Γ` by metis_tac[Gi_FINITE] >>
-  simp[FINITE_BAG_INSERT] >>
+  simp[FINITE_BAG_INSERT_2] >>
   qexists_tac `Γ` >>
   simp[SUB_BAG_INSERT_I]);
 
@@ -336,14 +336,14 @@ Theorem Ni_Gi `∀Γ A. Ni Γ A ==> Gi (BAG_OF_SET Γ) A` (
      fs[BAG_OF_SET_UNION,BAG_OF_SET_INSERT] >>
      qabbrev_tac `Δ = ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET D1) ⊎ (BAG_OF_SET D2))` >>
      `FINITE_BAG (BAG_INSERT A Δ)`
-       by (simp[Abbr`Δ`,FINITE_BAG_INSERT] >>
+       by (simp[Abbr`Δ`,FINITE_BAG_INSERT_2] >>
            metis_tac[FINITE_BAG_OF_SET,Ni_FINITE,FINITE_INSERT]) >>
       `Gi (BAG_INSERT A Δ) C`
         by (`Gi (BAG_MERGE {|A|} Δ) C`
               suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gi_lw] >>
             simp[Abbr`Δ`] >>
             irule Gi_lw >>
-            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_INSERT] >>
+            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_INSERT_2] >>
             qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D1)` >>
             simp[] >>
             fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG,
@@ -351,14 +351,14 @@ Theorem Ni_Gi `∀Γ A. Ni Γ A ==> Gi (BAG_OF_SET Γ) A` (
             rw[] >>
             fs[]) >>
       `FINITE_BAG (BAG_INSERT B Δ)`
-      by (simp[Abbr`Δ`,FINITE_BAG_INSERT] >>
+      by (simp[Abbr`Δ`,FINITE_BAG_INSERT_2] >>
               metis_tac[FINITE_BAG_OF_SET,Ni_FINITE,FINITE_INSERT]) >>
       `Gi (BAG_INSERT B Δ) C`
         by (`Gi (BAG_MERGE {|B|} Δ) C`
               suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,Gi_lw] >>
             simp[Abbr`Δ`] >>
             irule Gi_lw >>
-            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_INSERT] >>
+            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_INSERT_2] >>
             qexists_tac `BAG_MERGE {|B|} (BAG_OF_SET D2)` >>
             simp[] >>
             fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG,
@@ -428,7 +428,7 @@ Theorem Gi_Ni `∀Γ A. Gi Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Ni Γ' A` (
     >- (rename [`Ni _ C`] >>
         qabbrev_tac `Δ = (A Or B) INSERT (SET_OF_BAG Γ)` >>
         fs[SET_OF_BAG_INSERT] >>
-        `FINITE_BAG Γ` by metis_tac[Gi_FINITE,FINITE_BAG_INSERT] >>
+        `FINITE_BAG Γ` by metis_tac[Gi_FINITE,FINITE_BAG_INSERT_2] >>
         `Ni (A INSERT Δ) C`
           by (irule Ni_lw_SUBSET >>
               simp[Abbr`Δ`] >>
@@ -458,7 +458,7 @@ Theorem Gi_Ni `∀Γ A. Gi Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Ni Γ' A` (
     >- (qexists_tac `Γ'` >> simp[Ni_oril])
     >- (rename [`Ni _ C`] >>
         fs[SET_OF_BAG_INSERT] >>
-        `FINITE_BAG Γ` by metis_tac[Gi_FINITE,FINITE_BAG_INSERT] >>
+        `FINITE_BAG Γ` by metis_tac[Gi_FINITE,FINITE_BAG_INSERT_2] >>
         `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >>
         `Ni {A Imp B} (A Imp B)` by metis_tac[Ni_ax] >>
         `Ni (SET_OF_BAG Γ) A` by metis_tac[Ni_lw_SUBSET] >>
@@ -476,7 +476,7 @@ Theorem Gi_Ni `∀Γ A. Gi Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Ni Γ' A` (
     >- (rename [`Ni Δ C`,`Ni _ (A Imp C)`] >>
         fs[SET_OF_BAG_INSERT] >>
         `FINITE (A INSERT (SET_OF_BAG Γ))` 
-          by (simp[] >> metis_tac[Gi_FINITE,FINITE_BAG_INSERT]) >>
+          by (simp[] >> metis_tac[Gi_FINITE,FINITE_BAG_INSERT_2]) >>
         `Ni (A INSERT (SET_OF_BAG Γ)) C` by metis_tac[Ni_lw_SUBSET] >>
         `Ni (SET_OF_BAG Γ) (A Imp C)` by metis_tac[Ni_impi] >>
         metis_tac[SUBSET_REFL])
