@@ -10,10 +10,11 @@ open bagTheory;
 open pred_setTheory;
 
 open FormulaSyntaxTheory;
+open BagLemmataTheory;
 
-val _ = new_theory "MinimalProof";
+val _ = new_theory "IntuitionisticProof";
 
-(** Natural Deduction for minimal logic **)
+(** Natural Deduction for intuitionistic logic **)
 (* Ni is the 'deduciblility' relation for this system *)
 (* A, B and C are used to represent formulae *)
 (* D, D1, D2, D3 are used to represent the set of open assumptions *)
@@ -39,6 +40,7 @@ val [Ni_ax, Ni_andi, Ni_andel, Ni_ander,
      Ni_impi, Ni_impe, Ni_orir, Ni_oril, Ni_ore, Ni_bot] = CONJUNCTS Ni_rules;
 
 Theorem Ni_FINITE `!D A. Ni D A ==> FINITE D` (Induct_on `Ni` >> rw[])
+
 Theorem Ni_lw `∀D A. Ni D A ==> ∀B. Ni (B INSERT D) A` (
   rw[] >>
 `Ni {B} B` by metis_tac[Ni_ax] >>
