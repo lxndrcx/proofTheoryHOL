@@ -78,7 +78,9 @@ Theorem Ni_impi_DELETE `∀D A B. Ni D A ==> Ni (D DELETE B) (B Imp A)` (
               metis_tac[]) >>
         simp[Ni_impi])
     >- simp[DELETE_NON_ELEMENT_RWT,Ni_impi]);
+
 val NiThm = Define `NiThm A = Ni EMPTY A`;
+
 (* Example deductions *)
 val Ni_example = Q.prove(`NiThm (A Imp (B Imp A))`,
 `Ni {A} A` by rw[Ni_ax] >>
@@ -98,15 +100,15 @@ val Ni_example = Q.prove(`NiThm (Bot Imp A)`,
   rw[NiThm]);
 
 
-(** Sequent Calculus (Gentzen System) for minimal logic **)
+(** Sequent Calculus (Gentzen System) for intuitionistic logic **)
 (* Gi is the 'deduciblility' relation for this system *)
 (* A, B and C are used to represent formulae *)
 (* S is used to represent the multiset of the Antecedent Context *)
-(* The consequent is always a single formula in the minimal logic *)
+(* The consequent is always a single formula in the intuitionistic logic *)
 
 val (Gi_rules, Gi_ind, Gi_cases) = Hol_reln `
 (!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> Gi Γ A) (* Ax *)
-/\ (Gi {|Bot|} A) (* LBot *)
+/\ (∀ A Γ. (Bot <: Γ) /\ FINITE_BAG Γ ==> Gi Γ A) (* LBot *)
 /\ (!A Γ C. (Gi ({|A;A|} + Γ) C)
    ==> Gi ({|A|} + Γ) C) (* Left Contraction *)
 /\ (!A B Γ C. (Gi (BAG_INSERT A Γ) C)
@@ -128,7 +130,7 @@ val (Gi_rules, Gi_ind, Gi_cases) = Hol_reln `
    ==> (Gi Γ (A Imp B))) (* Right Imp *)
 ∧  (∀A B Γ Γ'. (Gi Γ A) ∧ (Gi (BAG_INSERT A Γ') B) ==> Gi (Γ + Γ') B)` (* Cut *)
 
-val [Gi_ax, Gm_bot, Gi_lc, Gi_landl, Gi_landr, Gi_rand,
+val [Gi_ax, Gi_bot, Gi_lc, Gi_landl, Gi_landr, Gi_rand,
      Gi_lor, Gi_rorl, Gi_rorr, Gi_limp, Gi_rimp, Gi_cut] = CONJUNCTS Gi_rules;
 
 val GiThm = Define `GiThm A = Gi EMPTY_BAG A`;
@@ -164,6 +166,7 @@ Theorem Gi_FINITE `!D A. Gi D A ==> FINITE_BAG D` (Induct_on `Gi` >> rw[]);
 Theorem Gi_lw `∀Γ A. Gi Γ A ⇒ ∀Γ'. Γ ≤ Γ' /\ FINITE_BAG Γ' ⇒ Gi Γ' A`
 (Induct_on `Gi` >> rw[]
 >- (irule Gi_ax >> fs[SUB_BAG, BAG_IN])
+>- (irule Gi_bot >> fs[SUB_BAG,BAG_IN])
 >- (‘∃Γ₂. Γ' = {|A|} ⊎ Γ₂’
        by (qexists_tac ‘Γ' - {|A|}’ >> irule SUB_BAG_DIFF_EQ >>
            metis_tac[SUB_BAG_UNION_down]) >>
@@ -375,12 +378,17 @@ Theorem Ni_Gi `∀Γ A. Ni Γ A ==> Gi (BAG_OF_SET Γ) A` (
       `(unibag (BAG_OF_SET Γ ⊎ Δ))
         = BAG_MERGE (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET D1)) (BAG_OF_SET D2)`
          suffices_by metis_tac[] >>
-      rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM]));
+      rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM])
+ >- (`Gi {|Bot|} A` by metis_tac[Gi_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
+     metis_tac[Gi_cut,BAG_UNION_EMPTY])
+ );
 
 (* Apparently Ni takes a subset here!? *)
 Theorem Gi_Ni `∀Γ A. Gi Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Ni Γ' A` (
   Induct_on `Gi` >> rw[]
     >- (qexists_tac `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[Ni_ax])
+    >- (qexists_tac `{Bot}` >> simp[SUBSET_DEF,SET_OF_BAG] >> 
+        metis_tac[Ni_bot,Ni_ax])
     >- (qexists_tac `Γ'` >> fs[SET_OF_BAG,BAG_UNION,BAG_INSERT])
     >- (rename [`Ni _ C`] >>
         `Ni {A And B} (A And B)` by metis_tac[Ni_ax] >>
