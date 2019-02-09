@@ -5,11 +5,11 @@ open pred_setTheory;
 
 val _ = new_theory "BagLemmata";
 
-Theorem BAG_INSERT_FILTER_COMP_OF_SET 
+Theorem BAG_INSERT_FILTER_COMP_OF_SET
         `!s a. (BAG_INSERT a (BAG_FILTER (COMPL {a}) (BAG_OF_SET s)))
           = (BAG_OF_SET (a INSERT s))` (
   rw[BAG_OF_SET,BAG_INSERT,BAG_FILTER_DEF,COMPL_DEF,INSERT_DEF,FUN_EQ_THM] >>
-  metis_tac[]); 
+  metis_tac[]);
 
 Theorem BAG_INSERT_BAG_OF_SET_BAG_DIFF
 `!e s. BAG_INSERT e (BAG_OF_SET s - {|e|}) = BAG_MERGE {|e|} (BAG_OF_SET s)` (

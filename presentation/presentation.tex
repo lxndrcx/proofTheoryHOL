@@ -37,7 +37,7 @@
 
 \begin{frame}
     % \frametitle{Introduction}
-    Over the summer, I have been formalising some logic in an interactive theorem prover called HOL. 
+    Over the summer, I have been formalising some logic in an interactive theorem prover called HOL.
 
     \bigskip
     The proof I have been formalising is the equivalence between Natural Deduction and Sequent Calculus, for intuitionistic propositional logic.
@@ -73,10 +73,10 @@
 
 \begin{frame}
     \frametitle{Proofs about proofs}
-    I have been talking about proofs in HOL, which could be based in any kind of mathematics, e.g., number theory, analysis, programming languages, etc. 
-    
+    I have been talking about proofs in HOL, which could be based in any kind of mathematics, e.g., number theory, analysis, programming languages, etc.
+
     \bigskip
-    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic which is used in the proof systems I am analysing.  
+    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic which is used in the proof systems I am analysing.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -104,7 +104,7 @@ val _ = Datatype `formula =
     \[
         \AxiomC{$\Gamma_0 \vdash_S \varphi_0$}
         \AxiomC{$\dots$}
-        \AxiomC{$\Gamma_n \vdash_S \varphi_n$}  
+        \AxiomC{$\Gamma_n \vdash_S \varphi_n$}
         \RightLabel{(rule)}
         \TrinaryInfC{$\Delta \vdash_S \psi$}
         \DisplayProof
@@ -130,7 +130,7 @@ val _ = Datatype `formula =
         \AxiomC{}
         \RightLabel{(Axiom)}
         \UnaryInfC{$\{A\} \vdash_N A$}
-        \DisplayProof 
+        \DisplayProof
         \hspace{0.5cm}
         \AxiomC{$\Gamma \vdash_N B$}
         \RightLabel{$\to i$}
@@ -178,7 +178,7 @@ val _ = Datatype `formula =
 \begin{frame}
     \frametitle{The Proof of Equivalence}
     \begin{itemize}
-        \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since $N$ uses sets and $G$ uses multisets, this has been trickier than expected. 
+        \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since $N$ uses sets and $G$ uses multisets, this has been trickier than expected.
         \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but so far I've only done the minimal intuitionistic version.
         \item I have had to prove many lemmata which are not provided in HOL (I plan to contribute some of them).
     \end{itemize}
@@ -187,7 +187,7 @@ val _ = Datatype `formula =
 \begin{frame}[fragile]
     \frametitle{The Proof of Equivalence}
     Here is the statement in mathematical notation:
-    
+
     (read $\Gamma\vdash_S A$ as ``$\Gamma$ derives $A$ in $S$'')
     \begin{thm}
         \[\forall ~\Gamma ~A. ~\Gamma \vdash_N A ~\Leftrightarrow~ \Gamma \vdash_G A\]
@@ -203,7 +203,7 @@ val _ = Datatype `formula =
     \frametitle{Proof of $N\Rightarrow G$}
 \small
 \begin{alltt}
-Theorem Nm_Gm 
+Theorem Nm_Gm
     `\(\forall\) \textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
 \end{alltt}
 The proof is by rule induction. Each case corresponds to a rule in $N$.
@@ -242,12 +242,12 @@ becomes
 
 \end{frame}
 
-\begin{frame}[fragile] 
+\begin{frame}[fragile]
     \frametitle{Proof of $N\Rightarrow G$ in HOL}
     \small
 \begin{alltt}
 (simp[BAG_OF_SET_UNION] >>
-`FINITE_BAG (BAG_OF_SET \textGamma')` 
+`FINITE_BAG (BAG_OF_SET \textGamma')`
   by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET] >>
 `Gm (BAG_INSERT A' (BAG_OF_SET \textGamma')) A'`
   by simp[Gm_ax,BAG_IN_BAG_INSERT] >>
@@ -255,7 +255,7 @@ becomes
   by metis_tac[Gm_limp] >>
 `Gm ((BAG_OF_SET \textGamma) \(\cupplus\) (BAG_OF_SET \textGamma')) A'`
   by metis_tac[Gm_cut] >>
-`Gm (unibag (BAG_OF_SET \textGamma \(\cupplus\) BAG_OF_SET \textGamma')) A'` 
+`Gm (unibag (BAG_OF_SET \textGamma \(\cupplus\) BAG_OF_SET \textGamma')) A'`
   by metis_tac[Gm_unibag] >>
 fs[unibag_UNION])
 \end{alltt}
@@ -264,8 +264,8 @@ fs[unibag_UNION])
 \begin{frame}[fragile]{Proof of $G\Rightarrow N$}
     The proof in the other direction seems to require a subset of the hypotheses:
     \begin{alltt}
-Theorem Gm_Nm 
-`\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A` 
+Theorem Gm_Nm
+`\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A`
     \end{alltt}
     % \includegraphics[width=\textwidth]{proof-complete-gn}
 \end{frame}
@@ -285,8 +285,8 @@ Theorem Gm_Nm
 \end{frame}
 
 \end{document}
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
-%%% TeX-PDF-mode: t 
+%%% TeX-PDF-mode: t
 %%% TeX-master: t
-%%% End: 
+%%% End:

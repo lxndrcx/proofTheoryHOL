@@ -127,7 +127,7 @@ Theorem Nm_Nmd
  (`(∀D A:'a formula. Nm D A ==> Nmd D A) ∧
    (∀D A:'a formula. Nmd D A ==> Nm D A)`
     suffices_by metis_tac[] >>
-  conj_tac 
+  conj_tac
   >- (Induct_on `Nm` >>
       rw[Nmd_rules]
         >- metis_tac[Nmd_andel]
@@ -296,11 +296,11 @@ Theorem Gm_lw_BAG_MERGE
 
 Theorem Gm_lw_BAG_UNION `∀Γ A. Gm Γ A ==> ∀Γ'. FINITE_BAG Γ'
                                ==> Gm (Γ ⊎ Γ') A` (
-  rw[] >> 
+  rw[] >>
   irule Gm_lw >>
   `FINITE_BAG Γ` by metis_tac[Gm_FINITE] >>
   simp[FINITE_BAG_UNION] >>
-  qexists_tac `Γ` >> 
+  qexists_tac `Γ` >>
   simp[]);
 
 Theorem Gm_lw_BAG_INSERT `∀Γ A. Gm Γ A ==> ∀B Γ'. Gm (BAG_INSERT B Γ) A` (
@@ -332,7 +332,7 @@ Theorem Gm_INSERT_TO_MERGE `∀Γ. FINITE_BAG Γ ==> ∀A B. Gm (BAG_INSERT A Γ
              ==> Gm (BAG_MERGE {|A|} Γ) B` (
     Induct_on `Γ` >>
     rw[]
-    >- simp[BAG_MERGE_EMPTY] 
+    >- simp[BAG_MERGE_EMPTY]
     >- (Cases_on `A=e`
         >- (fs[] >>
             `BAG_MERGE {|e|} (BAG_INSERT e Γ) = BAG_INSERT e Γ`
@@ -348,7 +348,7 @@ Theorem Gm_INSERT_TO_MERGE `∀Γ. FINITE_BAG Γ ==> ∀A B. Gm (BAG_INSERT A Γ
         >- (Cases_on `BAG_IN A Γ`
             >- (`?Γ'. Γ = BAG_INSERT A Γ'` by metis_tac[BAG_DECOMPOSE] >>
                 fs[] >>
-                `Gm (BAG_INSERT e (BAG_INSERT A Γ')) B` 
+                `Gm (BAG_INSERT e (BAG_INSERT A Γ')) B`
                   by metis_tac[Gm_lc_AeA] >>
                 fs[Gm_lw_BAG_MERGE])
             >- (`BAG_INSERT A (BAG_INSERT e Γ)
@@ -548,15 +548,15 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
           by metis_tac[INSERT_SING_UNION] >>
         qexists_tac `(A Imp B) INSERT SET_OF_BAG Γ` >>
         simp[SUBSET_INSERT_RIGHT] >>
-        `Nm (B INSERT (SET_OF_BAG Γ)) C` 
+        `Nm (B INSERT (SET_OF_BAG Γ)) C`
           by metis_tac[Nm_lw_SUBSET,FINITE_INSERT] >>
         `Nm (SET_OF_BAG Γ) (B Imp C)` by metis_tac[Nm_impi] >>
-        `Nm ((SET_OF_BAG Γ) ∪ ((A Imp B) INSERT SET_OF_BAG Γ)) C` 
+        `Nm ((SET_OF_BAG Γ) ∪ ((A Imp B) INSERT SET_OF_BAG Γ)) C`
           by metis_tac[Nm_impe] >>
         metis_tac[UNION_COMM,UNION_ASSOC,UNION_IDEMPOT,INSERT_SING_UNION])
     >- (rename [`Nm Δ C`,`Nm _ (A Imp C)`] >>
         fs[SET_OF_BAG_INSERT] >>
-        `FINITE (A INSERT (SET_OF_BAG Γ))` 
+        `FINITE (A INSERT (SET_OF_BAG Γ))`
           by (simp[] >> metis_tac[Gm_FINITE,FINITE_BAG_THM]) >>
         `Nm (A INSERT (SET_OF_BAG Γ)) C` by metis_tac[Nm_lw_SUBSET] >>
         `Nm (SET_OF_BAG Γ) (A Imp C)` by metis_tac[Nm_impi] >>
@@ -579,7 +579,7 @@ Theorem Gm_Nm `∀Γ A. Gm Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ Nm Γ' A` (
 Theorem Gm_iff_Nm
 `∀Γ A. Gm Γ A <=> Nm (SET_OF_BAG Γ) A` (
   rw[] >>
-  EQ_TAC 
+  EQ_TAC
     >- (rw[] >>
       `?D. D ⊆ (SET_OF_BAG Γ) ∧ Nm D A` by metis_tac[Gm_Nm] >>
       metis_tac[Nm_lw_SUBSET,Gm_FINITE,FINITE_SET_OF_BAG]) >>
