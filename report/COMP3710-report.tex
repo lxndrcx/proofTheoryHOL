@@ -1,6 +1,6 @@
 \documentclass[a4paper]{article}
 \usepackage[a4paper,margin=2cm]{geometry}
-\usepackage{titling}
+
 \title{(Proofy proofs)\\
   \normalsize{} COMP3710 Report\\
   Funded by a AMSI Vacation Research Scholarship}
@@ -9,8 +9,46 @@
       \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO; ANU}}
 \usepackage[backend=biber, style=numeric-comp] {biblatex}
 \addbibresource{report.bib}
+
 \usepackage[]{hyperref}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{bussproofs}
+\usepackage{alltt}
+\usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
 % \setlength\parindent{0pt}
+\newcommand{\N}{\textbf{N}}
+\newcommand{\G}{\textbf{G}}
+
+\newtheorem{thm}{Theorem}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\theoremstyle{remark}
+\newtheorem{notn}{Notation}
+
 \begin{document}
 \maketitle
+
+\begin{abstract}
+  % TODO abstract
+\end{abstract}
+
+\section{Introduction}
+In this project I have closely followed sections of \textcite{bpt} in it's presentation, of Natural Deduction (\N) and Sequent Calculus (\G).
+\subsection{Background}
+Natural Deduction and Sequent Calculus are logical calculi introduced by Gentzen in the mid 1930s. Natural deduction is said to be close to our natural way of reasoning, while sequent calculus is said to be more mathematically elegant. I have been formalising these proof systems for intuitionistic propositional logic. In particular I have been mechanising the proof of equivalence between these two calculi.
+
+The formalisation has taken place in the HOL4 Theorem Prover.
+
+\subsection{Motivation}
+
+\subsection{Related Work}
+\section{Formalisation in HOL}
+  % (give definitions and theorem statements; explain interesting proofs)
+\section{Discussion of Issues} %(bags)
+\section{Future Work}
+% Summary of effort/Future Work/What'd I'd do differently
+\section{Conclusion}
+\section*{Acknowledgements}
+\printbibliography{}
 \end{document}
