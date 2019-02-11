@@ -6,7 +6,7 @@
 (* ========================================================================== *)
 
 open HolKernel boolLib Parse bossLib;
-open bagTheory unibagTheory;
+open bagTheory;
 open pred_setTheory;
 
 open FormulaSyntaxTheory;

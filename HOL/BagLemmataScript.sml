@@ -1,6 +1,5 @@
 open HolKernel Parse boolLib bossLib;
 open bagTheory;
-open unibagTheory;
 open pred_setTheory;
 
 val _ = new_theory "BagLemmata";
