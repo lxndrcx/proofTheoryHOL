@@ -20,3 +20,4 @@ notes/
 report/auto/
 presentation/AMSI-notes.md
 *.blg
+HOL/.ProofTheoryExtras.sml@neomake_*.sml
