@@ -1,0 +1,293 @@
+\documentclass[english,svgnames,hide notes,12pt]{beamer}
+% \usetheme{Madrid}
+\useoutertheme{infolines}
+\useinnertheme[shadow]{rounded}
+\usecolortheme{seahorse}
+
+
+\usepackage{bussproofs}
+\usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{alltt}
+\usepackage{MnSymbol}
+\usepackage{textgreek}
+\usepackage[backend=biber, style=numeric-comp]{biblatex}
+\addbibresource{presentation.bib}
+
+\newtheorem{thm}{Theorem}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\theoremstyle{remark}
+\newtheorem{notn}{Notation}
+
+\title[Equivalence of calculi in HOL4]{Equivalence of propositional logic proof calculi, formalised in HOL4}
+\subtitle{COMP3710 Project, Bachelor of Science}
+
+\author[Alexander Cox]{\large Alexander Cox\\ \small Supervised by Michael Norrish}
+\institute[ANU]{The Australian National University}
+\date[Summer 2019]{Summer Session 2019}
+
+\begin{document}
+\begin{frame}[plain]
+    \titlepage{}
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}
+    \frametitle{Introduction}
+    Over the summer, I have been formalising some proof theory in the HOL4 theorem prover.
+
+    \bigskip
+    The proof I have been formalising is the equivalence between Natural Deduction and Sequent Calculus, for intuitionistic propositional logic.
+
+    \bigskip
+    I have been working from \citetitle{bpt} by \citeauthor{bpt}, with some small deviations which I shall explain along the way.
+\end{frame}
+
+\section{Theorem Proving in HOL}
+
+\begin{frame}
+    \frametitle{Theorem Provers}
+    \begin{itemize}
+        \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
+        \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The HOL Theorem Prover}
+  I have been using the HOL theorem prover (HOL4), a theorem prover which implements a Higher Order Logic which is a variant of Church's Simple Theory of Types.
+  HOL is engineered so that theorems can only be produced under the control of a small trusted kernel.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Bother?}
+    \begin{enumerate}
+        \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
+        \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
+        \item I wanted to learn about theorem provers, and this seemed like a good project for that.
+    \end{enumerate}
+\end{frame}
+
+\section{Proof Theory and Logic}
+
+\begin{frame}
+    \frametitle{Proofs about proofs}
+    I have been talking about proofs in HOL, which could be based in any kind of mathematics, e.g., number theory, analysis, programming languages, etc.
+
+    \bigskip
+    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic which is used in the proof systems I am analysing.
+\end{frame}
+
+\begin{frame}[fragile]
+    % \frametitle{Propositional Logic Syntax}
+    Proofs manipulate logic formulae, which are defined inductively:
+    \[ \varphi ::= a~|~\varphi \lor \varphi~|~\varphi \land \varphi~|~\varphi \to \varphi~|~\bot \]
+
+    \bigskip
+    In HOL:
+    \small
+\begin{alltt}
+val _ = Datatype `formula =
+    Var 'a
+    | Or formula formula
+    | And formula formula
+    | Imp formula formula
+    | Bot`;
+\end{alltt}
+\end{frame}
+
+\newcommand{\bs}{\char`\\}
+\begin{frame}[fragile]
+    \frametitle{Inference Rules}
+    An inference rule in a system $S$ is a condition under which a conclusion can be inferred from hypotheses:
+    \[
+        \AxiomC{$\Gamma_0 \vdash_S \varphi_0$}
+        \AxiomC{$\dots$}
+        \AxiomC{$\Gamma_n \vdash_S \varphi_n$}
+        \RightLabel{(rule)}
+        \TrinaryInfC{$\Delta \vdash_S \psi$}
+        \DisplayProof
+    \]
+    Presented with hypotheses above and conclusion below.
+
+    \bigskip
+    In HOL:
+    \begin{alltt}
+        S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
+    \end{alltt}
+
+    In HOL, \texttt{S} is a prefix binary relation, instead of infix ($\vdash_S$).
+\end{frame}
+
+\section{The Calculi}
+
+\begin{frame}
+    \frametitle{Natural Deduction}
+    Natural Deduction ($N$) is a calculus which is thought to be somewhat `natural', in terms of the way we normally reason. Hypotheses in $N$ are a set of formulae. $N$ has introduction and elimination rules, as well as one axiom. Here are some of them:
+
+    \[
+        \AxiomC{}
+        \RightLabel{(Axiom)}
+        \UnaryInfC{$\{A\} \vdash_N A$}
+        \DisplayProof
+        \hspace{0.5cm}
+        \AxiomC{$\Gamma \vdash_N B$}
+        \RightLabel{$\to i$}
+        \UnaryInfC{$\Gamma\setminus\{A\}\vdash_N A\to B$}
+        \DisplayProof
+    \]
+    The following elimination rule corresponds to modus ponens:
+    \[
+        \AxiomC{$\Gamma\vdash_N A\to B$}
+        \AxiomC{$\Delta\vdash_N A$}
+        \RightLabel{$\to e$}
+        \BinaryInfC{$\Gamma\cup\Delta\vdash_N B$}
+        \DisplayProof
+    \]
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Sequent Calculus (aka. Gentzen System)}
+    Sequent Calculus ($G$) is more mathematically elegant, but perhaps less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e., $\{A,A\}\neq\{A\}$ as it would be in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules, and one axiom.
+
+    Here are some of them:
+    \[
+        \AxiomC{}
+        \RightLabel{(Axiom)}
+        \UnaryInfC{$\Gamma \cupplus \{A\}\vdash_G A$}
+        \DisplayProof
+    \]
+    \[
+        \AxiomC{$\Gamma\vdash_G A$}
+        \AxiomC{$\Gamma\cupplus\{B\}\vdash_G C$}
+        \RightLabel{L$\to$}
+        \BinaryInfC{$\Gamma\cupplus\{A\to B\}\vdash_G C$}
+        \DisplayProof
+        \hspace{0.5cm}
+        \AxiomC{$\Gamma\cupplus\{A\}\vdash_G B$}
+        \RightLabel{R$\to$}
+        \UnaryInfC{$\Gamma\vdash_G A\to B$}
+        \DisplayProof
+    \]
+\end{frame}
+
+\section{The Proof}
+
+\begin{frame}
+    \frametitle{The Proof of Equivalence}
+    \begin{itemize}
+        \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since $N$ uses sets and $G$ uses multisets, this has been trickier than expected.
+        \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but so far I've only done the minimal intuitionistic version.
+        \item I have had to prove many lemmata which are not provided in HOL (I plan to contribute some of them).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{The Proof of Equivalence}
+    Here is the statement in mathematical notation:
+
+    (read $\Gamma\vdash_S A$ as ``$\Gamma$ derives $A$ in $S$'')
+    \begin{thm}
+        \[\forall ~\Gamma ~A. ~\Gamma \vdash_N A ~\Leftrightarrow~ \Gamma \vdash_G A\]
+    \end{thm}
+    In HOL:
+
+    \begin{alltt}
+        \(\forall\) \textGamma A. Gm \textGamma A <=> Nm (SET_OF_BAG \textGamma) A
+    \end{alltt}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Proof of $N\Rightarrow G$}
+\small
+\begin{alltt}
+Theorem Nm_Gm
+    `\(\forall\) \textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
+\end{alltt}
+The proof is by rule induction. Each case corresponds to a rule in $N$.
+
+Modus Ponens ($\to$e) case:
+\[
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_0\vdash_N A\to B$}
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_1\vdash_N A$}
+    \RightLabel{$\to$e}
+    \BinaryInfC{$\Gamma_0\cup\Gamma_1 \vdash_N B$}
+    \DisplayProof
+\]
+becomes
+\[
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_0 \vdash_G A \to B$}
+    \AxiomC{}
+    \RightLabel{IH}
+    \UnaryInfC{$\Gamma_1 \vdash_G A$}
+    \AxiomC{}
+    \RightLabel{axiom}
+    \UnaryInfC{$\{B\} \vdash_G B$}
+    \RightLabel{L$\to$}
+    \BinaryInfC{$\{A\to B\}\cupplus\Gamma_1\vdash_G B$}
+    \RightLabel{cut}
+    \BinaryInfC{$\Gamma_0\cupplus\Gamma_1\vdash_G B$}
+    \RightLabel{contraction}
+    \UnaryInfC{$\text{set}(\Gamma_0\cupplus\Gamma_1)\vdash_G B$}
+    \DisplayProof
+\]
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Proof of $N\Rightarrow G$ in HOL}
+    \small
+\begin{alltt}
+(simp[BAG_OF_SET_UNION] >>
+`FINITE_BAG (BAG_OF_SET \textGamma')`
+  by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET] >>
+`Gm (BAG_INSERT A' (BAG_OF_SET \textGamma')) A'`
+  by simp[Gm_ax,BAG_IN_BAG_INSERT] >>
+`Gm (BAG_INSERT (A Imp A') (BAG_OF_SET \textGamma')) A'`
+  by metis_tac[Gm_limp] >>
+`Gm ((BAG_OF_SET \textGamma) \(\cupplus\) (BAG_OF_SET \textGamma')) A'`
+  by metis_tac[Gm_cut] >>
+`Gm (unibag (BAG_OF_SET \textGamma \(\cupplus\) BAG_OF_SET \textGamma')) A'`
+  by metis_tac[Gm_unibag] >>
+fs[unibag_UNION])
+\end{alltt}
+\end{frame}
+
+\begin{frame}[fragile]{Proof of $G\Rightarrow N$}
+    The proof in the other direction seems to require a subset of the hypotheses:
+    \begin{alltt}
+Theorem Gm_Nm
+`\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A`
+    \end{alltt}
+    % \includegraphics[width=\textwidth]{proof-complete-gn}
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+        \item A lot of my time has been spent proving lemmata, mostly multiset/bag related.
+        \item While it has been lot of work, I have learnt a lot about interactive theorem proving.
+        \item I finished the proof for minimal and intuitionistic logic.
+        % \item I will still try to do improve upon what I've done formalising extended logics (maybe even classical!).
+        \item My project may become an example within the distribution of HOL, and some of my bag lemmata may make it into the main bag theory.
+        \item The code, report and this seminar can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}
+    \end{itemize}
+\end{frame}
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-PDF-mode: t
+%%% TeX-master: t
+%%% End:
