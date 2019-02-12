@@ -1,6 +1,4 @@
 .DS_Store
-presentation/Proof-complete-gn.png
-presentation/notes.md
 *.aux
 *.bbl
 *.bcf
@@ -20,5 +18,5 @@ presentation/notes.md
 presentation/slashbox/
 notes/
 report/auto/
-presentation/working.png
-report/COMP3710-report.blg
+presentation/AMSI-notes.md
+*.blg
