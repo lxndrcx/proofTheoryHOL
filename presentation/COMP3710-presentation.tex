@@ -48,8 +48,7 @@
 
 \section{Theorem Proving in HOL}
 
-\begin{frame}
-    \frametitle{Theorem Provers}
+\begin{frame}{Theorem Provers}
     \begin{itemize}
         \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
         \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
@@ -61,8 +60,7 @@
   HOL is engineered so that theorems can only be produced under the control of a small trusted kernel.
 \end{frame}
 
-\begin{frame}
-    \frametitle{Why Bother?}
+\begin{frame}{Why Bother?}
     \begin{enumerate}
         \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
         \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
@@ -72,17 +70,22 @@
 
 \section{Proof Theory and Logic}
 
-\begin{frame}
-    \frametitle{Proofs about proofs}
-    I have been talking about proofs in HOL, which could be based in any kind of mathematics, e.g., number theory, analysis, programming languages, etc.
+\begin{frame}{Proofs about proofs}
+    I have been talking about proofs in HOL, now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL.
 
     \bigskip
-    Now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. HOL is the meta-logic used to formalise the logic which is used in the proof systems I am analysing.
+    HOL is the meta-logic used to formalise the (object-)logic which is used in the proof systems I am analysing.
+
+    \bigskip
+    Standard ML is the meta-language of HOL and the interface to the logic.
+
+    \bigskip
+    English is the meta-language of this talk.
 \end{frame}
 
 \begin{frame}[fragile]
-    % \frametitle{Propositional Logic Syntax}
-    Proofs manipulate logic formulae, which are defined inductively:
+    \frametitle{Propositional Logic Syntax}
+    Propositional logic formulae are defined inductively as follows:
     \[ \varphi ::= a~|~\varphi \lor \varphi~|~\varphi \land \varphi~|~\varphi \to \varphi~|~\bot \]
 
     \bigskip
@@ -96,6 +99,13 @@ val _ = Datatype `formula =
     | Imp formula formula
     | Bot`;
 \end{alltt}
+\end{frame}
+
+\begin{frame}{Abbreviations}
+  The following abbreviations are made:
+  \[ \neg \varphi := \varphi \to \bot \]
+  \[ \varphi \leftrightarrow \psi := (\varphi \to \psi) \land (\psi \to \varphi) \]
+  \[ \top := \bot \to \bot \]
 \end{frame}
 
 \newcommand{\bs}{\char`\\}
@@ -118,14 +128,16 @@ val _ = Datatype `formula =
         S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
     \end{alltt}
 
-    In HOL, \texttt{S} is a prefix binary relation, instead of infix ($\vdash_S$).
+    In HOL, I represent the infix binary relation ($\vdash_S$) as a prefix \texttt{S} relation, for no particular reason.
 \end{frame}
 
 \section{The Calculi}
 
 \begin{frame}
     \frametitle{Natural Deduction}
-    Natural Deduction ($N$) is a calculus which is thought to be somewhat `natural', in terms of the way we normally reason. Hypotheses in $N$ are a set of formulae. $N$ has introduction and elimination rules, as well as one axiom. Here are some of them:
+    In Natural Deduction ($N$) the hypotheses are a represented as a set of formulae. In the book, the hypotheses are labelled. In my formalisation I keep them unlabelled (Complete Discharge Convention, permissible). $N$ has introduction and elimination rules, as well as one axiom. Here are some of them:
+
+    % TODO: my discharge is different from book but I prove it's ok.
 
     \[
         \AxiomC{}
@@ -138,7 +150,6 @@ val _ = Datatype `formula =
         \UnaryInfC{$\Gamma\setminus\{A\}\vdash_N A\to B$}
         \DisplayProof
     \]
-    The following elimination rule corresponds to modus ponens:
     \[
         \AxiomC{$\Gamma\vdash_N A\to B$}
         \AxiomC{$\Delta\vdash_N A$}
@@ -151,7 +162,7 @@ val _ = Datatype `formula =
 
 \begin{frame}
     \frametitle{Sequent Calculus (aka. Gentzen System)}
-    Sequent Calculus ($G$) is more mathematically elegant, but perhaps less intuitive than $N$. The hypotheses in $G$ are a multiset, i.e., $\{A,A\}\neq\{A\}$ as it would be in a set, but order still doesn't matter like in a sequence. $G$ has Left and Right rules, and one axiom.
+    In Sequent Calculus ($G$) the hypotheses are represented as a multiset (or \emph{bag}). $G$ has Left and Right rules, and one axiom.
 
     Here are some of them:
     \[
@@ -180,8 +191,8 @@ val _ = Datatype `formula =
     \frametitle{The Proof of Equivalence}
     \begin{itemize}
         \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since $N$ uses sets and $G$ uses multisets, this has been trickier than expected.
-        \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but so far I've only done the minimal intuitionistic version.
-        \item I have had to prove many lemmata which are not provided in HOL (I plan to contribute some of them).
+        \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but I've only done the intuitionistic version.
+        \item I have had to prove many lemmata which are not provided in HOL.
     \end{itemize}
 \end{frame}
 
@@ -268,7 +279,6 @@ fs[unibag_UNION])
 Theorem Gm_Nm
 `\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A`
     \end{alltt}
-    % \includegraphics[width=\textwidth]{proof-complete-gn}
 \end{frame}
 
 \section{Conclusion}
@@ -279,8 +289,8 @@ Theorem Gm_Nm
         \item A lot of my time has been spent proving lemmata, mostly multiset/bag related.
         \item While it has been lot of work, I have learnt a lot about interactive theorem proving.
         \item I finished the proof for minimal and intuitionistic logic.
-        % \item I will still try to do improve upon what I've done formalising extended logics (maybe even classical!).
-        \item My project may become an example within the distribution of HOL, and some of my bag lemmata may make it into the main bag theory.
+        \item My project may become an example within the distribution of HOL.
+        \item Some of my bag lemmata have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}
         \item The code, report and this seminar can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}
     \end{itemize}
 \end{frame}
