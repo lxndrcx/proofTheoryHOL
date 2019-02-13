@@ -7,11 +7,12 @@
 \author{Alexander Cox\thanks{Studying a Bachelor of Science at ANU}\\
       \small\texttt{u6060697@anu.edu.au}\\
       \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO; ANU}}
-\usepackage[backend=biber, style=numeric-comp] {biblatex}
+\usepackage[backend=biber, style=numeric] {biblatex}
 \addbibresource{report.bib}
 
 \usepackage[]{hyperref}
 \usepackage{mathtools}
+\usepackage{upgreek}
 \usepackage{amsthm}
 \usepackage{bussproofs}
 \usepackage{alltt}
@@ -26,6 +27,8 @@
 \theoremstyle{remark}
 \newtheorem{notn}{Notation}
 
+\renewcommand{\HOLConst}[1]{\textsf{#1}}
+\renewcommand{\HOLinline}[1]{\ensuremath{#1}}
 \begin{document}
 \maketitle
 
@@ -42,6 +45,10 @@ The formalisation has taken place in the HOL4 Theorem Prover, henceforth referre
 
 \subsection{Motivation}
 %why bother?
+\begin{HOLmath}
+\HOLthm{MinimalProof.Nm_Gm}
+\end{HOLmath}
+The term \HOLtm{Nm Gamma phi} means that using hypotheses \HOLtm{Gamma}, the formula \HOLtm{phi} can be proved.
 
 \subsection{Related Work}
 %thingo in coq

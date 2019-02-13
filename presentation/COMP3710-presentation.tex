@@ -80,7 +80,7 @@
     Standard ML is the meta-language of HOL and the interface to the logic.
 
     \bigskip
-    English is the meta-language of this talk.
+    English is the language and meta-language of this talk.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -145,9 +145,9 @@ val _ = Datatype `formula =
         \UnaryInfC{$\{A\} \vdash_N A$}
         \DisplayProof
         \hspace{0.5cm}
-        \AxiomC{$\Gamma \vdash_N B$}
+        \AxiomC{$\Gamma\cup\{A\} \vdash_N B$}
         \RightLabel{$\to i$}
-        \UnaryInfC{$\Gamma\setminus\{A\}\vdash_N A\to B$}
+        \UnaryInfC{$\Gamma\vdash_N A\to B$}
         \DisplayProof
     \]
     \[

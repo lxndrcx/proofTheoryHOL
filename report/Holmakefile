@@ -1,0 +1,19 @@
+INCLUDES = $(HOME)/project/HOL
+
+THYDEPS = FormulaSyntax MinimalProof IntuitionisticProof
+
+DEPS = $(patsubst %,$(HOME)/project/HOL/%Theory.uo,$(THYDEPS))
+all: COMP3710-report.pdf
+.PHONY: all
+
+munge.exe: ppTheory.uo
+	$(HOLDIR)/bin/mkmunge.exe ppTheory
+	
+COMP3710-report.tex: COMP3710-report.htex overrides
+	./munge.exe -m\; overrides < $< > $@
+
+COMP3710-report.pdf: COMP3710-report.tex
+	latexmk -pdf COMP3710-report
+	
+
+EXTRA_CLEANS = COMP3710-report.pdf COMP3710-report.tex COMP3710-report.aux
