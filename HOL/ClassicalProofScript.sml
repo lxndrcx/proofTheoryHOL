@@ -107,28 +107,33 @@ val Nc_example = Q.prove(`NcThm (Bot Imp A)`,
 (* The consequent is a multiset of formula in the classical logic *)
 
 val (Gc_rules, Gc_ind, Gc_cases) = Hol_reln `
-(!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> Gc Γ A) (* Ax *)
-/\ (∀ A Γ. (Bot <: Γ) /\ FINITE_BAG Γ ==> Gc Γ A) (* LBot *)
-/\ (!A Γ C. (Gc ({|A;A|} + Γ) C)
-   ==> Gc ({|A|} + Γ) C) (* Left Contraction *)
-/\ (!A B Γ C. (Gc (BAG_INSERT A Γ) C)
-   ==> (Gc (BAG_INSERT (A And B) Γ) C)) (* Left And 1 *)
-/\ (!A B Γ C. (Gc (BAG_INSERT B Γ) C)
-   ==> (Gc (BAG_INSERT (A And B) Γ) C)) (* Left And 2 *)
+(!(A:'a formula) Γ Δ.
+                   (A <: Γ) /\ FINITE_BAG Γ /\
+                   (A <: Δ) /\ FINITE_BAG Δ
+                   ==> Gc Γ Δ) (* Ax *)
+/\ (∀ Γ Δ. (Bot <: Γ) /\ FINITE_BAG Γ /\ FINITE_BAG Δ ==> Gc Γ Δ) (* LBot *)
+/\ (!A Γ Δ. (Gc ({|A;A|} + Γ) Δ)
+             ==> ?Σ. (Σ = ({|A|} + Γ))
+                     ==> Gc Σ Δ) (* Left Contraction *)
+/\ (!A Γ Δ. (Gc Γ ({|A;A|} + Δ)) ==> Gc Γ ({|A|} + Δ)) (* Right Contraction *)
+/\ (!A B Γ Δ. (Gc (BAG_INSERT A Γ) Δ)
+   ==> (Gc (BAG_INSERT (A And B) Γ) Δ)) (* Left And 1 *)
+/\ (!A B Γ Δ. (Gc (BAG_INSERT B Γ) Δ)
+   ==> (Gc (BAG_INSERT (A And B) Γ) Δ)) (* Left And 2 *)
 /\ (!A B Γ. (Gc Γ A) /\ (Gc Γ B)
    ==> (Gc Γ (A And B))) (* Right And *)
-/\ (!A B Γ C. (Gc (BAG_INSERT A Γ) C)
-    /\ (Gc (BAG_INSERT B Γ) C)
-   ==> (Gc (BAG_INSERT (A Or B) Γ) C)) (* Left Or *)
+/\ (!A B Γ Δ. (Gc (BAG_INSERT A Γ) Δ)
+    /\ (Gc (BAG_INSERT B Γ) Δ)
+   ==> (Gc (BAG_INSERT (A Or B) Γ) Δ)) (* Left Or *)
 /\ (!A B Γ. (Gc Γ A)
    ==> (Gc Γ (A Or B))) (* Right Or 1 *)
 /\ (!A B Γ. (Gc Γ B)
    ==> (Gc Γ (A Or B))) (* Right Or 2 *)
-/\ (!A B Γ C. (Gc Γ A) /\ (Gc (BAG_INSERT B Γ) C)
-   ==> (Gc (BAG_INSERT (A Imp B) Γ) C)) (* Left Imp *)
+/\ (!A B Γ Δ. (Gc Γ A) /\ (Gc (BAG_INSERT B Γ) Δ)
+   ==> (Gc (BAG_INSERT (A Imp B) Γ) Δ)) (* Left Imp *)
 /\ (!A B Γ. (Gc (BAG_INSERT A Γ) B)
    ==> (Gc Γ (A Imp B))) (* Right Imp *)
-∧  (∀A B Γ Γ'. (Gc Γ A) ∧ (Gc (BAG_INSERT A Γ') B) ==> Gc (Γ + Γ') B)` (* Cut *)
+∧  (∀A B Γ Γ'. (Gc Γ A) ∧ (Gc (BAG_INSERT A Γ') B) ==> Gc (Γ + Γ') B)` (* Δut *)
 
 val [Gc_ax, Gc_bot, Gc_lc, Gc_landl, Gc_landr, Gc_rand,
      Gc_lor, Gc_rorl, Gc_rorr, Gc_limp, Gc_rimp, Gc_cut] = CONJUNCTS Gc_rules;
