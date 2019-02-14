@@ -8,12 +8,13 @@ all: COMP3710-report.pdf
 
 munge.exe: ppTheory.uo
 	$(HOLDIR)/bin/mkmunge.exe ppTheory
-	
+
 COMP3710-report.tex: COMP3710-report.htex overrides
 	./munge.exe -m\; overrides < $< > $@
 
-COMP3710-report.pdf: COMP3710-report.tex
-	latexmk -pdf COMP3710-report
-	
+COMP3710-report.pdf: COMP3710-report.tex report.bib
+	latexmk -bibtex -pdf -pv COMP3710-report
+	latexmk -bibtex -c COMP3710-report
 
-EXTRA_CLEANS = COMP3710-report.pdf COMP3710-report.tex COMP3710-report.aux
+EXTRA_CLEANS = COMP3710-report.tex COMP3710-report.aux COMP3710-report.pdf
+#COMP3710-report.bbl COMP3710-report.bcf COMP3710-report.fls COMP3710-report.out COMP3710-report.fdb_latexmk COMP3710-report.run.xml

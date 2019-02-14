@@ -21,3 +21,6 @@ report/auto/
 presentation/AMSI-notes.md
 *.blg
 HOL/.ProofTheoryExtras.sml@neomake_*.sml
+*.exe
+report/.#COMP3710-report.tex
+report/COMP3710-report.tex

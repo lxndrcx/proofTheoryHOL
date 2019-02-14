@@ -4,10 +4,10 @@
 \title{(Proofy proofs)\\
   \normalsize{} COMP3710 Report\\
   Funded by a AMSI Vacation Research Scholarship}
-\author{Alexander Cox\thanks{Studying a Bachelor of Science at ANU}\\
+\author{Alexander Cox\thanks{Studying a Bachelor of Science at The Australian National University (ANUl)}\\
       \small\texttt{u6060697@anu.edu.au}\\
       \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO; ANU}}
-\usepackage[backend=biber, style=numeric] {biblatex}
+\usepackage[backend=biber, style=authoryear-icomp] {biblatex}
 \addbibresource{report.bib}
 
 \usepackage[]{hyperref}
@@ -38,21 +38,37 @@
 
 \section{Introduction}
 In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\N) and Sequent Calculus (\G).
-\subsection{Background}
-Natural Deduction and Sequent Calculus are logical calculi introduced by Gentzen in the mid 1930s. Natural deduction is said to be close to our natural way of reasoning, while sequent calculus is said to be more mathematically elegant. I have been formalising these proof systems for intuitionistic propositional logic. In particular I have been mechanising the proof of equivalence between these two calculi.
 
-The formalisation has taken place in the HOL4 Theorem Prover, henceforth referred to as HOL. HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}. HOL is implemented with Standard ML, and this is the meta-language which the user interacts with when mechanising mathematics.
+\subsection{Background}
+Natural Deduction and Sequent Calculus are logical calculi introduced by Gentzen in the mid 1930s.
+Natural deduction derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
+Sequent calculus derives sequents.
+I have been formalising these proof systems for intuitionistic propositional logic.
+In particular I have been mechanising the proof of equivalence between these two calculi.
+
+The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}, henceforth referred to as HOL.
+HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
+HOL is implemented with Standard ML, and this is the meta-language which the user interacts with when mechanising mathematics.
 
 \subsection{Motivation}
-%why bother?
+% why bother?
 \begin{HOLmath}
 \HOLthm{MinimalProof.Nm_Gm}
 \end{HOLmath}
 The term \HOLtm{Nm Gamma phi} means that using hypotheses \HOLtm{Gamma}, the formula \HOLtm{phi} can be proved.
 
 \subsection{Related Work}
-%thingo in coq
-%the way better HOL thing I found
+% thingo in coq
+The equivalence of these calculi and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
+A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \N and \G, whereas I have used sets and multisets respectively.
+They also mechanised the proofs of soundness and completeness.
+
+The same equivalence, but for first order classical logic, has been formalised in HOL by \textcite{fopthol}.
+They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised in a way quite differently to the way I have formalised the calculi, with considerably more purpose-built datatypes, such as one for derivations.
+
+
+
+% the way better HOL thing I found
 
 \section{Formalisation in HOL}
   % (give definitions and theorem statements; explain interesting proofs)
