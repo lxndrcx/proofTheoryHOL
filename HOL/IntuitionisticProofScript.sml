@@ -141,7 +141,7 @@ val (Gi_rules, Gi_ind, Gi_cases) = Hol_reln `
    ==> (Gi (BAG_INSERT (A Imp B) Γ) C)) (* Left Imp *)
 /\ (!A B Γ. (Gi (BAG_INSERT A Γ) B)
    ==> (Gi Γ (A Imp B))) (* Right Imp *)
-∧  (∀A B Γ Γ'. (Gi Γ A) ∧ (Gi (BAG_INSERT A Γ') B) ==> Gi (Γ + Γ') B)` (* Cut *)
+∧  (∀A B Γ Δ. (Gi Γ A) ∧ (Gi (BAG_INSERT A Δ) B) ==> Gi (Γ + Δ) B)` (* Cut *)
 
 val [Gi_ax, Gi_bot, Gi_lc, Gi_landl, Gi_landr, Gi_rand,
      Gi_lor, Gi_rorl, Gi_rorr, Gi_limp, Gi_rimp, Gi_cut] = CONJUNCTS Gi_rules;
@@ -541,5 +541,10 @@ Proof
   `Gi (unibag Γ) A` by metis_tac[Ni_Gi] >>
   metis_tac[Gi_unibag]
 QED
+
+val _ = set_fixity "Gi" (Infix (NONASSOC, 320));
+val _ = set_fixity "Ni" (Infix (NONASSOC, 320));
+val _ = set_fixity "BAG_MERGE" (Infix (NONASSOC, 330));
+(* val _ = set_fixity "BAG_INSERT" (Infixl 330); *)
 
 val _ = export_theory()

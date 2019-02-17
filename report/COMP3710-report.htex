@@ -12,14 +12,16 @@
 
 \usepackage[]{hyperref}
 \usepackage{mathtools}
-\usepackage{upgreek}
+% \usepackage{fdsymbol}
 \usepackage{amsthm}
+\usepackage{upgreek}
+% \usepackage{MnSymbol}
 \usepackage{bussproofs}
 \usepackage{alltt}
 \usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
 % \setlength\parindent{0pt}
-\newcommand{\N}{\textbf{N}}
-\newcommand{\G}{\textbf{G}}
+\newcommand{\N}[1]{\textbf{N#1}}
+\newcommand{\G}[1]{\textbf{G#1}}
 
 \newtheorem{thm}{Theorem}
 \theoremstyle{definition}
@@ -37,12 +39,12 @@
 \end{abstract}
 
 \section{Introduction}
-In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\N) and Sequent Calculus (\G).
+In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\N{}) and Sequent Calculus (\G{}). I will note any deviances from this book which I have used.
 
-\subsection{Background}
-Natural Deduction and Sequent Calculus are logical calculi introduced by Gentzen in the mid 1930s.
-Natural deduction derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
-Sequent calculus derives sequents.
+% \subsection{Background}
+\N{} and \G{} are logical calculi introduced by Gentzen in the mid 1930s.
+\N{} derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
+\G{} derives sequents, which are a multisets of formulae related by the sequent relation ($\vdash$). \G{} has one axiom, in addition to left and right rules which operate on formulae in either the left or right of the sequent.
 I have been formalising these proof systems for intuitionistic propositional logic.
 In particular I have been mechanising the proof of equivalence between these two calculi.
 
@@ -50,28 +52,94 @@ The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}
 HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
 HOL is implemented with Standard ML, and this is the meta-language which the user interacts with when mechanising mathematics.
 
-\subsection{Motivation}
+The source for this project can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}. In addition, some lemmata I wrote have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}.
+
+% \paragraph{Motivation}
 % why bother?
-\begin{HOLmath}
-\HOLthm{MinimalProof.Nm_Gm}
-\end{HOLmath}
-The term \HOLtm{Nm Gamma phi} means that using hypotheses \HOLtm{Gamma}, the formula \HOLtm{phi} can be proved.
+The purpose of this project was for me to learn how to use an interactive theorem prover. The proof theory itself is well known, and has been formalised before.
 
 \subsection{Related Work}
-% thingo in coq
-The equivalence of these calculi and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
-A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \N and \G, whereas I have used sets and multisets respectively.
+The equivalence of Natural Deduction, Sequent Calculus and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
+A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \N{} and \G{}, whereas I have used sets and multisets respectively.
 They also mechanised the proofs of soundness and completeness.
 
 The same equivalence, but for first order classical logic, has been formalised in HOL by \textcite{fopthol}.
-They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised in a way quite differently to the way I have formalised the calculi, with considerably more purpose-built datatypes, such as one for derivations.
-
-
-
-% the way better HOL thing I found
+They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised in a way quite differently to the way I have formalised the calculi, using several additional purpose-built datatypes, such as one for derivations.
 
 \section{Formalisation in HOL}
   % (give definitions and theorem statements; explain interesting proofs)
+
+\subsection{Syntax}
+I formalised both minimal (\textbf{m}) and intuitionistic (\textbf{i}) logic versions of \N{} and \G{}, referred to as \N{m}, \G{m}, \N{i} and \G{i}. The syntax of these logics is formalised as follows:
+
+\begin{HOLmath}
+  \HOLthm{FormulaSyntax.datatype_formula}
+\end{HOLmath}
+
+\subsection{Notation}
+I will refer to multisets as bags.
+I use $A,B,C$ for arbitrary formulae, $\Gamma,\Delta$ for bags of formulae, $D,D_1,D_2$ for sets of open assumptions, ``$A$ insert $D$'' for $\{A\} \cup D$, ``insert $A~\Gamma$'' for $\{\!|A|\!\} \uplus \Gamma$.
+$\uplus$ denotes the sum of bags (called bag union in HOL). $\Cup$ denotes bag union (bag max, called bag merge in HOL).
+
+There are also some syntax abbreviations:
+
+\begin{HOLmath}
+  \HOLthm[def]{FormulaSyntax.Not_def}\\
+  \HOLthm[def]{FormulaSyntax.BiImp_def}\\
+  \HOLthm[def]{FormulaSyntax.Top_def}
+\end{HOLmath}
+
+% In the following sections, I will use write $A \curvearrowright \Gamma$ to mean $\{A\}\cup\Gamma$ for sets and $\{\|.
+
+\subsection{\N{[mi]}}
+I have represented \N{[mi]} in sequent style~\autocite[s. 2.1.8]{bpt} using the complete discharge convention~\autocite[s. 2.1.9]{bpt}. 
+% I have represented the infix sequent relation $\vdash_{\textbf{N[mi]}}$ as a prefix relation \texttt{N[mi]}. 
+Here is the inductive definition of \N{m}:
+
+% How do I conv the _rules thms to be unions/bag_unions?
+\begin{HOLmath}
+  \HOLthm[def]{MinimalProof.Nm_rules}
+\end{HOLmath}
+
+\N{i} contains all \N{m} rules, plus one additional rule:
+
+\begin{HOLmath}
+  \HOLthm[def,conj10]{IntuitionisticProof.Ni_rules}
+\end{HOLmath}
+
+The definition of \N{} in \textcite{bpt} has different rules when discharging assumptions, which I formalised as \N{md}. Here is the definition of the rules which differ:
+
+\begin{HOLmath}
+  \HOLthm[rule,conj5]{MinimalProof.Nmd_rules}\\
+  \HOLthm[rule,conj9]{MinimalProof.Nmd_rules}
+\end{HOLmath}
+
+I proved that these are equivalent:
+
+\begin{HOLmath}
+  \HOLthm[nostile]{MinimalProof.Nm_Nmd}
+\end{HOLmath}
+
+\subsection{\G{[mi]}}
+I am using \G{2[mi]} in this project, as that is what was used in the book for the equivalence proof~\autocite[s. 3.1.6]{bpt}. \G{2} has the weakening rules absorbed into the axiom and absurdity rules, but contains distinct contraction rules. Here is the inductive definition of \G{m}:
+
+\begin{HOLmath}
+  \HOLthm[def]{MinimalProof.Gm_rules}
+\end{HOLmath}
+
+\G{i} contains all \G{m} rules plus one additional rule:
+
+\begin{HOLmath}
+  \HOLthm[def,conj2]{IntuitionisticProof.Gi_rules}
+\end{HOLmath}
+
+
+
+\begin{HOLmath}
+  \HOLthm{MinimalProof.Nm_Gm}
+\end{HOLmath}
+The term \HOLtm{Gamma Nm  phi} means that using hypotheses \HOLtm{Gamma}, the formula \HOLtm{phi} can be proved.
+
 \section{Discussion of Issues} %(bags)
 \section{Future Work}
 % Summary of effort/Future Work/What'd I'd do differently

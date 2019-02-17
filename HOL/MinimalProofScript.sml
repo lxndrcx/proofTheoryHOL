@@ -224,7 +224,7 @@ val (Gm_rules, Gm_ind, Gm_cases) = Hol_reln `
    ==> (Gm (BAG_INSERT (A Imp B) Γ) C)) (* Left Imp *)
 /\ (!A B Γ. (Gm (BAG_INSERT A Γ) B)
    ==> (Gm Γ (A Imp B))) (* Right Imp *)
-∧  (∀A B Γ Γ'. (Gm Γ A) ∧ (Gm (BAG_INSERT A Γ') B) ==> Gm (Γ + Γ') B)` (* Cut *)
+∧  (∀A B Γ Δ. (Gm Γ A) ∧ (Gm (BAG_INSERT A Δ) B) ==> Gm (Γ + Δ) B)` (* Cut *)
 
 val [Gm_ax, Gm_lc, Gm_landl, Gm_landr, Gm_rand,
      Gm_lor, Gm_rorl, Gm_rorr, Gm_limp, Gm_rimp, Gm_cut] = CONJUNCTS Gm_rules;
@@ -626,5 +626,11 @@ Proof
   `Gm (unibag Γ) A` by metis_tac[Nm_Gm] >>
   metis_tac[Gm_unibag]
 QED
+
+val _ = set_fixity "Nm" (Infix (NONASSOC, 320));
+val _ = set_fixity "Nmd" (Infix (NONASSOC, 320));
+val _ = set_fixity "Gm" (Infix (NONASSOC, 320));
+val _ = set_fixity "BAG_MERGE" (Infix (NONASSOC, 330));
+(* val _ = set_fixity "BAG_INSERT" (Infixl 330); *)
 
 val _ = export_theory()
