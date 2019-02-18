@@ -6,14 +6,14 @@ DEPS = $(patsubst %,$(HOME)/project/HOL/%Theory.uo,$(THYDEPS))
 all: COMP3710-report.pdf
 .PHONY: all
 
-munge.exe: ppTheory.uo
+munge.exe: ppTheory.uo ppScript.sml
 	$(HOLDIR)/bin/mkmunge.exe ppTheory
 
-COMP3710-report.tex: COMP3710-report.htex overrides
+COMP3710-report.tex: COMP3710-report.htex overrides munge.exe
 	./munge.exe -m\; overrides < $< > $@
 
 COMP3710-report.pdf: COMP3710-report.tex report.bib
-	latexmk -bibtex -pdf -pv COMP3710-report
+	latexmk -bibtex -pdf -interaction=nonstopmode -g COMP3710-report
 	latexmk -bibtex -c COMP3710-report
 
 EXTRA_CLEANS = COMP3710-report.tex COMP3710-report.aux COMP3710-report.pdf

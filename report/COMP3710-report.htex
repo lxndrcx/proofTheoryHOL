@@ -1,12 +1,12 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper,proof]{article}
 \usepackage[a4paper,margin=2cm]{geometry}
 
 \title{(Proofy proofs)\\
   \normalsize{} COMP3710 Report\\
   Funded by a AMSI Vacation Research Scholarship}
-\author{Alexander Cox\thanks{Studying a Bachelor of Science at The Australian National University (ANUl)}\\
+\author{Alexander Cox\thanks{Studying a Bachelor of Science at The Australian National University (ANU)}\\
       \small\texttt{u6060697@anu.edu.au}\\
-      \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO; ANU}}
+      \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO\@; ANU}}
 \usepackage[backend=biber, style=authoryear-icomp] {biblatex}
 \addbibresource{report.bib}
 
@@ -14,20 +14,22 @@
 \usepackage{mathtools}
 % \usepackage{fdsymbol}
 \usepackage{amsthm}
-\usepackage{upgreek}
+% \usepackage{upgreek}
 % \usepackage{MnSymbol}
-\usepackage{bussproofs}
+% \usepackage{bussproofs}
+\usepackage{proof}
 \usepackage{alltt}
 \usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
 % \setlength\parindent{0pt}
-\newcommand{\N}[1]{\textbf{N#1}}
-\newcommand{\G}[1]{\textbf{G#1}}
+% \newcommand{\textbf{N}}{\textbf{N}}
+% \newcommand{\textbf{G}}{\textbf{G}}
 
-\newtheorem{thm}{Theorem}
+\newtheorem{thm}{Theorem}[subsection]
 \theoremstyle{definition}
-\newtheorem{defn}{Definition}
+\newtheorem{defn}[thm]{Definition}
 \theoremstyle{remark}
-\newtheorem{notn}{Notation}
+\newtheorem{notn}[thm]{Notation}
+\newtheorem{remk}[thm]{Remark}
 
 \renewcommand{\HOLConst}[1]{\textsf{#1}}
 \renewcommand{\HOLinline}[1]{\ensuremath{#1}}
@@ -39,16 +41,16 @@
 \end{abstract}
 
 \section{Introduction}
-In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\N{}) and Sequent Calculus (\G{}). I will note any deviances from this book which I have used.
+In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\textbf{N}) and Sequent Calculus (\textbf{G}). I will note any deviances from this book which I have used.
 
 % \subsection{Background}
-\N{} and \G{} are logical calculi introduced by Gentzen in the mid 1930s.
-\N{} derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
-\G{} derives sequents, which are a multisets of formulae related by the sequent relation ($\vdash$). \G{} has one axiom, in addition to left and right rules which operate on formulae in either the left or right of the sequent.
+\textbf{N} and \textbf{G} are logical calculi introduced by Gentzen in the mid 1930s.
+\textbf{N} derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
+\textbf{G} derives sequents, which are a multisets of formulae related by the sequent relation (denoted $\vdash$). \textbf{G} has one axiom, in addition to left and right rules which operate on formulae in either the left or right of the sequent.
 I have been formalising these proof systems for intuitionistic propositional logic.
 In particular I have been mechanising the proof of equivalence between these two calculi.
 
-The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}, henceforth referred to as HOL.
+The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}, henceforth referred to as HOL\@.
 HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
 HOL is implemented with Standard ML, and this is the meta-language which the user interacts with when mechanising mathematics.
 
@@ -60,7 +62,7 @@ The purpose of this project was for me to learn how to use an interactive theore
 
 \subsection{Related Work}
 The equivalence of Natural Deduction, Sequent Calculus and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
-A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \N{} and \G{}, whereas I have used sets and multisets respectively.
+A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \textbf{N} and \textbf{G}, whereas I have used sets and multisets respectively.
 They also mechanised the proofs of soundness and completeness.
 
 The same equivalence, but for first order classical logic, has been formalised in HOL by \textcite{fopthol}.
@@ -70,75 +72,163 @@ They also mechanised the proofs of deduction monotonicity and compactness, among
   % (give definitions and theorem statements; explain interesting proofs)
 
 \subsection{Syntax}
-I formalised both minimal (\textbf{m}) and intuitionistic (\textbf{i}) logic versions of \N{} and \G{}, referred to as \N{m}, \G{m}, \N{i} and \G{i}. The syntax of these logics is formalised as follows:
+I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, referred to as \textbf{Ni} and \textbf{Gi} in \textcite{bpt}.
 
-\begin{HOLmath}
-  \HOLthm{FormulaSyntax.datatype_formula}
-\end{HOLmath}
+\begin{defn}{Formula}
 
-\subsection{Notation}
-I will refer to multisets as bags.
-I use $A,B,C$ for arbitrary formulae, $\Gamma,\Delta$ for bags of formulae, $D,D_1,D_2$ for sets of open assumptions, ``$A$ insert $D$'' for $\{A\} \cup D$, ``insert $A~\Gamma$'' for $\{\!|A|\!\} \uplus \Gamma$.
-$\uplus$ denotes the sum of bags (called bag union in HOL). $\Cup$ denotes bag union (bag max, called bag merge in HOL).
+    The formulae of intuitionistic propositional logic are defined inductively, starting with atomic variables of arbitrary type $\alpha$, then connected with logical operators. I have used non-standard symbols $\veebar$ and $\barwedge$ in place of $\vee$ and $\wedge$ to avoid confusion with the meta-logical symbols used. The operators are defined in prefix form, but are always used as infix operators afterwards\footnote{This is how they are defined in HOL}.
 
-There are also some syntax abbreviations:
+    Here is how formulae are defined in BNF syntax:
+    \[ \varphi ::= \alpha~|~\varphi \veebar \varphi~|~\varphi \barwedge \varphi~|~\varphi \to \varphi~|~\bot \]
+    where $\varphi$ is a formula and $\alpha$ is an atomic variable.
 
-\begin{HOLmath}
-  \HOLthm[def]{FormulaSyntax.Not_def}\\
-  \HOLthm[def]{FormulaSyntax.BiImp_def}\\
-  \HOLthm[def]{FormulaSyntax.Top_def}
-\end{HOLmath}
+    Here is the corresponding HOL definition:
+  \begin{HOLmath}
+    \HOLthm{FormulaSyntax.datatype_formula}
+  \end{HOLmath}
 
-% In the following sections, I will use write $A \curvearrowright \Gamma$ to mean $\{A\}\cup\Gamma$ for sets and $\{\|.
+  The latter definition is produced by HOL for pretty typesetting, as are the most of HOL definitions and theorems I will present in this report. For illustration purposes, here is how I wrote it in my text editor:
 
-\subsection{\N{[mi]}}
-I have represented \N{[mi]} in sequent style~\autocite[s. 2.1.8]{bpt} using the complete discharge convention~\autocite[s. 2.1.9]{bpt}. 
-% I have represented the infix sequent relation $\vdash_{\textbf{N[mi]}}$ as a prefix relation \texttt{N[mi]}. 
-Here is the inductive definition of \N{m}:
+  \begin{alltt}
+  val _ = Datatype `formula =
+      Var 'a
+      | Or formula formula
+      | And formula formula
+      | Imp formula formula
+      | Bot`;
+  \end{alltt}
 
-% How do I conv the _rules thms to be unions/bag_unions?
-\begin{HOLmath}
-  \HOLthm[def]{MinimalProof.Nm_rules}
-\end{HOLmath}
+\end{defn}
 
-\N{i} contains all \N{m} rules, plus one additional rule:
+% \subsection{Notation}
+% I will now explain the notation I will use in this report.
 
-\begin{HOLmath}
-  \HOLthm[def,conj10]{IntuitionisticProof.Ni_rules}
-\end{HOLmath}
+\begin{notn}
+  Bags are multisets.
+\end{notn}
 
-The definition of \N{} in \textcite{bpt} has different rules when discharging assumptions, which I formalised as \N{md}. Here is the definition of the rules which differ:
+\begin{notn}
+  I use $A,B,C$ for arbitrary formulae.
+\end{notn}
 
-\begin{HOLmath}
-  \HOLthm[rule,conj5]{MinimalProof.Nmd_rules}\\
-  \HOLthm[rule,conj9]{MinimalProof.Nmd_rules}
-\end{HOLmath}
+\begin{defn}{Abbreviations}
 
-I proved that these are equivalent:
+  The remainder of propositional logic syntax is achieved with abbreviations:
 
-\begin{HOLmath}
-  \HOLthm[nostile]{MinimalProof.Nm_Nmd}
-\end{HOLmath}
+  \begin{HOLmath}
+    \HOLthm[def]{FormulaSyntax.Not_def}\\
+    \HOLthm[def]{FormulaSyntax.BiImp_def}\\
+    \HOLthm[def]{FormulaSyntax.Top_def}
+  \end{HOLmath}
+\end{defn}
 
-\subsection{\G{[mi]}}
-I am using \G{2[mi]} in this project, as that is what was used in the book for the equivalence proof~\autocite[s. 3.1.6]{bpt}. \G{2} has the weakening rules absorbed into the axiom and absurdity rules, but contains distinct contraction rules. Here is the inductive definition of \G{m}:
+\subsection{Natural Deduction (\textbf{N})}
+  I have represented \textbf{N} in sequent style~\autocite[s. 2.1.8]{bpt} using the complete discharge convention~\autocite[s. 2.1.9]{bpt}. This means that rather than having a tree with assumptions as leaves, I have sequents, with a set of open assumptions on the left. Open assumptions are assumptions which have not been discharged.
 
-\begin{HOLmath}
-  \HOLthm[def]{MinimalProof.Gm_rules}
-\end{HOLmath}
+  The complete discharge convention says that I can discharge all instances of a assumption at once, rather than keeping track of assumptions with labels. This simplifies the presentation of Natural Deduction. The rules which discharge assumptions are $\to$i and $\veebar$e, which I define below.
 
-\G{i} contains all \G{m} rules plus one additional rule:
+\begin{notn}
+  $\Gamma \vdash_S A$ denotes that the formula $A$ can be derived from the hypotheses $\Gamma$ in proof system $S$.
+\end{notn}
 
-\begin{HOLmath}
-  \HOLthm[def,conj2]{IntuitionisticProof.Gi_rules}
-\end{HOLmath}
+\begin{notn}
+  I write $A \cup D$ as shorthand for $\{A\} \cup D$.
+\end{notn}
+% I have represented the infix sequent relation $\vdash_{\textbf{N[mi]}}$ as a prefix relation \texttt{N[mi]}.
 
+\begin{defn}{\textbf{N}}
 
+  % How do I conv the _rules thms to be unions/bag_unions?
 
-\begin{HOLmath}
-  \HOLthm{MinimalProof.Nm_Gm}
-\end{HOLmath}
-The term \HOLtm{Gamma Nm  phi} means that using hypotheses \HOLtm{Gamma}, the formula \HOLtm{phi} can be proved.
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$i,conj2]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$el,conj3]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$er,conj4]{IntuitionisticProof.N_rules}\\\\
+    \HOLthm[rule,rulename=$\to$i,conj5]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\to$e,conj6]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\bot$e,conj10]{IntuitionisticProof.N_rules}\\\\
+    \HOLthm[rule,rulename=$\veebar$il,conj7]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$ir,conj8]{IntuitionisticProof.N_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$e,conj9]{IntuitionisticProof.N_rules}
+  \end{HOLmath}
+
+\end{defn}
+
+\begin{defn}{\textbf{Nd}}
+
+  The definition of \textbf{N} in \textcite{bpt} has different rules when discharging assumptions, which I formalised as \textbf{Nd}. Here are the rules which differ:
+
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=$\to$i,conj5]{IntuitionisticProof.Nd_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$e,conj9]{IntuitionisticProof.Nd_rules}
+  \end{HOLmath}
+
+\end{defn}
+
+I proved that these two formulations are equivalent in HOL:
+\begin{thm}{\textbf{N} $\Leftrightarrow$ \textbf{Nd}}
+  \begin{HOLmath}
+    \HOLthm[nostile,nosp]{IntuitionisticProof.N_Nd}
+  \end{HOLmath}
+\end{thm}
+
+\subsection{Sequent Calculus (\textbf{G})}
+I am using \textbf{G2i} in this project, as that is what was used in the book for the equivalence proof~\autocite[s. 3.1.6]{bpt}. \textbf{G2i} has the weakening rules absorbed into the axiom and absurdity rules, but contains distinct contraction rules. Unlike \textbf{G2c} (classical logic), the conclusion is a single formula, rather than a bag of formulae.
+
+\begin{remk}
+  I use \autocite[lemma 3.1.8]{bpt} to eliminate empty succedents which are possible in \textbf{G2i}, but cause added complexity in formalisation. The only conclusion this removes from the calculus is the empty bag.
+\end{remk}
+
+\begin{notn}
+  I write \HOLtm{BAG_INSERT A Gamma} as shorthand for \HOLtm{(BAG_INSERT A EMPTY_BAG) + Gamma}.
+\end{notn}
+
+\begin{defn}{\textbf{G}}
+
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\bot$,conj2]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cont,conj3]{IntuitionisticProof.G_rules}\\\\
+    \HOLthm[rule,rulename=L$\barwedge$L,conj4]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\barwedge$R,conj5]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\barwedge$,conj6]{IntuitionisticProof.G_rules}\\\\
+    \HOLthm[rule,rulename=L$\veebar$,conj7]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$L,conj8]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$R,conj9]{IntuitionisticProof.G_rules}\\\\
+    \HOLthm[rule,rulename=L$\to$,conj10]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\to$,conj11]{IntuitionisticProof.G_rules}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cut,conj12]{IntuitionisticProof.G_rules}
+  \end{HOLmath}
+
+\end{defn}
+
+\subsection{Proof of Equivalence}
+\begin{notn}
+  I write \HOLtm{BAG_OF_SET Gamma} to denote the set \HOLtm{Gamma} converted into a bag. I write \HOLtm{SET_OF_BAG Gamma} to denote the bag \HOLtm{Gamma} converted into a set.
+\end{notn}
+
+\begin{thm}
+  \begin{HOLmath}
+    \HOLthm[nostile,nosp]{IntuitionisticProof.N_G}
+  \end{HOLmath}
+\end{thm}
 
 \section{Discussion of Issues} %(bags)
 \section{Future Work}
