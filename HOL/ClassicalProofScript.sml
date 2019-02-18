@@ -155,29 +155,11 @@ val (Gc_rules, Gc_ind, Gc_cases) = Hol_reln `
 /\ (!A B Γ Δ Δ'. ((BAG_INSERT A Γ) Gc (BAG_INSERT B Δ))
                  /\ (Δ' = BAG_INSERT (A Imp B) Δ)
                  ==> (Γ Gc Δ)) (* Right Imp *)
-/\ (∀A Γ Δ. (Γ Gc (BAG_INSERT A Δ)) ∧ ((BAG_INSERT A Γ) Gc Δ)
-    ==> Γ Gc Δ)` (* Cut_cs *)
+/\ (∀A Γ Γ' Δ Δ'. (Γ Gc (BAG_INSERT A Δ)) ∧ ((BAG_INSERT A Γ') Gc Δ') 
+                       ==> Γ ⊎ Γ' Gc Δ ⊎ Δ')` (* Cut_cs *)
 
 val [Gc_ax, Gc_bot, Gc_lc, Gc_rc, Gc_landl, Gc_landr, Gc_rand,
      Gc_lor, Gc_rorl, Gc_rorr, Gc_limp, Gc_rimp, Gc_cut] = CONJUNCTS Gc_rules;
-
-Theorem Gc_cut_ns:
-∀Γ Γ' Δ Δ' A. (Γ Gc (BAG_INSERT A Δ)) ∧ ((BAG_INSERT A Γ) Gc Δ) 
-               ∧ FINITE_BAG Γ' ∧ FINITE_BAG Δ'
-               ==> Γ ⊎ Γ' Gc Δ ⊎ Δ'
-Proof
-  rw[] >>
-  irule Gc_cut >>
-  qexists_tac `A` >>
-  conj_tac 
-  >> (fs[BAG_INSERT_UNION] >>
-      fs[EL_BAG] >>
-      simp[ASSOC_BAG_UNION] >>
-      irule Gc_rw_BAG_UNION >>
-      simp[] >>
-      irule Gc_lw_BAG_UNION >>
-      simp[])
-QED
    
 (* val GcThm = Define `GcThm A = EMPTY_BAG Gc A`; *)
 
@@ -309,8 +291,9 @@ Proof
       qexists_tac `BAG_INSERT (A Imp B) Δ` >>
       simp[] >>
       first_x_assum (fn th => irule th >> fs[SUB_BAG_INSERT] >> NO_TAC))
-  >- (irule Gc_cut >>
-      qexists_tac `A` >>
+  >- (
+      irule Gc_cut >>
+           
       first_x_assum (qspec_then `BAG_INSERT A Γ'` mp_tac) >>
       rw[] >>
       fs[SUB_BAG_INSERT])
@@ -531,8 +514,8 @@ Proof
   rw[]
   >- (irule Gc_ax >> simp[] >>
       metis_tac[FINITE_BAG_OF_SET,FINITE_DEF])
-  >- (irule Gc_rand >> rw[] >>
-      >- (`(BAG_OF_SET (Γ' ∪ Γ)) Gc {|A|}` 
+  >- (irule Gc_rand >> rw[]
+      >- (`(BAG_OF_SET (Γ' ∪ Γ)) Gc {|A|}`
             suffices_by metis_tac[UNION_COMM] >>
           simp[BAG_OF_SET_UNION] >>
           metis_tac[Gc_lw_BAG_MERGE,Gc_FINITE])
@@ -567,9 +550,43 @@ Proof
       qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET Γ)` >>
       simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT] >>
       `BAG_MERGE {|A|} (BAG_OF_SET Γ) Gc {|A Imp A';A'|}`
-        suffices_by metis_tac[BAG_INSERT_commutes]
+        suffices_by metis_tac[BAG_INSERT_commutes] >>
       metis_tac[Gc_rw_BAG_INSERT])
-  >- (qabbrev_tac `Δ = ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ'))` >>
+  >- (rename [`Γ Nc A Imp B`] >>
+      simp[BAG_OF_SET_UNION] >>
+      (* `?b b'. (Γ = SET_OF_BAG b) ∧ (Γ' = SET_OF_BAG b')`  *)
+      (*   by (qexists_tac `BAG_OF_SET Γ` >> *)
+      (*       qexists_tac `BAG_OF_SET Γ'` >> *)
+      (*       rw[]) >> *)
+      (* fs[] >> rw[] > *)>
+      (* `unibag (b ⊎ b') Gc {|B|}` suffices_by metis_tac[unibag_UNION] >> *)
+      (* `b ⊎ b' Gc {|B|}` suffices_by metis_tac[Gc_unibag] >> *)
+      (* irule Gc_lcut >> *)
+      (* qexists_tac `A` >> *)
+      `FINITE_BAG (BAG_INSERT B (BAG_OF_SET Γ'))` 
+        by metis_tac[Nc_FINITE,FINITE_BAG_OF_SET,FINITE_BAG_INSERT] >>
+      `(BAG_INSERT B (BAG_OF_SET Γ')) Gc {|B|}` 
+        by (irule Gc_ax >> rw[]) >>
+      `(BAG_INSERT (A Imp B) (BAG_OF_SET Γ')) Gc {|B|}`
+        by metis_tac[Gc_limp,Gc_rw_BAG_INSERT,BAG_INSERT_commutes] >>
+      `((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) Gc {|B|}`
+        by (irule Gc_cut >>
+            qexists_tac `A` >>
+            rw[]
+              >- (`BAG_OF_SET Γ' ⊎ BAG_OF_SET Γ Gc {|B;A|}`
+                    suffices_by metis_tac[COMM_BAG_UNION,BAG_INSERT_commutes] >>
+                  irule Gc_rw_BAG_INSERT >>
+                  irule Gc_lw_BAG_UNION >>
+                  conj_tac >- metis_tac[Gc_FINITE] >>
+                  simp[])
+              >- (
+                  qexists_tac `A` >>
+                  qexists_tac `B` >>
+                  qexists_tac `BAG_OF_SET Γ'` >>
+                  simp[]
+              
+
+  qabbrev_tac `Δ = ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ'))` >>
       `FINITE_BAG (BAG_INSERT A' Δ)`
         by (simp[Abbr`Δ`] >>
             metis_tac[Nc_FINITE,FINITE_BAG_OF_SET,FINITE_BAG_UNION]) >>
