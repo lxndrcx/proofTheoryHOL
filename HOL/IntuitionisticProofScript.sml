@@ -10,7 +10,6 @@ open bagTheory;
 open pred_setTheory;
 
 open FormulaSyntaxTheory;
-open BagLemmataTheory;
 
 val _ = new_theory "IntuitionisticProof";
 
@@ -271,7 +270,7 @@ val G_land_commutes =
 metis_tac[BAG_UNION_EMPTY]);
 
 Theorem G_FINITE:
-  !D A. G D A ==> FINITE_BAG D
+  !Γ A. G Γ A ==> FINITE_BAG Γ
 Proof Induct_on `G` >> rw[]
 QED
 
@@ -366,38 +365,6 @@ val G_lc_AeA =
             fs[EL_BAG] >>
             simp[ASSOC_BAG_UNION]);
 
-Theorem G_INSERT_TO_MERGE:
-  ∀Γ. FINITE_BAG Γ ==>
-      ∀A B. G (BAG_INSERT A Γ) B ==> G (BAG_MERGE {|A|} Γ) B
-Proof
-    Induct_on `Γ` >>
-    rw[] >>
-    Cases_on `A=e`
-      >- (fs[] >>
-          `BAG_MERGE {|e|} (BAG_INSERT e Γ) = BAG_INSERT e Γ`
-            by (simp[BAG_MERGE,BAG_INSERT,EMPTY_BAG,FUN_EQ_THM] >>
-                rw[] >> fs[]) >>
-          fs[] >>
-          `G ({|e;e|} ⊎ Γ) B` by fs[BAG_INSERT_UNION,ASSOC_BAG_UNION] >>
-          `G ({|e|} ⊎ Γ) B` by metis_tac[G_lc] >>
-          `{|e|} ⊎ Γ = BAG_INSERT e Γ`
-            by rw[BAG_INSERT_UNION] >>
-          metis_tac[])
-      >- (Cases_on `BAG_IN A Γ`
-          >- (`?Γ'. Γ = BAG_INSERT A Γ'` by metis_tac[BAG_DECOMPOSE] >>
-              fs[] >>
-              `G (BAG_INSERT e (BAG_INSERT A Γ')) B`
-                by metis_tac[G_lc_AeA] >>
-              fs[G_lw_BAG_MERGE])
-          >- (`BAG_INSERT A (BAG_INSERT e Γ)
-                = BAG_MERGE {|A|} (BAG_INSERT e Γ)`
-                by (`Γ A = 0` by metis_tac[NOT_BAG_IN] >>
-                    simp[BAG_INSERT,BAG_MERGE,EMPTY_BAG,FUN_EQ_THM] >>
-                    rw[] >>
-                    fs[COND_CLAUSES]) >>
-              fs[]))
-QED
-
 val unibag_AA_A = Q.prove(`unibag ({|A;A|} ⊎ Γ) = unibag ({|A|} ⊎ Γ)`,
   simp[unibag_thm]);
 
@@ -425,7 +392,7 @@ QED
 Theorem N_G:
   ∀Γ A. N Γ A ==> G (BAG_OF_SET Γ) A
 Proof
- Induct_on `N ` >>
+ Induct_on `N` >>
  rw[G_rules]
  (* >- (irule G_ax >> simp[] >> *)
  (*     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF]) *)
@@ -512,7 +479,6 @@ Proof
      metis_tac[G_cut,BAG_UNION_EMPTY])
 QED
 
-(* Apparently N takes a subset here!? *)
 Theorem G_N:
   ∀Γ A. G Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ N Γ' A
 Proof
