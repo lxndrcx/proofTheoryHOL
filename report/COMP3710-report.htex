@@ -1,4 +1,4 @@
-\documentclass[a4paper,proof]{article}
+\documentclass[a4paper]{article}
 \usepackage[a4paper,margin=2cm]{geometry}
 
 \title{(Proofy proofs)\\
@@ -10,10 +10,15 @@
 \usepackage[backend=biber, style=authoryear-icomp] {biblatex}
 \addbibresource{report.bib}
 
-\usepackage[]{hyperref}
 \usepackage{mathtools}
 % \usepackage{fdsymbol}
 \usepackage{amsthm}
+\usepackage{thmtools, thm-restate}
+\usepackage{
+nameref,%\nameref
+hyperref,%\autoref
+cleveref,% \cref
+}
 % \usepackage{upgreek}
 % \usepackage{MnSymbol}
 % \usepackage{bussproofs}
@@ -24,12 +29,21 @@
 % \newcommand{\textbf{N}}{\textbf{N}}
 % \newcommand{\textbf{G}}{\textbf{G}}
 
-\newtheorem{thm}{Theorem}[subsection]
-\theoremstyle{definition}
-\newtheorem{defn}[thm]{Definition}
-\theoremstyle{remark}
-\newtheorem{notn}[thm]{Notation}
-\newtheorem{remk}[thm]{Remark}
+% \newtheorem{thm}{Theorem}[subsection]
+% \newtheorem{lem}[thm]{Lemma}
+% \newtheorem{corl}[thm]{Corollary}
+% \theoremstyle{definition}
+% \newtheorem{defn}[thm]{Definition}
+% \theoremstyle{remark}
+% \newtheorem{notn}[thm]{Notation}
+% \newtheorem{remk}[thm]{Remark}
+\declaretheorem[numberwithin=subsection,name=Theorem]{thm}
+% \declaretheorem[name=Theorem]{thm}
+\declaretheorem[sibling=thm,name=Lemma]{lem}
+\declaretheorem[sibling=thm,name=Corollary]{corl}
+\declaretheorem[sibling=thm,style=definition,name=Definition]{defn}
+\declaretheorem[sibling=thm,style=remark,name=Notation]{notn}
+\declaretheorem[sibling=thm,style=remark,name=Remark]{remk}
 
 \renewcommand{\HOLConst}[1]{\textsf{#1}}
 \renewcommand{\HOLinline}[1]{\ensuremath{#1}}
@@ -76,36 +90,37 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
 
 \begin{defn}{Formula}
 
-    The formulae of intuitionistic propositional logic are defined inductively, starting with atomic variables of arbitrary type $\alpha$, then connected with logical operators. I have used non-standard symbols $\veebar$ and $\barwedge$ in place of $\vee$ and $\wedge$ to avoid confusion with the meta-logical symbols used. The operators are defined in prefix form, but are always used as infix operators afterwards\footnote{This is how they are defined in HOL}.
+  The formulae of intuitionistic propositional logic are defined inductively, starting with atomic variables of arbitrary type $\alpha$, then connected with logical operators. I have used non-standard symbols $\veebar$ and $\barwedge$ in place of $\vee$ and $\wedge$ to avoid confusion with the meta-logical symbols used. The operators are defined in prefix form, but are always used as infix operators afterwards\footnote{This is how they are defined in HOL}.
 
-    Here is how formulae are defined in BNF syntax:
-    \[ \varphi ::= \alpha~|~\varphi \veebar \varphi~|~\varphi \barwedge \varphi~|~\varphi \to \varphi~|~\bot \]
-    where $\varphi$ is a formula and $\alpha$ is an atomic variable.
+  Here is how formulae are defined in BNF syntax:
+  \[ \varphi ::= \alpha~|~\varphi \veebar \varphi~|~\varphi \barwedge \varphi~|~\varphi \to \varphi~|~\bot \]
+  where $\varphi$ is a formula and $\alpha$ is an atomic variable.
 
-    Here is the corresponding HOL definition:
+  Here is the corresponding HOL definition:
   \begin{HOLmath}
     \HOLthm{FormulaSyntax.datatype_formula}
   \end{HOLmath}
+  \begin{notn}
+    The latter definition is produced by HOL for typesetting. For illustration purposes, here is how I wrote it in my text editor:
 
-  The latter definition is produced by HOL for pretty typesetting, as are the most of HOL definitions and theorems I will present in this report. For illustration purposes, here is how I wrote it in my text editor:
+    \begin{alltt}
+    val _ = Datatype `formula =
+        Var 'a
+        | Or formula formula
+        | And formula formula
+        | Imp formula formula
+        | Bot`;
+    \end{alltt}
 
-  \begin{alltt}
-  val _ = Datatype `formula =
-      Var 'a
-      | Or formula formula
-      | And formula formula
-      | Imp formula formula
-      | Bot`;
-  \end{alltt}
+    For the remainder of the report I will use typeset versions of definitions and theorems produced by HOL.
+  \end{notn}
 
 \end{defn}
 
 % \subsection{Notation}
 % I will now explain the notation I will use in this report.
 
-\begin{notn}
-  Bags are multisets.
-\end{notn}
+
 
 \begin{notn}
   I use $A,B,C$ for arbitrary formulae.
@@ -116,11 +131,12 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
   The remainder of propositional logic syntax is achieved with abbreviations:
 
   \begin{HOLmath}
-    \HOLthm[def]{FormulaSyntax.Not_def}\\
-    \HOLthm[def]{FormulaSyntax.BiImp_def}\\
-    \HOLthm[def]{FormulaSyntax.Top_def}
+    \HOLthm[nosp]{FormulaSyntax.Not_def}\\
+    \HOLthm[nosp]{FormulaSyntax.BiImp_def}\\
+    \HOLthm[nosp]{FormulaSyntax.Top_def}
   \end{HOLmath}
 \end{defn}
+
 
 \subsection{Natural Deduction (\textbf{N})}
   I have represented \textbf{N} in sequent style~\autocite[s. 2.1.8]{bpt} using the complete discharge convention~\autocite[s. 2.1.9]{bpt}. This means that rather than having a tree with assumptions as leaves, I have sequents, with a set of open assumptions on the left. Open assumptions are assumptions which have not been discharged.
@@ -128,7 +144,7 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
   The complete discharge convention says that I can discharge all instances of a assumption at once, rather than keeping track of assumptions with labels. This simplifies the presentation of Natural Deduction. The rules which discharge assumptions are $\to$i and $\veebar$e, which I define below.
 
 \begin{notn}
-  $\Gamma \vdash_S A$ denotes that the formula $A$ can be derived from the hypotheses $\Gamma$ in proof system $S$.
+  $\Gamma \vdash_S A$ denotes that the formula $A$ can be derived from the hypotheses $\Gamma$ in proof system $S$. A $\vdash$ by itself denotes a theorem in the meta-logic, HOL.
 \end{notn}
 
 \begin{notn}
@@ -162,6 +178,16 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
 
 \end{defn}
 
+\begin{notn}
+  Equations in this text starting with a $\vdash$ are exported theorems from HOL, and have been specialised (universal quantifiers have been stripped). For example, the finiteness property for \textbf{N} is as follows, first specialised, then not-specialised:
+  \begin{corl}{\textbf{N} hypotheses are finite}
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.N_FINITE}\\
+      \HOLthm[nosp]{IntuitionisticProof.N_FINITE}
+    \end{HOLmath}
+  \end{corl}
+\end{notn}
+
 \begin{defn}{\textbf{Nd}}
 
   The definition of \textbf{N} in \textcite{bpt} has different rules when discharging assumptions, which I formalised as \textbf{Nd}. Here are the rules which differ:
@@ -174,23 +200,75 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
 
 \end{defn}
 
-I proved that these two formulations are equivalent in HOL:
+\begin{lem}{\textbf{N(d)} weakening}
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.N_lw}\\
+      \HOLthm{IntuitionisticProof.Nd_lw}
+    \end{HOLmath}
+\end{lem}
+
+\begin{proof}
+  Both proofs are the same, just replace \textbf{N} for \textbf{Nd} for the other.
+  \[
+    \infer[\barwedge\text{e}]
+    {\HOLtm{(B INSERT D) N A}}
+    {\infer[\barwedge\text{i}]{\HOLtm{(B INSERT D) N (A And B)}}
+    {\infer*{\HOLtm{D N A}}{} &\infer[\text{ax}]{\HOLtm{B INSERT EMPTY N B}}{}}}
+  \]
+\end{proof}
+
+\begin{lem}
+  Weakening can be extended as much as you like:
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.N_lw_SUBSET}\\
+    \HOLthm{IntuitionisticProof.Nd_lw_SUBSET}
+  \end{HOLmath}
+\end{lem}
+
+\begin{proof}
+  By induction on the cardinality of \HOLtm{D'}. You can insert as many formulae as you like.
+\end{proof}
+
+
+I proved that the two formulations of Natural Deduction are equivalent in HOL:
 \begin{thm}{\textbf{N} $\Leftrightarrow$ \textbf{Nd}}
   \begin{HOLmath}
-    \HOLthm[nostile,nosp]{IntuitionisticProof.N_Nd}
+    \HOLthm{IntuitionisticProof.N_Nd}
   \end{HOLmath}
 \end{thm}
+\begin{proof}
+  The if direction is a proof by rule induction on \textbf{N}, the only if direction by rule induction on \textbf{Nd}.
+
+  Automatic rewrites and first-order automated reasoning prove the cases which coincide.
+
+  For the if direction, the $\to$i and $\veebar$e cases are proved by using the corresponding inference rule, using \textbf{Nd} weakening, and appealing to the fact that \HOLtm{(A INSERT D) DELETE A = D}.
+
+  For the only if direction, these cases are proved using \textbf{N} weakening.
+
+\end{proof}
 
 \subsection{Sequent Calculus (\textbf{G})}
 I am using \textbf{G2i} in this project, as that is what was used in the book for the equivalence proof~\autocite[s. 3.1.6]{bpt}. \textbf{G2i} has the weakening rules absorbed into the axiom and absurdity rules, but contains distinct contraction rules. Unlike \textbf{G2c} (classical logic), the conclusion is a single formula, rather than a bag of formulae.
 
+\begin{defn}
+  Bags (a.k.a. multisets) are sets with duplicates permitted. In HOL bag is a function type: \textsf{bag:}\HOLty{:'a bag}, where \HOLty{:'a} is a type variable.
+\end{defn}
+
+\begin{notn} The empty bag is denoted \HOLtm{EMPTY_BAG}. \end{notn}
+
 \begin{remk}
-  I use \autocite[lemma 3.1.8]{bpt} to eliminate empty succedents which are possible in \textbf{G2i}, but cause added complexity in formalisation. The only conclusion this removes from the calculus is the empty bag.
+  I use \autocite[lemma 3.1.8]{bpt} to eliminate empty succedents which are possible in \textbf{G2i}, but cause added complexity in formalisation. The only conclusion this removes from the calculus is the empty bag. If I had not done this, the consequent of the $\bot$ rule would instead be \HOLtm{EMPTY_BAG}, and the conclusions of the other rules would be singleton bags of formulae rather than formulae.
 \end{remk}
 
-\begin{notn}
-  I write \HOLtm{BAG_INSERT A Gamma} as shorthand for \HOLtm{(BAG_INSERT A EMPTY_BAG) + Gamma}.
-\end{notn}
+\begin{notn} Elements of bags are separated by semicolons. For example, \HOLtm{BAG_INSERT A (BAG_INSERT B (BAG_INSERT B EMPTY_BAG))} is the bag containing three elements, one occurance of \HOLtm{A} and two of \HOLtm{B}. \end{notn}
+
+\begin{defn} The union of two bags, denoted \HOLtm{BAG_UNION b c} is the sum of the element counts.
+  \begin{HOLmath}
+    \HOLthm{bag.BAG_UNION}
+  \end{HOLmath}
+\end{defn}
+
+\begin{notn} I write \HOLtm{BAG_INSERT A Gamma} as shorthand for \HOLtm{(BAG_INSERT A EMPTY_BAG) + Gamma}.  \end{notn}
 
 \begin{defn}{\textbf{G}}
 
@@ -218,24 +296,127 @@ I am using \textbf{G2i} in this project, as that is what was used in the book fo
   \end{HOLmath}
 
 \end{defn}
+\begin{corl}{Hypotheses in \textbf{G} are finite}\label{GFINITE}
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.G_FINITE}
+  \end{HOLmath}
+\end{corl}
+
+\subsection{Bag lemmata}
+
+\begin{defn} The function \textsf{bag} converts sets into bags.  \end{defn}
+\begin{defn} The function \textsf{set} converts bags into sets.  \end{defn}
+\begin{defn} The function \textsf{unibag} converts bags into sets and then back again.  \end{defn}
+\begin{notn} \HOLtm{b e} is the number of occurrences of the element \HOLtm{e} in the bag \HOLtm{b}.  \end{notn}
+\begin{defn} A bag is distinct if no elements 1 occur more than once. \HOLthm{bag.BAG_ALL_DISTINCT} \end{defn}
+\begin{corl}{Unibags are distinct} \HOLthm{bag.unibag_ALL_DISTINCT} \end{corl}
+
+I needed unibags in order to reason about (complete) contraction of hypotheses in \textbf{G}. To make the hypotheses a unibag is to make them equivalent to a set. The main result concerning unibags was the following:
+\begin{thm}{Complete contraction} \HOLthm{IntuitionisticProof.G_unibag} \end{thm}
+
+\begin{proof}{(if)}
+  % By first-order automated reasoning applied to the finiteness of the hypotheses (\ref{GFINITE}, \ref{unibagFINITE}), and weakening for \textbf{G} (\ref{unibagSUBBAG}, \ref{Glw}).
+  By \textbf{G} weakening.
+\end{proof}
+\begin{proof}{(only if)}
+  By induction on the cardinality of \HOLtm{Gamma}, then an application of the contraction rule.
+\end{proof}
 
 \subsection{Proof of Equivalence}
-\begin{notn}
-  I write \HOLtm{BAG_OF_SET Gamma} to denote the set \HOLtm{Gamma} converted into a bag. I write \HOLtm{SET_OF_BAG Gamma} to denote the bag \HOLtm{Gamma} converted into a set.
-\end{notn}
+The following is the primary theorem of this project:
 
-\begin{thm}
+\begin{thm}{Proof of equivalence between \textbf{N} and \textbf{G}}\label{GiffN}
   \begin{HOLmath}
-    \HOLthm[nostile,nosp]{IntuitionisticProof.N_G}
+    \HOLthm{IntuitionisticProof.G_iff_N}
   \end{HOLmath}
 \end{thm}
+\begin{proof}
+  \begin{lem}{(if)}
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.N_G}
+    \end{HOLmath}
+  \end{lem}
+
+  \begin{proof}
+    The proof is by rule induction on \textbf{N}.
+  \end{proof}
+
+  \begin{lem}{(only if)}
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.G_N}
+    \end{HOLmath}
+  \end{lem}
+
+  \begin{proof}
+    The proof is by rule induction on \textbf{G}.
+
+  \end{proof}
+  This completes the proof of \cref{GiffN}.
+\end{proof}
 
 \section{Discussion of Issues} %(bags)
+A significant portion of effort in this project was dedicated to proving lemmata concerning bags. The existing bag theory in HOL contained only some of the results which I needed. I have included a list of the lemmata in the appendix \ref{sec:appendix}.
+
+
+\subsection{}
 \section{Future Work}
 % Summary of effort/Future Work/What'd I'd do differently
 % abstract derivation relation, which you give a set of inference rules, much more flexible and less redundancy in script.sml. Better for cut/cutfree stuff
 % prove cutfree stuff, relationship to normalised nd derivations
 \section{Conclusion}
-\section*{Acknowledgements}
+\subsection{Acknowledgements}
+
 \printbibliography{}
+\newpage
+\section{Appendix}\label{sec:appendix}
+\subsection{Bag Lemmata}
+
+\begin{lem} \HOLthm{bag.BAG_MERGE_SUB_BAG_UNION} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_MERGE_EMPTY} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_MERGE_ELBAG_SUB_BAG_INSERT} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_MERGE_EQ_EMPTY} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_INSERT_EQ_MERGE_DIFF} \end{lem}
+\begin{lem} \begin{HOLmath} \HOLthm{bag.BAG_MERGE_BAG_INSERT} \end{HOLmath} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_OF_SET_UNION} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_OF_SET_INSERT} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_OF_SET_BAG_DIFF_DIFF} \end{lem}
+\begin{lem} \HOLthm{bag.SET_OF_EL_BAG} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_OF_SET_EQ_INSERT} \end{lem}
+\begin{lem} \HOLthm{bag.FINITE_BAG_MERGE} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_MERGE_CARD} \end{lem}
+\begin{lem} \HOLthm{bag.BAG_ALL_DISTINCT_SUB_BAG} \end{lem}
+\begin{defn} \HOLtm{BAG_FILTER s b} means: \HOLtm[alltt]{if (BAG_IN e b) /\ ~(e IN s) then 0 else b e} \end{defn}
+\begin{lem} \HOLthm{bag.BAG_OF_SET_DIFF} \end{lem}
+\begin{lem} \HOLthm{bag.FINITE_BAG_OF_SET} \end{lem}
+
+\subsection{Unibag Lemmata}
+% TODO define unibags
+\begin{lem} \HOLthm{bag.unibag_INSERT} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_UNION} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_IN} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_EQ_BAG_INSERT} \end{lem}
+\begin{lem}\label{unibagFINITE} \HOLthm{bag.unibag_FINITE} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_ALL_DISTINCT} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_EL_MERGE_cases} \end{lem}
+\begin{lem} \HOLthm{bag.unibag_DECOMPOSE} \end{lem}
+\begin{lem}\label{unibagSUBBAG} \HOLthm{bag.unibag_SUB_BAG} \end{lem}
+
+\subsection{Main Lemmata and Theorems}
+
+\begin{lem}\HOLthm{IntuitionisticProof.N_FINITE}        \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.N_impi_DELETE}   \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.Nd_lw}           \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.Nd_lw_SUBSET}    \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.N_lw}            \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.N_lw_SUBSET}     \end{lem}
+\begin{thm}\HOLthm{IntuitionisticProof.N_Nd}            \end{thm}
+\begin{lem}\HOLthm{IntuitionisticProof.G_FINITE}        \end{lem}
+\begin{lem}\label{Glw}\HOLthm{IntuitionisticProof.G_lw}            \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.G_lw_BAG_INSERT} \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.G_lw_BAG_MERGE}  \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.G_lw_BAG_UNION}  \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.G_unibag}        \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.N_G}             \end{lem}
+\begin{lem}\HOLthm{IntuitionisticProof.G_N}             \end{lem}
+\begin{thm}\HOLthm{IntuitionisticProof.G_iff_N}         \end{thm}
 \end{document}

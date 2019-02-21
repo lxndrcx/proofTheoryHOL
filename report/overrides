@@ -12,7 +12,7 @@ N 3 \ensuremath{\vdash_{\textbf{N}}}
 Nd 4 \ensuremath{\vdash_{\textbf{Nd}}}
 G 3 \ensuremath{\vdash_{\textbf{G}}}
 Top 1 \ensuremath{\top}
-BAG_INSERT 6 insert
+BAG_INSERT 3 ins
 Imp 2 \ensuremath{\to}
 And 2 \ensuremath{\barwedge}
 Or 2 \ensuremath{\veebar}
@@ -20,4 +20,11 @@ BiImp 2 \ensuremath{\leftrightarrow}
 Not 2 \ensuremath{\neg}
 BAG_MERGE 1 \ensuremath{\Cup}
 ⋲ 1 \ensuremath{\in}
-
+BAG_ALL_DISTINCT 8 distinct
+− 1 \ensuremath{\setminus}
+BAG_CARD 11 cardinality
+DIFF 1 \ensuremath{\setminus}
+BAG_FILTER 6 filter
+EL_BAG 9 singleton
+COMPL 10 complement
+-> 1 \ensuremath{\mapsto}

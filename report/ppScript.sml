@@ -1,5 +1,5 @@
 open HolKernel boolLib Parse bossLib
-open FormulaSyntaxTheory IntuitionisticProofTheory
+open FormulaSyntaxTheory IntuitionisticProofTheory bagTheory
 val _ = new_theory "pp"
 
 val foo = save_thm("foo", TRUTH);
