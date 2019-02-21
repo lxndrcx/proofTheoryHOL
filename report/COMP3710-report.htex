@@ -1,7 +1,7 @@
 \documentclass[a4paper]{article}
 \usepackage[a4paper,margin=2cm]{geometry}
 
-\title{(Proofy proofs)\\
+\title{Equivalence of Natural Deduction and Sequent Calculus in HOL4\\
   \normalsize{} COMP3710 Report\\
   Funded by a AMSI Vacation Research Scholarship}
 \author{Alexander Cox\thanks{Studying a Bachelor of Science at The Australian National University (ANU)}\\
@@ -65,14 +65,20 @@ I have been formalising these proof systems for intuitionistic propositional log
 In particular I have been mechanising the proof of equivalence between these two calculi.
 
 The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}, henceforth referred to as HOL\@.
-HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
-HOL is implemented with Standard ML, and this is the meta-language which the user interacts with when mechanising mathematics.
 
-The source for this project can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}. In addition, some lemmata I wrote have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}.
 
 % \paragraph{Motivation}
 % why bother?
-The purpose of this project was for me to learn how to use an interactive theorem prover. The proof theory itself is well known, and has been formalised before.
+The purpose of this project was for me to learn how to use an interactive theorem prover. The proof theory itself is well known, and has been formalised before, albeit in a slightly different manner.
+
+\subsection{The HOL Theorem Prover}
+HOL is an interactive theorem prover which implements Higher Order Logic as the meta-logic with which users formalise mathematics.
+HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
+HOL is implemented with Standard ML, and this is the meta-language and main interface to HOL.
+
+Proving a theorem in HOL guarantees that your proof is correct and the theorem is sound, under the assumption that HOL is itself sound. All theorems in HOL are generated from the composition of a small set of axioms and basic inference rules, which are considered trusted by the HOL community. HOL can be built using two different Standard ML compilers, which increases confidence that the soundness of HOL is compiler-independent. HOL can also produce a certificate of correctness which can then be checked by another theorem prover, as an additional measure to establish trust in soundness. Saying this, any proof relies on first having a correct specification and formulation of the mathematical content. If I have not formalised my definitions correctly, my proofs don't establish the truth of theorems concerning the correct definitions.
+
+HOL has good support for inductively defined relations~\autocite{mel91}, which I used in this project. HOL automatically proves a strong induction theorem for the defined relations, which can then be used to perform rule induction on the relation~\autocite{cam92}.
 
 \subsection{Related Work}
 The equivalence of Natural Deduction, Sequent Calculus and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
@@ -80,13 +86,13 @@ A major difference between my formalisation and that of \citeauthor{ptcoq} is th
 They also mechanised the proofs of soundness and completeness.
 
 The same equivalence, but for first order classical logic, has been formalised in HOL by \textcite{fopthol}.
-They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised in a way quite differently to the way I have formalised the calculi, using several additional purpose-built datatypes, such as one for derivations.
+They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised quite differently to the way I have formalised the calculi in this project, using several additional purpose-built datatypes, such as one for derivations.
 
 \section{Formalisation in HOL}
   % (give definitions and theorem statements; explain interesting proofs)
 
 \subsection{Syntax}
-I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, referred to as \textbf{Ni} and \textbf{Gi} in \textcite{bpt}.
+I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, referred to as \textbf{Ni} and \textbf{G2i} in \textcite{bpt}.
 
 \begin{defn}{Formula}
 
@@ -208,7 +214,7 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
 \end{lem}
 
 \begin{proof}
-  Both proofs are the same, just replace \textbf{N} for \textbf{Nd} for the other.
+  Both proofs are the same, just replace \textbf{N} for \textbf{Nd} for the other. The proof is by construction:
   \[
     \infer[\barwedge\text{e}]
     {\HOLtm{(B INSERT D) N A}}
@@ -323,6 +329,32 @@ I needed unibags in order to reason about (complete) contraction of hypotheses i
 \end{proof}
 
 \subsection{Proof of Equivalence}
+\begin{defn} The merge of two bags, denoted \HOLtm{b BAG_MERGE c} is the pointwise maximum of the element counts.
+  \begin{HOLmath}
+    \HOLthm{bag.BAG_MERGE}
+  \end{HOLmath}
+\end{defn}
+
+\begin{lem}{(if)}
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.N_G}
+  \end{HOLmath}
+\end{lem}
+
+\begin{proof}
+  The proof is by rule induction on \textbf{N}.
+\end{proof}
+
+\begin{lem}{(only if)}
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.G_N}
+  \end{HOLmath}
+\end{lem}
+
+\begin{proof}
+  The proof is by rule induction on \textbf{G}.
+
+\end{proof}
 The following is the primary theorem of this project:
 
 \begin{thm}{Proof of equivalence between \textbf{N} and \textbf{G}}\label{GiffN}
@@ -331,26 +363,7 @@ The following is the primary theorem of this project:
   \end{HOLmath}
 \end{thm}
 \begin{proof}
-  \begin{lem}{(if)}
-    \begin{HOLmath}
-      \HOLthm{IntuitionisticProof.N_G}
-    \end{HOLmath}
-  \end{lem}
 
-  \begin{proof}
-    The proof is by rule induction on \textbf{N}.
-  \end{proof}
-
-  \begin{lem}{(only if)}
-    \begin{HOLmath}
-      \HOLthm{IntuitionisticProof.G_N}
-    \end{HOLmath}
-  \end{lem}
-
-  \begin{proof}
-    The proof is by rule induction on \textbf{G}.
-
-  \end{proof}
   This completes the proof of \cref{GiffN}.
 \end{proof}
 
@@ -370,6 +383,9 @@ A significant portion of effort in this project was dedicated to proving lemmata
 \newpage
 \section{Appendix}\label{sec:appendix}
 \subsection{Bag Lemmata}
+This is a list of the theorems I have formalised in HOL.
+
+The source for this project can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}. In addition, some lemmata I wrote have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}.
 
 \begin{lem} \HOLthm{bag.BAG_MERGE_SUB_BAG_UNION} \end{lem}
 \begin{lem} \HOLthm{bag.BAG_MERGE_EMPTY} \end{lem}
