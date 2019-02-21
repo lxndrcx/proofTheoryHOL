@@ -480,28 +480,44 @@ Proof
 QED
 
 Theorem G_N:
-  ∀Γ A. G Γ A ==> ?Γ'. Γ' ⊆ (SET_OF_BAG Γ) /\ N Γ' A
+  ∀Γ A. G Γ A ==> N (SET_OF_BAG Γ) A
 Proof
-  Induct_on `G` >> rw[]
-    >- (qexists_tac `{A}` >> simp[SUBSET_DEF,SET_OF_BAG] >> metis_tac[N_ax])
-    >- (qexists_tac `{Bot}` >> simp[SUBSET_DEF,SET_OF_BAG] >>
-        metis_tac[N_bot,N_ax])
-    >- (qexists_tac `Γ'` >> fs[SET_OF_BAG,BAG_UNION,BAG_INSERT])
+  Induct_on `G` >> rw[N_rules]
+    >- (`?b. Γ = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
+        fs[] >> 
+        simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
+        `N {A} A` by metis_tac[N_ax] >>
+        simp[UNION_COMM] >>
+        irule N_lw_SUBSET >>
+        conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
+        metis_tac[SUBSET_UNION])
+    >- (`?b. Γ = BAG_INSERT Bot b` by metis_tac[BAG_DECOMPOSE] >>
+        fs[] >> 
+        simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
+        `N {Bot} Bot` by metis_tac[N_ax] >>
+        `N {Bot} A` by metis_tac[N_bot] >>
+        irule N_lw_SUBSET >>
+        conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
+        metis_tac[SUBSET_UNION])
+    >- fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]
     >- (rename [`N _ C`] >>
+        fs[SET_OF_BAG_INSERT] >>
         `N {A And B} (A And B)` by metis_tac[N_ax] >>
         `N {A And B} A` by metis_tac[N_andel] >>
-        `N (Γ' DELETE A) (A Imp C)`
+        `N ((A INSERT (SET_OF_BAG Γ)) DELETE A) (A Imp C)`
           by metis_tac[N_impi_DELETE] >>
-        `N ((Γ' DELETE A) ∪ {A And B}) C` by metis_tac[N_impe] >>
-        `N ((A And B) INSERT (Γ' DELETE A)) C`
+        fs[DELETE_DEF] >>
+        `N (((SET_OF_BAG Γ) DIFF {A}) ∪ {A And B}) C` by metis_tac[N_impe] >>
+        `N ((A And B) INSERT ((SET_OF_BAG Γ) DIFF {A})) C`
                   by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
-        qexists_tac `(A And B) INSERT Γ' DELETE A` >>
-        fs[SET_OF_BAG_INSERT] >>
-        fs[SUBSET_DEF] >>
-        metis_tac[])
+        irule N_lw_SUBSET >>
+        conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+        qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {A}` >>
+        rw[SUBSET_DEF])
     >- (rename [`N _ C`] >>
         `N {A And B} (A And B)` by metis_tac[N_ax] >>
         `N {A And B} B` by metis_tac[N_ander] >>
+        qabbrev_tac `Γ'= SET_OF_BAG (BAG_INSERT B Γ)` >>
         `N (B INSERT Γ') C` by metis_tac[N_lw] >>
         `N (Γ' DELETE B) (B Imp C)`
           by (Cases_on `B ∈ Γ'`
@@ -516,30 +532,29 @@ Proof
         `N ((Γ' DELETE B) ∪ {A And B}) C` by metis_tac[N_impe] >>
         `N ((A And B) INSERT (Γ' DELETE B)) C`
           by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
-        qexists_tac `(A And B) INSERT Γ' DELETE B` >>
-        fs[SET_OF_BAG_INSERT] >>
-        fs[SUBSET_DEF] >>
-        metis_tac[])
-    >- (qexists_tac `Γ' ∪ Γ''` >> simp[] >>
-        metis_tac[N_andi])
+        fs[Abbr`Γ'`,SET_OF_BAG_INSERT] >>
+        irule N_lw_SUBSET >>
+        conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+        fs[DELETE_DEF] >>
+        qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {B}` >>
+        rw[SUBSET_DEF])
+    >- (rename [`N _ (A And B)`] >> metis_tac[N_andi,UNION_IDEMPOT])
     >- (rename [`N _ C`] >>
         qabbrev_tac `Δ = (A Or B) INSERT (SET_OF_BAG Γ)` >>
+        qabbrev_tac `Γ' = A INSERT (SET_OF_BAG Γ)` >>
+        qabbrev_tac `Γ'' = B INSERT (SET_OF_BAG Γ)` >>
         fs[SET_OF_BAG_INSERT] >>
         `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >>
         `N (A INSERT Δ) C`
           by (irule N_lw_SUBSET >>
               simp[Abbr`Δ`] >>
               qexists_tac `Γ'` >>
-              simp[] >>
-              metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
+              simp[Abbr`Γ'`,SUBSET_INSERT_RIGHT]) >>
         `N (B INSERT Δ) C`
           by (irule N_lw_SUBSET >>
               simp[Abbr`Δ`] >>
               qexists_tac `Γ''` >>
-              simp[] >>
-              metis_tac[INSERT_COMM,SUBSET_INSERT_RIGHT]) >>
-        qexists_tac `Δ` >>
-        simp[] >>
+              simp[Abbr`Γ''`,SUBSET_INSERT_RIGHT]) >>
         `N {(A Or B)} (A Or B)` by metis_tac[N_ax] >>
         `FINITE ({A Or B} ∪ (SET_OF_BAG Γ))`
           by (`FINITE (SET_OF_BAG Γ)`
@@ -548,58 +563,58 @@ Proof
         `N ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)`
           by metis_tac[SUBSET_UNION,N_lw_SUBSET] >>
         `N Δ (A Or B)`
-          by (simp[Abbr`Δ`] >>metis_tac[INSERT_SING_UNION]) >>
+          by (simp[Abbr`Δ`,Abbr`Γ'`,Abbr`Γ''`] >>
+              irule N_lw_SUBSET >>
+              rw[] >>
+              qexists_tac `{A Or B}` >>
+              simp[]) >>
         `N (Δ ∪ Δ ∪ Δ) C` by metis_tac[N_ore] >>
         metis_tac[UNION_IDEMPOT])
-    >- (qexists_tac `Γ'` >> simp[N_orir])
-    >- (qexists_tac `Γ'` >> simp[N_oril])
     >- (rename [`N _ C`] >>
         fs[SET_OF_BAG_INSERT] >>
         `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >>
         `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >>
         `N {A Imp B} (A Imp B)` by metis_tac[N_ax] >>
-        `N (SET_OF_BAG Γ) A` by metis_tac[N_lw_SUBSET] >>
-        `N ({A Imp B} ∪ (SET_OF_BAG Γ)) B` by metis_tac[N_impe] >>
         `N ((A Imp B) INSERT (SET_OF_BAG Γ)) B`
-          by metis_tac[INSERT_SING_UNION] >>
-        qexists_tac `(A Imp B) INSERT SET_OF_BAG Γ` >>
-        simp[SUBSET_INSERT_RIGHT] >>
+          by metis_tac[INSERT_SING_UNION,N_impe] >>
+        irule N_lw_SUBSET >>
+        rw[] >>
+        (* simp[SUBSET_INSERT_RIGHT] >> *)
         `N (B INSERT (SET_OF_BAG Γ)) C`
           by metis_tac[N_lw_SUBSET,FINITE_INSERT] >>
         `N (SET_OF_BAG Γ) (B Imp C)` by metis_tac[N_impi] >>
         `N ((SET_OF_BAG Γ) ∪ ((A Imp B) INSERT SET_OF_BAG Γ)) C`
           by metis_tac[N_impe] >>
-        metis_tac[UNION_COMM,UNION_ASSOC,UNION_IDEMPOT,INSERT_SING_UNION])
-    >- (rename [`N Δ C`,`N _ (A Imp C)`] >>
+        `N ((A Imp B) INSERT SET_OF_BAG Γ) C`
+          by metis_tac[UNION_COMM,UNION_ASSOC,UNION_IDEMPOT,INSERT_SING_UNION]>>
+        qexists_tac `(A Imp B) INSERT (SET_OF_BAG Γ)` >>
+        rw[] >>
+        fs[SUBSET_INSERT_RIGHT])
+    >- (rename [`N _ (A Imp C)`] >>
         fs[SET_OF_BAG_INSERT] >>
-        `FINITE (A INSERT (SET_OF_BAG Γ))`
-          by (simp[] >> metis_tac[G_FINITE,FINITE_BAG_THM]) >>
-        `N (A INSERT (SET_OF_BAG Γ)) C` by metis_tac[N_lw_SUBSET] >>
-        `N (SET_OF_BAG Γ) (A Imp C)` by metis_tac[N_impi] >>
-        metis_tac[SUBSET_REFL])
-    >- (rename [`G Γ A`,`G (BAG_INSERT A Γ2) B`,`N Δ1 A`,`N Δ2 B`] >>
-        `N (A INSERT Δ2) B` by metis_tac[N_lw] >>
-        `N (Δ2 DELETE A) (A Imp B)` by metis_tac[N_impi_DELETE] >>
-        `N ((Δ2 DELETE A) ∪ Δ1) B` by metis_tac[N_impe] >>
-        qexists_tac `((Δ2 DELETE A) ∪ Δ1)` >>
-        rw[]
-          >- (irule SUBSET_TRANS >>
-              qexists_tac `(SET_OF_BAG Γ2)` >>
-              fs[SET_OF_BAG_INSERT,SET_OF_BAG_UNION] >>
-              fs[SUBSET_DEF] >>
-              metis_tac[])
-          >- (fs[SET_OF_BAG_UNION] >>
-              metis_tac[SUBSET_DEF,IN_UNION]))
+        metis_tac[N_impi])
+    >- (rename [`G (BAG_INSERT A Δ) B`] >>
+        fs[SET_OF_BAG_INSERT] >>
+        `N ((A INSERT SET_OF_BAG Δ) DELETE A) (A Imp B)`
+          by metis_tac[N_impi_DELETE] >>
+        fs[DELETE_DEF] >>
+        `N ((SET_OF_BAG Δ DIFF {A}) ∪ (SET_OF_BAG Γ)) B` by metis_tac[N_impe] >>
+        irule N_lw_SUBSET >>
+        reverse(rw[])
+          >- (qexists_tac `SET_OF_BAG Δ DIFF {A} ∪ SET_OF_BAG Γ` >>
+              rw[]
+              >- (irule SUBSET_TRANS >>
+                  qexists_tac `(SET_OF_BAG Δ)` >>
+                  fs[SET_OF_BAG_INSERT,SET_OF_BAG_UNION])
+              >- fs[SET_OF_BAG_UNION])
+          >> metis_tac[G_FINITE,FINITE_BAG_THM])
 QED
 
 Theorem G_iff_N:
 ∀Γ A. G Γ A <=> N (SET_OF_BAG Γ) A
 Proof
-  rw[] >>
-  EQ_TAC
-    >- (rw[] >>
-      `?D. D ⊆ (SET_OF_BAG Γ) ∧ N D A` by metis_tac[G_N] >>
-      metis_tac[N_lw_SUBSET,G_FINITE,FINITE_SET_OF_BAG]) >>
+  rw[G_N] >>
+  EQ_TAC >- rw[G_N] >>
   rw[] >>
   `G (unibag Γ) A` by metis_tac[N_G] >>
   metis_tac[G_unibag]
