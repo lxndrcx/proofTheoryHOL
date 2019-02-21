@@ -390,25 +390,25 @@ Proof
 QED
 
 Theorem N_G:
-  ∀Γ A. N Γ A ==> G (BAG_OF_SET Γ) A
+  ∀D A. N D A ==> G (BAG_OF_SET D) A
 Proof
  Induct_on `N` >>
  rw[G_rules]
  (* >- (irule G_ax >> simp[] >> *)
  (*     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF]) *)
  >- (irule G_rand >> conj_tac
-     >- (`G (BAG_OF_SET (Γ' ∪ Γ)) A` suffices_by metis_tac[UNION_COMM] >>
+     >- (`G (BAG_OF_SET (D' ∪ D)) A` suffices_by metis_tac[UNION_COMM] >>
          simp[BAG_OF_SET_UNION] >>
          metis_tac[G_lw_BAG_MERGE,G_FINITE])
      >- (simp[BAG_OF_SET_UNION] >>
              metis_tac[G_lw_BAG_MERGE,G_FINITE]))
  >- (`G {|A|} A` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
      `G {|A And B|} A` by metis_tac[G_landl] >>
-     `G ((BAG_OF_SET Γ) + {||}) A` by metis_tac[G_cut] >>
+     `G ((BAG_OF_SET D) + {||}) A` by metis_tac[G_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (`G {|A'|} A'` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
      `G {|A And A'|} A'` by metis_tac[G_landr] >>
-     `G ((BAG_OF_SET Γ) + {||}) A'` by metis_tac[G_cut] >>
+     `G ((BAG_OF_SET D) + {||}) A'` by metis_tac[G_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (irule G_rimp >>
      fs[BAG_OF_SET_INSERT] >>
@@ -416,21 +416,21 @@ Proof
      simp[] >>
      drule G_FINITE >>
      rw[] >>
-     qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET Γ)` >>
+     qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D)` >>
      simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
  >- (simp[BAG_OF_SET_UNION] >>
-    `FINITE_BAG (BAG_OF_SET Γ')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
-    `G (BAG_INSERT A' (BAG_OF_SET Γ')) A'`
+    `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
+    `G (BAG_INSERT A' (BAG_OF_SET D')) A'`
       by simp[G_ax,BAG_IN_BAG_INSERT] >>
-    `G (BAG_INSERT (A Imp A') (BAG_OF_SET Γ')) A'`
+    `G (BAG_INSERT (A Imp A') (BAG_OF_SET D')) A'`
       by metis_tac[G_limp] >>
-    `G ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET Γ')) A'`
+    `G ((BAG_OF_SET D) ⊎ (BAG_OF_SET D')) A'`
       by metis_tac[G_cut] >>
-    `G (unibag (BAG_OF_SET Γ ⊎ BAG_OF_SET Γ')) A'` by metis_tac[G_unibag] >>
+    `G (unibag (BAG_OF_SET D ⊎ BAG_OF_SET D')) A'` by metis_tac[G_unibag] >>
     fs[unibag_UNION])
  >- (rename [`N (_ INSERT _) C`] >>
      fs[BAG_OF_SET_UNION,BAG_OF_SET_INSERT] >>
-     qabbrev_tac `Δ = ((BAG_OF_SET Γ) ⊎ (BAG_OF_SET D1) ⊎ (BAG_OF_SET D2))` >>
+     qabbrev_tac `Δ = ((BAG_OF_SET D) ⊎ (BAG_OF_SET D1) ⊎ (BAG_OF_SET D2))` >>
      `FINITE_BAG (BAG_INSERT A Δ)`
        by (simp[Abbr`Δ`,FINITE_BAG_THM] >>
            metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >>
@@ -469,10 +469,10 @@ Proof
             conj_tac >- metis_tac[FINITE_INSERT,N_FINITE,FINITE_BAG_OF_SET] >>
             metis_tac[]) >>
       `G (BAG_INSERT (A Or B) Δ) C` by metis_tac[G_lor] >>
-      `G ((BAG_OF_SET Γ) ⊎ Δ) C` by metis_tac[G_cut] >>
-      `G (unibag (BAG_OF_SET Γ ⊎ Δ)) C` by metis_tac[G_unibag] >>
-      `(unibag (BAG_OF_SET Γ ⊎ Δ))
-        = BAG_MERGE (BAG_MERGE (BAG_OF_SET Γ) (BAG_OF_SET D1)) (BAG_OF_SET D2)`
+      `G ((BAG_OF_SET D) ⊎ Δ) C` by metis_tac[G_cut] >>
+      `G (unibag (BAG_OF_SET D ⊎ Δ)) C` by metis_tac[G_unibag] >>
+      `(unibag (BAG_OF_SET D ⊎ Δ))
+        = BAG_MERGE (BAG_MERGE (BAG_OF_SET D) (BAG_OF_SET D1)) (BAG_OF_SET D2)`
          suffices_by metis_tac[] >>
       rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM])
  >- (`G {|Bot|} A` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
