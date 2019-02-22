@@ -579,7 +579,6 @@ Proof
           by metis_tac[INSERT_SING_UNION,N_impe] >>
         irule N_lw_SUBSET >>
         rw[] >>
-        (* simp[SUBSET_INSERT_RIGHT] >> *)
         `N (B INSERT (SET_OF_BAG Γ)) C`
           by metis_tac[N_lw_SUBSET,FINITE_INSERT] >>
         `N (SET_OF_BAG Γ) (B Imp C)` by metis_tac[N_impi] >>
@@ -620,10 +619,5 @@ Proof
   metis_tac[G_unibag]
 QED
 
-val _ = set_fixity "G" (Infix (NONASSOC, 320));
-val _ = set_fixity "N" (Infix (NONASSOC, 320));
-val _ = set_fixity "Nd" (Infix (NONASSOC, 320));
-val _ = set_fixity "BAG_MERGE" (Infix (NONASSOC, 330));
-(* val _ = set_fixity "BAG_INSERT" (Infixl 330); *)
 
 val _ = export_theory()
