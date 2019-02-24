@@ -1,4 +1,5 @@
 Gamma 1 \ensuremath{\Upgamma}
+Delta 1 \ensuremath{\Updelta}
 phi 1 \ensuremath{\varphi}
 BAG_OF_SET 3 \HOLConst{bag}
 SET_OF_BAG 3 \HOLConst{set}

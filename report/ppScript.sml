@@ -21,6 +21,10 @@ val nobemp = REWRITE_RULE[EL_BAG,BAG_UNION_EMPTY,makecons];
 val N_rules' =
   save_thm("N_rules'",N_rules|>noins|>noemp);
 
+val Nc_rules = save_thm("Nc_rules", ClassicalProofTheory.N_rules |> noins |> noemp);
+val Gc_rules = save_thm("Gc_rules", ClassicalProofTheory.G_rules |> nobins |>
+nobemp);
+
 val Nd_rules' = save_thm("Nd_rules'",Nd_rules|>REWRITE_RULE[DELETE_DEF]);
 
 val G_rules' =

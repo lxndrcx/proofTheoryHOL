@@ -530,250 +530,249 @@ Proof
       metis_tac[BAG_IN_BAG_INSERT])
 QED
 
-Theorem N_G:
-  ∀D A. N D A ==> G (BAG_OF_SET D) {|A|}
-Proof
- Induct_on `N` >>
- rw[G_rules]
- (* >- (irule G_ax >> simp[] >> *)
- (*     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF]) *)
- >- (irule G_rand >> conj_tac
-     >- (`G (BAG_OF_SET (D' ∪ D)) {|A|}` suffices_by metis_tac[UNION_COMM] >>
-         simp[BAG_OF_SET_UNION] >>
-         metis_tac[G_lw_BAG_MERGE,G_FINITE])
-     >- (simp[BAG_OF_SET_UNION] >>
-             metis_tac[G_lw_BAG_MERGE,G_FINITE]))
- >- (`G {|A|} {|A|}` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
-     `G {|A And B|} {|A|}` by metis_tac[G_landl] >>
-     metis_tac[G_cut,BAG_UNION_EMPTY])
- >- (`G {|A'|} {|A'|}` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
-     `G {|A And A'|} {|A'|}` by metis_tac[G_landr] >>
-     metis_tac[G_cut,BAG_UNION_EMPTY])
- >- (irule G_rimp >>
-     fs[BAG_OF_SET_INSERT] >>
-     irule G_lw >>
-     simp[] >>
-     drule G_FINITE >>
-     rw[] >>
-     qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D)` >>
-     simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
- >- (simp[BAG_OF_SET_UNION] >>
-    `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
-    `G (BAG_INSERT A' (BAG_OF_SET D')) {|A'|}`
-      by simp[G_ax,BAG_IN_BAG_INSERT] >>
-    `G (BAG_INSERT (A Imp A') (BAG_OF_SET D')) {|A'|}`
-      by (irule G_limp >>
-          conj_tac >- (irule G_rw >>
-                       rw[FINITE_BAG_THM] >>
-                       qexists_tac `{|A|}` >>
-                       rw[FINITE_BAG_THM]) >>
-          simp[]) >>
-    `G ((BAG_OF_SET D) ⊎ (BAG_OF_SET D')) {|A'|}`
-      by metis_tac[G_cut,BAG_UNION_EMPTY] >>
-    `G (unibag (BAG_OF_SET D ⊎ BAG_OF_SET D')) {|A'|}` by metis_tac[G_unibag] >>
-    fs[unibag_UNION])
- >- (rename [`N (_ INSERT _) C`] >>
-     fs[BAG_OF_SET_UNION,BAG_OF_SET_INSERT] >>
-     qabbrev_tac `Δ = ((BAG_OF_SET D) ⊎ (BAG_OF_SET D1) ⊎ (BAG_OF_SET D2))` >>
-     `FINITE_BAG (BAG_INSERT A Δ)`
-       by (simp[Abbr`Δ`,FINITE_BAG_THM] >>
-           metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >>
-      `G (BAG_INSERT A Δ) {|C|}`
-        by (`G (BAG_MERGE {|A|} Δ) {|C|}`
-              suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,G_lw] >>
-            simp[Abbr`Δ`] >>
-            irule G_lw >>
-            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_THM] >>
-            qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D1)` >>
-            simp[] >>
-            fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG,
-               BAG_OF_SET,BAG_UNION,SUB_BAG,BAG_INN,IN_DEF] >>
-            rw[] >>
-            fs[]) >>
-      `FINITE_BAG (BAG_INSERT B Δ)`
-      by (simp[Abbr`Δ`,FINITE_BAG_THM] >>
-              metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >>
-      `G (BAG_INSERT B Δ) {|C|}`
-        by (`G (BAG_MERGE {|B|} Δ) {|C|}`
-              suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,G_lw] >>
-            simp[Abbr`Δ`] >>
-            irule G_lw >>
-            conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_THM] >>
-            qexists_tac `BAG_MERGE {|B|} (BAG_OF_SET D2)` >>
-            simp[] >>
-            fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG,
-               BAG_OF_SET,BAG_UNION,SUB_BAG,BAG_INN,IN_DEF] >>
-            rw[] >>
-            fs[]) >>
-      `G Δ (A Or B)`
-        by (simp[Abbr`Δ`] >>
-            irule G_lw_BAG_UNION >>
-            conj_tac >- metis_tac[FINITE_INSERT,N_FINITE,FINITE_BAG_OF_SET] >>
-            irule G_lw_BAG_UNION >>
-            conj_tac >- metis_tac[FINITE_INSERT,N_FINITE,FINITE_BAG_OF_SET] >>
-            metis_tac[]) >>
-      `G (BAG_INSERT (A Or B) Δ) {|C|}` by metis_tac[G_lor] >>
-      `G ((BAG_OF_SET D) ⊎ Δ) {|C|}` by metis_tac[G_cut,BAG_UNION_EMPTY] >>
-      `G (unibag (BAG_OF_SET D ⊎ Δ)) {|C|}` by metis_tac[G_unibag] >>
-      `(unibag (BAG_OF_SET D ⊎ Δ))
-        = BAG_MERGE (BAG_MERGE (BAG_OF_SET D) (BAG_OF_SET D1)) (BAG_OF_SET D2)`
-         suffices_by metis_tac[] >>
-      rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM])
- >- (`G {|Bot|} {|A|}` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
-     fs[BAG_OF_SET_INSERT] >>
-     `G (BAG_INSERT (Not A) (BAG_OF_SET D)) {|Bot|}` 
-       by (irule G_lw >>
-           drule N_FINITE >>
-           rw[] >>
-           metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT]) >>
-     `G (BAG_OF_SET D) {|A;Bot|}` by metis_tac[G_stab_lnot] >>
-     `G (BAG_INSERT (Not Bot) (BAG_OF_SET D)) {|A|}` 
-       by metis_tac[G_stab_lnot,BAG_INSERT_commutes] >>
-     fs[Not_def] >>
-     `
-     rw[]
-     metis_tac[G_cut,BAG_UNION_EMPTY])
-QED
+(* mostly proved *)
+(* Theorem N_G: *)
+(*   ∀D A. N D A ==> G (BAG_OF_SET D) {|A|} *)
+(* Proof *)
+(*  Induct_on `N` >> *)
+(*  rw[G_rules] *)
+(*  (* >- (irule G_ax >> simp[] >> *) *)
+(*  (*     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF]) *) *)
+(*  >- (irule G_rand >> conj_tac *)
+(*      >- (`G (BAG_OF_SET (D' ∪ D)) {|A|}` suffices_by metis_tac[UNION_COMM] >> *)
+(*          simp[BAG_OF_SET_UNION] >> *)
+(*          metis_tac[G_lw_BAG_MERGE,G_FINITE]) *)
+(*      >- (simp[BAG_OF_SET_UNION] >> *)
+(*              metis_tac[G_lw_BAG_MERGE,G_FINITE])) *)
+(*  >- (`G {|A|} {|A|}` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >> *)
+(*      `G {|A And B|} {|A|}` by metis_tac[G_landl] >> *)
+(*      metis_tac[G_cut,BAG_UNION_EMPTY]) *)
+(*  >- (`G {|A'|} {|A'|}` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >> *)
+(*      `G {|A And A'|} {|A'|}` by metis_tac[G_landr] >> *)
+(*      metis_tac[G_cut,BAG_UNION_EMPTY]) *)
+(*  >- (irule G_rimp >> *)
+(*      fs[BAG_OF_SET_INSERT] >> *)
+(*      irule G_lw >> *)
+(*      simp[] >> *)
+(*      drule G_FINITE >> *)
+(*      rw[] >> *)
+(*      qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D)` >> *)
+(*      simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT]) *)
+(*  >- (simp[BAG_OF_SET_UNION] >> *)
+(*     `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >> *)
+(*     `G (BAG_INSERT A' (BAG_OF_SET D')) {|A'|}` *)
+(*       by simp[G_ax,BAG_IN_BAG_INSERT] >> *)
+(*     `G (BAG_INSERT (A Imp A') (BAG_OF_SET D')) {|A'|}` *)
+(*       by (irule G_limp >> *)
+(*           conj_tac >- (irule G_rw >> *)
+(*                        rw[FINITE_BAG_THM] >> *)
+(*                        qexists_tac `{|A|}` >> *)
+(*                        rw[FINITE_BAG_THM]) >> *)
+(*           simp[]) >> *)
+(*     `G ((BAG_OF_SET D) ⊎ (BAG_OF_SET D')) {|A'|}` *)
+(*       by metis_tac[G_cut,BAG_UNION_EMPTY] >> *)
+(*     `G (unibag (BAG_OF_SET D ⊎ BAG_OF_SET D')) {|A'|}` by metis_tac[G_unibag] >> *)
+(*     fs[unibag_UNION]) *)
+(*  >- (rename [`N (_ INSERT _) C`] >> *)
+(*      fs[BAG_OF_SET_UNION,BAG_OF_SET_INSERT] >> *)
+(*      qabbrev_tac `Δ = ((BAG_OF_SET D) ⊎ (BAG_OF_SET D1) ⊎ (BAG_OF_SET D2))` >> *)
+(*      `FINITE_BAG (BAG_INSERT A Δ)` *)
+(*        by (simp[Abbr`Δ`,FINITE_BAG_THM] >> *)
+(*            metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >> *)
+(*       `G (BAG_INSERT A Δ) {|C|}` *)
+(*         by (`G (BAG_MERGE {|A|} Δ) {|C|}` *)
+(*               suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,G_lw] >> *)
+(*             simp[Abbr`Δ`] >> *)
+(*             irule G_lw >> *)
+(*             conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_THM] >> *)
+(*             qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D1)` >> *)
+(*             simp[] >> *)
+(*             fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG, *)
+(*                BAG_OF_SET,BAG_UNION,SUB_BAG,BAG_INN,IN_DEF] >> *)
+(*             rw[] >> *)
+(*             fs[]) >> *)
+(*       `FINITE_BAG (BAG_INSERT B Δ)` *)
+(*       by (simp[Abbr`Δ`,FINITE_BAG_THM] >> *)
+(*               metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >> *)
+(*       `G (BAG_INSERT B Δ) {|C|}` *)
+(*         by (`G (BAG_MERGE {|B|} Δ) {|C|}` *)
+(*               suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,G_lw] >> *)
+(*             simp[Abbr`Δ`] >> *)
+(*             irule G_lw >> *)
+(*             conj_tac >- fs[FINITE_BAG_MERGE,FINITE_BAG_THM] >> *)
+(*             qexists_tac `BAG_MERGE {|B|} (BAG_OF_SET D2)` >> *)
+(*             simp[] >> *)
+(*             fs[BAG_MERGE,BAG_INSERT,EMPTY_BAG, *)
+(*                BAG_OF_SET,BAG_UNION,SUB_BAG,BAG_INN,IN_DEF] >> *)
+(*             rw[] >> *)
+(*             fs[]) >> *)
+(*       `G (BAG_INSERT (A Or B) Δ) {|C|}` by metis_tac[G_lor] >> *)
+(*       `G ((BAG_OF_SET D) ⊎ Δ) {|C|}` by metis_tac[G_cut,BAG_UNION_EMPTY] >> *)
+(*       `G (unibag (BAG_OF_SET D ⊎ Δ)) {|C|}` by metis_tac[G_unibag] >> *)
+(*       `(unibag (BAG_OF_SET D ⊎ Δ)) *)
+(*         = BAG_MERGE (BAG_MERGE (BAG_OF_SET D) (BAG_OF_SET D1)) (BAG_OF_SET D2)` *)
+(*          suffices_by metis_tac[] >> *)
+(*       rw[Abbr`Δ`,unibag_UNION,BAG_MERGE,FUN_EQ_THM]) *)
+(*  >- (`G (BAG_INSERT (Not A) (BAG_OF_SET D)) {||}`  *)
+(*        suffices_by metis_tac[G_stab_lnot] >> *)
+        (* stuck here *)
 
-Theorem G_N:
-  ∀Γ A. G Γ A ==> N (SET_OF_BAG Γ) A
-Proof
-  Induct_on `G` >> rw[N_rules]
-    >- (`?b. Γ = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
-        fs[] >> 
-        simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
-        `N {A} A` by metis_tac[N_ax] >>
-        simp[UNION_COMM] >>
-        irule N_lw_SUBSET >>
-        conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
-        metis_tac[SUBSET_UNION])
-    >- (`?b. Γ = BAG_INSERT Bot b` by metis_tac[BAG_DECOMPOSE] >>
-        fs[] >> 
-        simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
-        `N {Bot} Bot` by metis_tac[N_ax] >>
-        `N {Bot} A` by metis_tac[N_bot] >>
-        irule N_lw_SUBSET >>
-        conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
-        metis_tac[SUBSET_UNION])
-    >- fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]
-    >- (rename [`N _ C`] >>
-        fs[SET_OF_BAG_INSERT] >>
-        `N {A And B} (A And B)` by metis_tac[N_ax] >>
-        `N {A And B} A` by metis_tac[N_andel] >>
-        `N ((A INSERT (SET_OF_BAG Γ)) DELETE A) (A Imp C)`
-          by metis_tac[N_impi_DELETE] >>
-        fs[DELETE_DEF] >>
-        `N (((SET_OF_BAG Γ) DIFF {A}) ∪ {A And B}) C` by metis_tac[N_impe] >>
-        `N ((A And B) INSERT ((SET_OF_BAG Γ) DIFF {A})) C`
-                  by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
-        irule N_lw_SUBSET >>
-        conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
-        qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {A}` >>
-        rw[SUBSET_DEF])
-    >- (rename [`N _ C`] >>
-        `N {A And B} (A And B)` by metis_tac[N_ax] >>
-        `N {A And B} B` by metis_tac[N_ander] >>
-        qabbrev_tac `Γ'= SET_OF_BAG (BAG_INSERT B Γ)` >>
-        `N (B INSERT Γ') C` by metis_tac[N_lw] >>
-        `N (Γ' DELETE B) (B Imp C)`
-          by (Cases_on `B ∈ Γ'`
-              >- (`?Γ0. (Γ' = B INSERT Γ0) /\ B NOTIN Γ0`
-                    by metis_tac[DECOMPOSITION] >>
-                  fs[] >>
-                  `(B INSERT Γ0) DELETE B = Γ0`
-                    by (dsimp[EXTENSION] >>
-                        metis_tac[]) >>
-                  simp[N_impi])
-              >- (simp[DELETE_NON_ELEMENT_RWT,N_impi])) >>
-        `N ((Γ' DELETE B) ∪ {A And B}) C` by metis_tac[N_impe] >>
-        `N ((A And B) INSERT (Γ' DELETE B)) C`
-          by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
-        fs[Abbr`Γ'`,SET_OF_BAG_INSERT] >>
-        irule N_lw_SUBSET >>
-        conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
-        fs[DELETE_DEF] >>
-        qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {B}` >>
-        rw[SUBSET_DEF])
-    >- (rename [`N _ (A And B)`] >> metis_tac[N_andi,UNION_IDEMPOT])
-    >- (rename [`N _ C`] >>
-        qabbrev_tac `Δ = (A Or B) INSERT (SET_OF_BAG Γ)` >>
-        qabbrev_tac `Γ' = A INSERT (SET_OF_BAG Γ)` >>
-        qabbrev_tac `Γ'' = B INSERT (SET_OF_BAG Γ)` >>
-        fs[SET_OF_BAG_INSERT] >>
-        `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >>
-        `N (A INSERT Δ) C`
-          by (irule N_lw_SUBSET >>
-              simp[Abbr`Δ`] >>
-              qexists_tac `Γ'` >>
-              simp[Abbr`Γ'`,SUBSET_INSERT_RIGHT]) >>
-        `N (B INSERT Δ) C`
-          by (irule N_lw_SUBSET >>
-              simp[Abbr`Δ`] >>
-              qexists_tac `Γ''` >>
-              simp[Abbr`Γ''`,SUBSET_INSERT_RIGHT]) >>
-        `N {(A Or B)} (A Or B)` by metis_tac[N_ax] >>
-        `FINITE ({A Or B} ∪ (SET_OF_BAG Γ))`
-          by (`FINITE (SET_OF_BAG Γ)`
-                by metis_tac[FINITE_SET_OF_BAG] >>
-              metis_tac[FINITE_UNION,FINITE_DEF]) >>
-        `N ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)`
-          by metis_tac[SUBSET_UNION,N_lw_SUBSET] >>
-        `N Δ (A Or B)`
-          by (simp[Abbr`Δ`,Abbr`Γ'`,Abbr`Γ''`] >>
-              irule N_lw_SUBSET >>
-              rw[] >>
-              qexists_tac `{A Or B}` >>
-              simp[]) >>
-        `N (Δ ∪ Δ ∪ Δ) C` by metis_tac[N_ore] >>
-        metis_tac[UNION_IDEMPOT])
-    >- (rename [`N _ C`] >>
-        fs[SET_OF_BAG_INSERT] >>
-        `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >>
-        `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >>
-        `N {A Imp B} (A Imp B)` by metis_tac[N_ax] >>
-        `N ((A Imp B) INSERT (SET_OF_BAG Γ)) B`
-          by metis_tac[INSERT_SING_UNION,N_impe] >>
-        irule N_lw_SUBSET >>
-        rw[] >>
-        `N (B INSERT (SET_OF_BAG Γ)) C`
-          by metis_tac[N_lw_SUBSET,FINITE_INSERT] >>
-        `N (SET_OF_BAG Γ) (B Imp C)` by metis_tac[N_impi] >>
-        `N ((SET_OF_BAG Γ) ∪ ((A Imp B) INSERT SET_OF_BAG Γ)) C`
-          by metis_tac[N_impe] >>
-        `N ((A Imp B) INSERT SET_OF_BAG Γ) C`
-          by metis_tac[UNION_COMM,UNION_ASSOC,UNION_IDEMPOT,INSERT_SING_UNION]>>
-        qexists_tac `(A Imp B) INSERT (SET_OF_BAG Γ)` >>
-        rw[] >>
-        fs[SUBSET_INSERT_RIGHT])
-    >- (rename [`N _ (A Imp C)`] >>
-        fs[SET_OF_BAG_INSERT] >>
-        metis_tac[N_impi])
-    >- (rename [`G (BAG_INSERT A Δ) B`] >>
-        fs[SET_OF_BAG_INSERT] >>
-        `N ((A INSERT SET_OF_BAG Δ) DELETE A) (A Imp B)`
-          by metis_tac[N_impi_DELETE] >>
-        fs[DELETE_DEF] >>
-        `N ((SET_OF_BAG Δ DIFF {A}) ∪ (SET_OF_BAG Γ)) B` by metis_tac[N_impe] >>
-        irule N_lw_SUBSET >>
-        reverse(rw[])
-          >- (qexists_tac `SET_OF_BAG Δ DIFF {A} ∪ SET_OF_BAG Γ` >>
-              rw[]
-              >- (irule SUBSET_TRANS >>
-                  qexists_tac `(SET_OF_BAG Δ)` >>
-                  fs[SET_OF_BAG_INSERT,SET_OF_BAG_UNION])
-              >- fs[SET_OF_BAG_UNION])
-          >> metis_tac[G_FINITE,FINITE_BAG_THM])
-QED
+(*      `G {|Bot|} {|A|}` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >> *)
+(*      fs[BAG_OF_SET_INSERT] >> *)
+(*      `G (BAG_INSERT (Not A) (BAG_OF_SET D)) {|Bot|}`  *)
+(*        by (irule G_lw >> *)
+(*            drule N_FINITE >> *)
+(*            rw[] >> *)
+(*            metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT]) >> *)
+(*      `G (BAG_OF_SET D) {|A;Bot|}` by metis_tac[G_stab_lnot] >> *)
+(*      `G (BAG_INSERT (Not Bot) (BAG_OF_SET D)) {|A|}`  *)
+(*        by metis_tac[G_stab_lnot,BAG_INSERT_commutes] >> *)
+(*      fs[Not_def] >> *)
+(*      ` *)
+(*      rw[] *)
+(*      metis_tac[G_cut,BAG_UNION_EMPTY]) *)
+(* QED *)
 
-Theorem G_iff_N:
-∀Γ A. G Γ A <=> N (SET_OF_BAG Γ) A
-Proof
-  rw[G_N] >>
-  EQ_TAC >- rw[G_N] >>
-  rw[] >>
-  `G (unibag Γ) A` by metis_tac[N_G] >>
-  metis_tac[G_unibag]
-QED
+(* Haven't started this !!*)
+(* Theorem G_N: *)
+(*   ∀Γ A. G Γ A ==> N (SET_OF_BAG Γ) A *)
+(* Proof *)
+(*   Induct_on `G` >> rw[N_rules] *)
+(*     >- (`?b. Γ = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >> *)
+(*         fs[] >>  *)
+(*         simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >> *)
+(*         `N {A} A` by metis_tac[N_ax] >> *)
+(*         simp[UNION_COMM] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >> *)
+(*         metis_tac[SUBSET_UNION]) *)
+(*     >- (`?b. Γ = BAG_INSERT Bot b` by metis_tac[BAG_DECOMPOSE] >> *)
+(*         fs[] >>  *)
+(*         simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >> *)
+(*         `N {Bot} Bot` by metis_tac[N_ax] >> *)
+(*         `N {Bot} A` by metis_tac[N_bot] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >> *)
+(*         metis_tac[SUBSET_UNION]) *)
+(*     >- fs[SET_OF_BAG,BAG_UNION,BAG_INSERT] *)
+(*     >- (rename [`N _ C`] >> *)
+(*         fs[SET_OF_BAG_INSERT] >> *)
+(*         `N {A And B} (A And B)` by metis_tac[N_ax] >> *)
+(*         `N {A And B} A` by metis_tac[N_andel] >> *)
+(*         `N ((A INSERT (SET_OF_BAG Γ)) DELETE A) (A Imp C)` *)
+(*           by metis_tac[N_impi_DELETE] >> *)
+(*         fs[DELETE_DEF] >> *)
+(*         `N (((SET_OF_BAG Γ) DIFF {A}) ∪ {A And B}) C` by metis_tac[N_impe] >> *)
+(*         `N ((A And B) INSERT ((SET_OF_BAG Γ) DIFF {A})) C` *)
+(*                   by metis_tac[UNION_COMM,INSERT_SING_UNION] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >> *)
+(*         qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {A}` >> *)
+(*         rw[SUBSET_DEF]) *)
+(*     >- (rename [`N _ C`] >> *)
+(*         `N {A And B} (A And B)` by metis_tac[N_ax] >> *)
+(*         `N {A And B} B` by metis_tac[N_ander] >> *)
+(*         qabbrev_tac `Γ'= SET_OF_BAG (BAG_INSERT B Γ)` >> *)
+(*         `N (B INSERT Γ') C` by metis_tac[N_lw] >> *)
+(*         `N (Γ' DELETE B) (B Imp C)` *)
+(*           by (Cases_on `B ∈ Γ'` *)
+(*               >- (`?Γ0. (Γ' = B INSERT Γ0) /\ B NOTIN Γ0` *)
+(*                     by metis_tac[DECOMPOSITION] >> *)
+(*                   fs[] >> *)
+(*                   `(B INSERT Γ0) DELETE B = Γ0` *)
+(*                     by (dsimp[EXTENSION] >> *)
+(*                         metis_tac[]) >> *)
+(*                   simp[N_impi]) *)
+(*               >- (simp[DELETE_NON_ELEMENT_RWT,N_impi])) >> *)
+(*         `N ((Γ' DELETE B) ∪ {A And B}) C` by metis_tac[N_impe] >> *)
+(*         `N ((A And B) INSERT (Γ' DELETE B)) C` *)
+(*           by metis_tac[UNION_COMM,INSERT_SING_UNION] >> *)
+(*         fs[Abbr`Γ'`,SET_OF_BAG_INSERT] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >> *)
+(*         fs[DELETE_DEF] >> *)
+(*         qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {B}` >> *)
+(*         rw[SUBSET_DEF]) *)
+(*     >- (rename [`N _ (A And B)`] >> metis_tac[N_andi,UNION_IDEMPOT]) *)
+(*     >- (rename [`N _ C`] >> *)
+(*         qabbrev_tac `Δ = (A Or B) INSERT (SET_OF_BAG Γ)` >> *)
+(*         qabbrev_tac `Γ' = A INSERT (SET_OF_BAG Γ)` >> *)
+(*         qabbrev_tac `Γ'' = B INSERT (SET_OF_BAG Γ)` >> *)
+(*         fs[SET_OF_BAG_INSERT] >> *)
+(*         `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >> *)
+(*         `N (A INSERT Δ) C` *)
+(*           by (irule N_lw_SUBSET >> *)
+(*               simp[Abbr`Δ`] >> *)
+(*               qexists_tac `Γ'` >> *)
+(*               simp[Abbr`Γ'`,SUBSET_INSERT_RIGHT]) >> *)
+(*         `N (B INSERT Δ) C` *)
+(*           by (irule N_lw_SUBSET >> *)
+(*               simp[Abbr`Δ`] >> *)
+(*               qexists_tac `Γ''` >> *)
+(*               simp[Abbr`Γ''`,SUBSET_INSERT_RIGHT]) >> *)
+(*         `N {(A Or B)} (A Or B)` by metis_tac[N_ax] >> *)
+(*         `FINITE ({A Or B} ∪ (SET_OF_BAG Γ))` *)
+(*           by (`FINITE (SET_OF_BAG Γ)` *)
+(*                 by metis_tac[FINITE_SET_OF_BAG] >> *)
+(*               metis_tac[FINITE_UNION,FINITE_DEF]) >> *)
+(*         `N ({A Or B} ∪ (SET_OF_BAG Γ)) (A Or B)` *)
+(*           by metis_tac[SUBSET_UNION,N_lw_SUBSET] >> *)
+(*         `N Δ (A Or B)` *)
+(*           by (simp[Abbr`Δ`,Abbr`Γ'`,Abbr`Γ''`] >> *)
+(*               irule N_lw_SUBSET >> *)
+(*               rw[] >> *)
+(*               qexists_tac `{A Or B}` >> *)
+(*               simp[]) >> *)
+(*         `N (Δ ∪ Δ ∪ Δ) C` by metis_tac[N_ore] >> *)
+(*         metis_tac[UNION_IDEMPOT]) *)
+(*     >- (rename [`N _ C`] >> *)
+(*         fs[SET_OF_BAG_INSERT] >> *)
+(*         `FINITE_BAG Γ` by metis_tac[G_FINITE,FINITE_BAG_THM] >> *)
+(*         `FINITE (SET_OF_BAG Γ)` by metis_tac[FINITE_SET_OF_BAG] >> *)
+(*         `N {A Imp B} (A Imp B)` by metis_tac[N_ax] >> *)
+(*         `N ((A Imp B) INSERT (SET_OF_BAG Γ)) B` *)
+(*           by metis_tac[INSERT_SING_UNION,N_impe] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         rw[] >> *)
+(*         `N (B INSERT (SET_OF_BAG Γ)) C` *)
+(*           by metis_tac[N_lw_SUBSET,FINITE_INSERT] >> *)
+(*         `N (SET_OF_BAG Γ) (B Imp C)` by metis_tac[N_impi] >> *)
+(*         `N ((SET_OF_BAG Γ) ∪ ((A Imp B) INSERT SET_OF_BAG Γ)) C` *)
+(*           by metis_tac[N_impe] >> *)
+(*         `N ((A Imp B) INSERT SET_OF_BAG Γ) C` *)
+(*           by metis_tac[UNION_COMM,UNION_ASSOC,UNION_IDEMPOT,INSERT_SING_UNION]>> *)
+(*         qexists_tac `(A Imp B) INSERT (SET_OF_BAG Γ)` >> *)
+(*         rw[] >> *)
+(*         fs[SUBSET_INSERT_RIGHT]) *)
+(*     >- (rename [`N _ (A Imp C)`] >> *)
+(*         fs[SET_OF_BAG_INSERT] >> *)
+(*         metis_tac[N_impi]) *)
+(*     >- (rename [`G (BAG_INSERT A Δ) B`] >> *)
+(*         fs[SET_OF_BAG_INSERT] >> *)
+(*         `N ((A INSERT SET_OF_BAG Δ) DELETE A) (A Imp B)` *)
+(*           by metis_tac[N_impi_DELETE] >> *)
+(*         fs[DELETE_DEF] >> *)
+(*         `N ((SET_OF_BAG Δ DIFF {A}) ∪ (SET_OF_BAG Γ)) B` by metis_tac[N_impe] >> *)
+(*         irule N_lw_SUBSET >> *)
+(*         reverse(rw[]) *)
+(*           >- (qexists_tac `SET_OF_BAG Δ DIFF {A} ∪ SET_OF_BAG Γ` >> *)
+(*               rw[] *)
+(*               >- (irule SUBSET_TRANS >> *)
+(*                   qexists_tac `(SET_OF_BAG Δ)` >> *)
+(*                   fs[SET_OF_BAG_INSERT,SET_OF_BAG_UNION]) *)
+(*               >- fs[SET_OF_BAG_UNION]) *)
+(*           >> metis_tac[G_FINITE,FINITE_BAG_THM]) *)
+(* QED *)
+
+(* Theorem G_iff_N: *)
+(* ∀Γ A. G Γ A <=> N (SET_OF_BAG Γ) A *)
+(* Proof *)
+(*   rw[G_N] >> *)
+(*   EQ_TAC >- rw[G_N] >> *)
+(*   rw[] >> *)
+(*   `G (unibag Γ) A` by metis_tac[N_G] >> *)
+(*   metis_tac[G_unibag] *)
+(* QED *)
 
 
 val _ = export_theory()

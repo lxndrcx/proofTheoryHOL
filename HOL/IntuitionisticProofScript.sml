@@ -394,8 +394,6 @@ Theorem N_G:
 Proof
  Induct_on `N` >>
  rw[G_rules]
- (* >- (irule G_ax >> simp[] >> *)
- (*     metis_tac[FINITE_BAG_OF_SET,FINITE_DEF]) *)
  >- (irule G_rand >> conj_tac
      >- (`G (BAG_OF_SET (D' ∪ D)) A` suffices_by metis_tac[UNION_COMM] >>
          simp[BAG_OF_SET_UNION] >>
