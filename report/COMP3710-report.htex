@@ -11,7 +11,6 @@
 \addbibresource{report.bib}
 
 \usepackage{mathtools}
-% \usepackage{fdsymbol}
 \usepackage{amsthm}
 \usepackage{thmtools, thm-restate}
 \usepackage{
@@ -25,20 +24,8 @@ cleveref,% \cref
 \usepackage{proof}
 \usepackage{alltt}
 \usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
-% \setlength\parindent{0pt}
-% \newcommand{\textbf{N}}{\textbf{N}}
-% \newcommand{\textbf{G}}{\textbf{G}}
 
-% \newtheorem{thm}{Theorem}[subsection]
-% \newtheorem{lem}[thm]{Lemma}
-% \newtheorem{corl}[thm]{Corollary}
-% \theoremstyle{definition}
-% \newtheorem{defn}[thm]{Definition}
-% \theoremstyle{remark}
-% \newtheorem{notn}[thm]{Notation}
-% \newtheorem{remk}[thm]{Remark}
 \declaretheorem[numberwithin=subsection,name=Theorem]{thm}
-% \declaretheorem[name=Theorem]{thm}
 \declaretheorem[sibling=thm,name=Lemma]{lem}
 \declaretheorem[sibling=thm,name=Corollary]{corl}
 \declaretheorem[sibling=thm,style=definition,name=Definition]{defn}
@@ -48,11 +35,14 @@ cleveref,% \cref
 \renewcommand{\HOLConst}[1]{\textsf{\upshape#1}}
 \renewcommand{\HOLinline}[1]{\ensuremath{#1}}
 \renewcommand{\HOLKeyword}[1]{\textbf{#1}}
+
+\renewcommand{\HOLTokenLeftbrace}{\ensuremath{\{}}
+\renewcommand{\HOLTokenRightbrace}{\ensuremath{\}}}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-  % TODO abstract
+  I describe the mechanisation of the equivalence of two proof calculi, natural deduction and sequent calculus, for intuitionistic propositional logic using the HOL4 interactive theorem prover. The equivalence of these calculi shows that given the same hypotheses, the same conclusion can be deduced by both calculi. This result is achieved by rule induction on the inference rules of each system. I present the relevant proof theory background and its formalisation in HOL4. 
 \end{abstract}
 
 \section{Introduction}
@@ -198,7 +188,7 @@ I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, ref
   \begin{HOLmath}
     \HOLthm[rule,rulename=$\to$i,conj5]{pp.Nd_rules'}
     \hspace{1.0cm}
-    \HOLthm[rule,rulename=$\veebar$e,conj9]{pp.Nd_rules'}
+    \HOLthm[rule,rulename=$\veebar$e,conj9,width=70]{pp.Nd_rules'}
   \end{HOLmath}
 
 \end{defn}
@@ -337,6 +327,8 @@ I needed unibags in order to reason about contraction of hypotheses in \textbf{G
   \begin{HOLmath} \HOLthm{IntuitionisticProof.G_lw} \end{HOLmath}
 \end{lem}
 
+The following two lemmata form the main part of my formalisation, and are used together to prove the main theorem.
+
 \begin{lem}[From \textbf{N} to \textbf{G}]\label{NG}
   \begin{HOLmath}
     \HOLthm{IntuitionisticProof.N_G}
@@ -370,6 +362,17 @@ Here are the HOL tactics which prove this case:
 \texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a thm is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. BAG\_IN\_BAG\_INSERT proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, FINITE\_BAG proves that the hypothesis is finite and BAG\_UNION\_EMPTY removes the empty bag which \textsf{cut} introduces.
 
 While in the previous construction matches quite closely with the informal proof, for some cases I used tactics which are less similar in appearance.
+
+Consider the construction of the \textsf{$\to$i} case:
+\[
+  \AxiomC{}
+  \RightLabel{(IH)}
+  \UnaryInfC{\HOLtm{(BAG_OF_SET ((A INSERT EMPTY) UNION D)) G B}}
+  \RightLabel{\textsf{R$\to$}}
+  \UnaryInfC{\HOLtm{((BAG_OF_SET D)) G (A Imp B)}}
+  \DisplayProof
+\]
+
 Here are the HOL tactics for the \textsf{$\to$i} case:
 \begin{alltt}
   irule G_rimp >>
@@ -387,25 +390,45 @@ BAG\_OF\_SET\_INSERT is an instance of bag of set union limited to singleton uni
 \texttt{drule} uses an assumption which matches the antecedent of the supplied thm and introduces the conclusion of that thm as an antecedent to the goal, this is like modes ponens.
 \texttt{rw} aggresively rewrites the goal using known rewrite rules, plus any thms provided (none here).
 \texttt{qexists\_tac} supplies a witness to an existential goal.
-\texttt{simp} rewrites the goal using known rewrites and supplied thms. \texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT} says that a bag merge of a singleton and a bag is a sub-bag of a bag union of a singleton and a bag.
+\texttt{simp} rewrites the goal using known rewrites and supplied thms. \texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT} says that a bag merge of a singleton and a bag is a sub-bag of a bag union of a singleton and a bag (so that I can weaken from merge to union).
 
+The following is the case for \textsf{$\to$e}, first in mathematical notation, then in HOL tactics, which this time display a mostly forwards-proof style. Each line with a \texttt{by} derives an assumption from other assumptions and the provided tactics:
+\[
+  \AxiomC{}
+  \RightLabel{IH}
+  \UnaryInfC{$\HOLtm{(BAG_OF_SET D) G (A Imp B)}$}
+  \AxiomC{}
+  \RightLabel{IH}
+  \UnaryInfC{$\HOLtm{(BAG_OF_SET D') G A}$}
+  \AxiomC{}
+  \RightLabel{\textsf{ax}}
+  \UnaryInfC{$\HOLtm{(BAG_INSERT B EMPTY_BAG) G B}$}
+  \RightLabel{L$\to$}
+  \BinaryInfC{$\HOLtm{(BAG_INSERT (A Imp B) EMPTY_BAG) + D' G B}$}
+  \RightLabel{\textsf{cut}}
+  \BinaryInfC{$\HOLtm{(BAG_OF_SET D) + (BAG_OF_SET D') G B}$}
+  \RightLabel{(complete contraction)}
+  \UnaryInfC{$\HOLtm{((BAG_OF_SET D) BAG_MERGE (BAG_OF_SET D')) G B}$}
+  \DisplayProof
+\]
 
 \begin{alltt}
-  simp[BAG_OF_SET_UNION] >>
+  rename[`N D (A Imp B)`] >>
+   simp[BAG_OF_SET_UNION] >>
   `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
-  `G (BAG_INSERT A' (BAG_OF_SET D')) A'`
+  `G (BAG_INSERT B (BAG_OF_SET D')) B`
     by simp[G_ax,BAG_IN_BAG_INSERT] >>
-  `G (BAG_INSERT (A Imp A') (BAG_OF_SET D')) A'`
+  `G (BAG_INSERT (A Imp B) (BAG_OF_SET D')) B`
     by metis_tac[G_limp] >>
-  `G ((BAG_OF_SET D) + (BAG_OF_SET D')) A'`
+  `G ((BAG_OF_SET D) + (BAG_OF_SET D')) B`
     by metis_tac[G_cut] >>
-  `G (unibag (BAG_OF_SET D + BAG_OF_SET D')) A'` by metis_tac[G_unibag] >>
+  `G (unibag (BAG_OF_SET D + BAG_OF_SET D')) B` by metis_tac[G_unibag] >>
   fs[unibag_UNION]
 \end{alltt}
+\texttt{rename} changes the name of variables, in this case I renamed \texttt{A'} to \texttt{B}. The symbol \texttt{+} is ASCII for $\uplus$. The first \texttt{simp} rewrites the goal as a bag merge, and the final \texttt{fs} rewrites the assumption from the previous line as a bag merge, which equals the goal.
 
+I will not go over the remainder of the cases, they are similar in structure to the presented cases.
 \end{proof}
-
-The following two lemmata form the main part of my formalisation, and are used together to prove the main theorem.
 
 \begin{lem}[From \textbf{G} to \textbf{N}]\label{GN}
   \begin{HOLmath}
@@ -414,7 +437,7 @@ The following two lemmata form the main part of my formalisation, and are used t
 \end{lem}
 
 \begin{proof}
-  The proof is by rule induction on \textbf{G}.
+  The proof is by rule induction on \textbf{G}. Two cases are proved by a single rewrite with the rules of \textbf{N}, the two instances of L$\veebar$.
 
 \end{proof}
 The following is the primary theorem of this project:
@@ -490,10 +513,13 @@ This would allow me to define a set of cut-free sequent calculus rules, and then
 This modification to my formalisation would make the other extensions I considered easier to implement, and would also decrease clutter in the HOL code.
 
 \section{Conclusion}
-\subsection{Acknowledgements}
+I have successfully mechanised the equivalence proof between propositional intuitionistic natural deduction and sequent calculus. In doing so I have learnt a lot about theorem proving and have deepened my understanding of proof theory and mathematical logic, thus satisfying the purpose of undertaking this project. While learning to use HOL was a challenge, the tools which HOL has for inductive definitions and rule induction seem well suited to formalisation of proof theory. I now have an appreciation for the significant effort required to formalise mathematics in a theorem prover compared to proving the same mathematics on paper, and have come to enjoy this process nontheless.
 
+\subsection{Acknowledgements}
+I am very grateful to Michael Norrish for supervising my project, AMSI for awarding me a Vacation Research Scholarship for this project and my wife Myvanwy for listening to my logic-fueled rants.
 \printbibliography
 \newpage
+
 \section{Appendix}\label{appendix}
 \subsection{Bag Lemmata}
 This is a list of the theorems I have formalised in HOL.

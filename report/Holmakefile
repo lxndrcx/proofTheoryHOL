@@ -10,7 +10,7 @@ munge.exe: ppTheory.uo ppScript.sml
 	$(HOLDIR)/bin/mkmunge.exe ppTheory
 
 COMP3710-report.tex: COMP3710-report.htex overrides munge.exe
-	./munge.exe -m\; overrides < $< > $@
+	./munge.exe -m\, overrides < $< > $@
 
 COMP3710-report.pdf: COMP3710-report.tex report.bib
 	latexmk -bibtex -pdf -interaction=nonstopmode -g COMP3710-report
