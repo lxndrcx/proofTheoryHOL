@@ -3,7 +3,7 @@
 
 \title{Equivalence of Natural Deduction and Sequent Calculus in HOL4\\
   \normalsize{} COMP3710 Report\\
-  Funded by a AMSI Vacation Research Scholarship}
+  Funded by an AMSI Vacation Research Scholarship}
 \author{Alexander Cox\thanks{Studying a Bachelor of Science at The Australian National University (ANU)}\\
       \small\texttt{u6060697@anu.edu.au}\\
       \normalsize{}Supervised by Dr Michael Norrish\thanks{Data61, CSIRO\@; ANU}}
@@ -34,7 +34,7 @@ cleveref,% \cref
 
 \renewcommand{\HOLConst}[1]{\textsf{\upshape#1}}
 \renewcommand{\HOLinline}[1]{\ensuremath{#1}}
-\renewcommand{\HOLKeyword}[1]{\textbf{#1}}
+\renewcommand{\HOLKeyword}[1]{\mathbf{#1}}
 
 \renewcommand{\HOLTokenLeftbrace}{\ensuremath{\{}}
 \renewcommand{\HOLTokenRightbrace}{\ensuremath{\}}}
@@ -42,11 +42,11 @@ cleveref,% \cref
 \maketitle
 
 \begin{abstract}
-  I describe the mechanisation of the equivalence of two proof calculi, natural deduction and sequent calculus, for intuitionistic propositional logic using the HOL4 interactive theorem prover. The equivalence of these calculi shows that given the same hypotheses, the same conclusion can be deduced by both calculi. This result is achieved by rule induction on the inference rules of each system. I present the relevant proof theory background and its formalisation in HOL4. 
+  I describe the mechanisation of the equivalence of two proof calculi, natural deduction and sequent calculus, for intuitionistic propositional logic using the HOL4 interactive theorem prover. The equivalence of these calculi shows that given the same hypotheses, the same conclusion can be deduced by both calculi. This result is achieved by rule induction on the inference rules of each system. I present the relevant proof theory background and its formalisation in HOL4.
 \end{abstract}
 
 \section{Introduction}
-In this project I have closely followed sections of \textcite{bpt} in it's presentation of Natural Deduction (\textbf{N}) and Sequent Calculus (\textbf{G}). I will note any deviances from this book which I have used.
+In this project I have closely followed sections of \textcite{bpt} in its presentation of Natural Deduction (\textbf{N}) and Sequent Calculus (\textbf{G}). I will note any deviance from this book.
 
 % \subsection{Background}
 \textbf{N} and \textbf{G} are logical calculi introduced by Gentzen in the mid 1930s.
@@ -69,7 +69,7 @@ HOL is implemented with Standard ML, and this is the meta-language and main inte
 
 Proving a theorem in HOL guarantees that your proof is correct and the theorem is sound, under the assumption that HOL is itself sound. All theorems in HOL are generated from the composition of a small set of axioms and basic inference rules, which are considered trusted by the HOL community. HOL can be built using two different Standard ML compilers, which increases confidence that the soundness of HOL is compiler-independent. HOL can also produce a certificate of correctness which can then be checked by another theorem prover, as an additional measure to establish trust in soundness. Saying this, any proof relies on first having a correct specification and formulation of the mathematical content. If I have not formalised my definitions correctly, my proofs don't establish the truth of theorems concerning the correct definitions.
 
-HOL has good support for inductively defined relations~\autocite{cam92}, which I used in this project. HOL automatically proves a strong induction theorem for the defined relations, which can then be used to perform rule induction on the relation~\autocite{cam92}.
+HOL has good support for inductively defined relations~\autocite{cam92}, which I use in this project. HOL automatically proves a strong induction theorem for the defined relations, which can then be used to perform rule induction on the relation~\autocite{cam92}.
 
 \subsection{Related Work}
 The equivalence of Natural Deduction, Sequent Calculus and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
@@ -222,16 +222,50 @@ Weakening can be extended as much as you like:
   \end{HOLmath}
 \end{thm}
 
-\begin{proof}[if]
-  Proof by rule induction on \textbf{N}.
+\begin{proof}
+  \textit{(if)}
+  Proof by rule induction~\autocite[see][6--7]{cam92} on \textbf{N}.
   Automatic rewrites and first-order automated reasoning prove the cases which coincide.
-  The $\to$i and $\veebar$e cases are proved by using the corresponding inference rule, using \textbf{Nd} weakening, and appealing to the fact that \HOLtm{((A INSERT EMPTY) UNION D) DIFF (A INSERT EMPTY) = D}.
-\end{proof}
+  The \textsf{$\to$i} and \textsf{$\veebar$e} cases are proved by using the corresponding inference rule, and using \textbf{Nd} weakening.
 
-\begin{proof}[only if]
+  The \textsf{$\to$i} case illustrates the construction from \textbf{N} to \textbf{Nd}, which is similar for \textsf{$\veebar$e}.
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION D) Nd B}}
+    \RightLabel{\textsf{$\to$i}}
+    \UnaryInfC{\HOLtm{(((A INSERT EMPTY) UNION D) DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(set difference definition)}
+    \UnaryInfC{\HOLtm{(D DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(\textbf{Nd} superset weakening)}
+    \UnaryInfC{\HOLtm{D Nd (A Imp B)}}
+    \DisplayProof
+  \]
+
+  \textit{(only if)}
   Proof by rule induction on \textbf{Nd}.
   Automatic rewrites and first-order automated reasoning prove the cases which coincide.
-  The $\to$i and $\veebar$e cases are proved using \textbf{N} weakening.
+  The \textsf{$\to$i} and \textsf{$\veebar$e} cases are proved using \textbf{N} weakening, then the corresponding inference rule.
+
+  Here is the construction for \textsf{$\veebar$e}, the \textsf{$\to$i} case is similar.
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D N (A Or B)}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D1 N C}}
+    \RightLabel{(\textbf{N} superset wkn)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION (D DIFF (A INSERT EMPTY))) N C}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D2 N C}}
+    \RightLabel{(\textbf{N} superset wkn)}
+    \UnaryInfC{\HOLtm{((B INSERT EMPTY) UNION (D DIFF (B INSERT EMPTY))) N C}}
+    \RightLabel{\textsf{$\veebar$e}}
+    \TrinaryInfC{\HOLtm{(D UNION (D1 DIFF (A INSERT EMPTY)) UNION (D2 DIFF (B INSERT EMPTY))) N C}}
+    \DisplayProof
+  \]
 \end{proof}
 
 \subsection{Sequent Calculus (\textbf{G})}
@@ -288,8 +322,8 @@ I am using \textbf{G2i} in this project, as that is what was used in the book fo
 
 \subsection{Bag lemmata}
 Recall that bags are multisets, defined as a characteristic function returning the number of occurrences of a given element. This definition comes from the provided `bag theory' in HOL, which defines and proves propositions concerning bags. HOL's bag theory was insufficient for my project, so I have extended it with 25 additional results, which have been merged into HOL for others to use if they wish (see \ref{appendix} for list).
-\begin{defn} The function \textsf{bag: set $\mapsto$ bag} converts sets into bags. This should not be confused with the datatype \textsf{bag:}~\HOLty{:'a bag}. \end{defn}
-\begin{defn} The function \textsf{set: bag $\mapsto$ set} converts bags into sets. Again, not to be confused with the datatype \textsf{set:}~\HOLty{:'a set} \end{defn}
+\begin{defn} The function \textsf{bag: set $\mapsto$ bag} converts sets into bags. This should not be confused with the type \textsf{bag:}~\HOLty{:'a bag}. \end{defn}
+\begin{defn} The function \textsf{set: bag $\mapsto$ set} converts bags into sets. Again, not to be confused with the type \textsf{set:}~\HOLty{:'a set} \end{defn}
 \begin{defn} The function \textsf{unibag: bag $\mapsto$ bag} converts bags into sets and then back again.  \end{defn}
 \begin{notn} \HOLtm{b e} is the number of occurrences of the element \HOLtm{e} in the bag \HOLtm{b}.  \end{notn}
 \begin{defn} A bag is distinct if no elements 1 occur more than once. \HOLthm{bag.BAG_ALL_DISTINCT} \end{defn}
@@ -327,6 +361,7 @@ I needed unibags in order to reason about contraction of hypotheses in \textbf{G
   \begin{HOLmath} \HOLthm{IntuitionisticProof.G_lw} \end{HOLmath}
 \end{lem}
 
+\noindent
 The following two lemmata form the main part of my formalisation, and are used together to prove the main theorem.
 
 \begin{lem}[From \textbf{N} to \textbf{G}]\label{NG}
@@ -336,7 +371,7 @@ The following two lemmata form the main part of my formalisation, and are used t
 \end{lem}
 
 \begin{proof}
-  The proof is by rule induction~\autocite[see][6--7]{cam92} on \textbf{N}. Given a instance of an inference rule in \textbf{N}, I must construct a proof in \textbf{G} with the same hypotheses and conclusion.
+  The proof is by rule induction on \textbf{N}. Given a instance of an inference rule in \textbf{N}, I must construct a proof in \textbf{G} with the same hypotheses and conclusion.
 
   Three cases are proven by a single rewrite with the rules of \textbf{G}, those corresponding to \textbf{N} rules: \textsf{ax, $\veebar$il and $\veebar$ir}.
   The introduction rule cases of \textbf{N} generally are translated into the right rules of \textbf{G}. The elimination rules translate to an instance of the corresponding left rule, plus an instance of \textsf{cut}.
@@ -359,7 +394,7 @@ Here are the HOL tactics which prove this case:
   `G \{|Bot|\} A` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
   metis_tac[G_cut,BAG_UNION_EMPTY]
 \end{alltt}
-\texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a thm is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. BAG\_IN\_BAG\_INSERT proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, FINITE\_BAG proves that the hypothesis is finite and BAG\_UNION\_EMPTY removes the empty bag which \textsf{cut} introduces.
+\texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a \texttt{thm} is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. \texttt{BAG\_IN\_BAG\_INSERT} proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, \texttt{FINITE\_BAG} proves that the hypothesis is finite and \texttt{BAG\_UNION\_EMPTY} removes the empty bag which \textsf{cut} introduces.
 
 While in the previous construction matches quite closely with the informal proof, for some cases I used tactics which are less similar in appearance.
 
@@ -384,11 +419,11 @@ Here are the HOL tactics for the \textsf{$\to$i} case:
   qexists_tac `BAG_MERGE \{|A|\} (BAG_OF_SET D)` >>
   simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT]
 \end{alltt}
-These tactics are in a backwards-proof style. \texttt{irule} reduces the goal (conclusion) to the antecedent of the supplied thm.
-BAG\_OF\_SET\_INSERT is an instance of bag of set union limited to singleton union.
+These tactics are in a backwards-proof style. \texttt{irule} reduces the goal (conclusion) to the antecedent of the supplied \texttt{thm}.
+\texttt{BAG\_OF\_SET\_INSERT} is an instance of bag of set union limited to singleton union.
 \texttt{G_lw} is \textbf{G} weakening.
-\texttt{drule} uses an assumption which matches the antecedent of the supplied thm and introduces the conclusion of that thm as an antecedent to the goal, this is like modes ponens.
-\texttt{rw} aggresively rewrites the goal using known rewrite rules, plus any thms provided (none here).
+\texttt{drule} uses an assumption which matches the antecedent of the supplied \texttt{thm} and introduces the conclusion of that thm as an antecedent to the goal, this is like modes ponens.
+\texttt{rw} aggressively rewrites the goal using known rewrite rules, plus any \texttt{thm}s provided (none here).
 \texttt{qexists\_tac} supplies a witness to an existential goal.
 \texttt{simp} rewrites the goal using known rewrites and supplied thms. \texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT} says that a bag merge of a singleton and a bag is a sub-bag of a bag union of a singleton and a bag (so that I can weaken from merge to union).
 
@@ -437,9 +472,88 @@ I will not go over the remainder of the cases, they are similar in structure to 
 \end{lem}
 
 \begin{proof}
-  The proof is by rule induction on \textbf{G}. Two cases are proved by a single rewrite with the rules of \textbf{N}, the two instances of L$\veebar$.
+  The proof is by rule induction on \textbf{G}. \Citeauthor{bpt} say that ``at each step in the proof we show how to construct from a G-deduction of $\Gamma \Rightarrow A$ an N-deduction of $\Gamma' \Rightarrow A$ for some $\Gamma'$ with $\Gamma' \subset \text{Set}(\Gamma)$''~\autocite[69]{bpt}\footnote{They actually write $\text{Set}(\Gamma') \subset \Gamma$, but this is incorrect since $\Gamma$ is the multiset and $\Gamma'$ is the set.}, but I found that you can avoid the need for a subset, by using weakening in the cases which would take a subset in their proof.
+
+  Two cases are proven by a single rewrite with the rules of \textbf{N}, the two instances of L$\veebar$.
+  The contraction (\textsf{cont}) rule is proven with the tactic \texttt{fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]}, which rewrites the goal and assumptions with known rewrites and the supplied \texttt{thm}s. Here the extra formula disappears when converted to a set.
+
+  The way I have formulated the \textsf{ax} and \textsf{L$\bot$} rules means these cases take longer to prove than in the book. In the book they say these rules correspond to proof trees in \textbf{N} with a single node \HOLtm{A} and $\frac{\bot}{A}$ respectively. My tactic to prove the \textsf{ax} rule is as follows:
+  \begin{alltt}
+    `?b. \HOLtm{Gamma} = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
+    fs[] >>
+    simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
+    `N \{A\} A` by metis_tac[N_ax] >>
+    simp[UNION_COMM] >>
+    irule N_lw_SUBSET >>
+    conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
+    metis_tac[SUBSET_UNION]
+  \end{alltt}
+  The \texttt{?} is ASCII for $\exists$. Since I use bag membership in the definition of \textsf{ax}, I must first decompose $\Upgamma$ into an insert. I than replace the occurrences of $\Upgamma$ in the goal and assumptions with the insert expression using \texttt{fs}. The \texttt{simp} rewrites the goal with the singleton set outside the \texttt{SET_OF_BAG} rather than a singleton bag inside. I then use \textsf{ax} to instantiate a proof of \HOLtm{A}. I then weaken this to a proof of the goal, by rewriting the goal (\texttt{simp}) with commutativity, and proving that the goal is a finite superbag of \texttt{\{A\}} with the last two tactics. \texttt{conj\_tac} splits a conjunctive goal into two sub-goals, the first of which is the finiteness of the superbag, which I prove with the relevant finiteness lemmata. The second sub-goal is that \texttt{\{A\}} is a subset of the goal (a union containing \texttt{\{A\}}), and is solved with the \texttt{SUBSET\_UNION} lemma.
+
+  The right rules of \textbf{G} correspond to introduction rules in \textbf{N}.
+
+  Here is the prooftree for the \textsf{R$\to$} case:
+  \[
+    \AxiomC{}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG ((BAG_INSERT A EMPTY_BAG) + Gamma)) N B}}
+    \RightLabel{(bring \HOLtm{A} out)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION (SET_OF_BAG  Gamma)) N B}}
+    \RightLabel{\textsf{$\to$i}}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG Gamma) N (A Imp B)}}
+    \DisplayProof
+  \]
+
+  Here are the tactics which prove the \textsf{R$\to$} case:
+  \begin{alltt}
+    fs[SET_OF_BAG_INSERT] >>
+    metis_tac[N_impi]
+  \end{alltt}
+
+  The left rules require the assumptions be replaced with an elimination rule which derives the assumption.
+  Here is the case for \textsf{L$\veebar$}, which differs from the book due to my weakening use as described earlier:
+  \[
+    \AxiomC{}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG ((BAG_INSERT A EMPTY_BAG) + Gamma)) N C}}
+    \RightLabel{\textsf{$\to$i} (\textbf{Nd} version)}
+    \UnaryInfC{\HOLtm{((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) N (A Imp C)}}
+    \AxiomC{}
+    \RightLabel{\textsf{ax}}
+    \UnaryInfC{\HOLtm{((A And B) INSERT EMPTY) N (A And B)}}
+    \RightLabel{\textsf{$\barwedge$e}}
+    \UnaryInfC{\HOLtm{((A And B) INSERT EMPTY) N A}}
+    \RightLabel{\textsf{$\to$e}}
+    \BinaryInfC{\HOLtm{(((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) UNION ((A And B) INSERT EMPTY)) N C}}
+    \RightLabel{(superset weakening, commutativity)}
+    \UnaryInfC{\HOLtm{(((A And B) INSERT EMPTY) UNION SET_OF_BAG Gamma) N C}}
+    \DisplayProof
+  \]
+
+  Here are the HOL tactics which prove the case, the structure is quite similar to the proof-tree, with some rewrites interspersed, and the last four lines correspond to the last inference of the tree:
+
+  \begin{alltt}
+    rename [`N _ C`] >>
+    fs[SET_OF_BAG_INSERT] >>
+    `N {A And B} (A And B)` by metis_tac[N_ax] >>
+    `N {A And B} A` by metis_tac[N_andel] >>
+    `N ((A INSERT (SET_OF_BAG \HOLtm{Gamma})) DELETE A) (A Imp C)`
+      by metis_tac[N_impi_DELETE] >>
+    fs[DELETE_DEF] >>
+    `N (((SET_OF_BAG \HOLtm{Gamma}) DIFF {A}) UNION {A And B}) C` by metis_tac[N_impe] >>
+    `N ((A And B) INSERT ((SET_OF_BAG \HOLtm{Gamma}) DIFF {A})) C`
+              by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+    irule N_lw_SUBSET >>
+    conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+    qexists_tac `(A And B) INSERT SET_OF_BAG \HOLtm{Gamma} DIFF {A}` >>
+    rw[SUBSET_DEF]
+  \end{alltt}
+
+  I will not show any of the other cases, as they are all fairly similar.
 
 \end{proof}
+
+\noindent
 The following is the primary theorem of this project:
 
 \begin{thm}[Proof of equivalence between \textbf{N} and \textbf{G}]\label{GiffN}
@@ -453,20 +567,26 @@ The following is the primary theorem of this project:
   \textit{(only if)} by \cref{GN}.\\
 
   \noindent
-  \textit{(if)} by \cref{NG} and \cref{Gunibag} (Complete contraction).
+  \textit{(if)} by \cref{NG} and \cref{Gunibag} (Complete contraction).\\
+
+  In HOL:
+  \begin{alltt}
+    rw[G_N] >>
+    EQ_TAC >- rw[G_N] >>
+    rw[] >>
+    `G (unibag Γ) A` by metis_tac[N_G] >>
+    metis_tac[G_unibag]
+  \end{alltt}
 \end{proof}
 
 \section{Discussion of Issues} %(bags)
-% HOL is monstrous to learn, doc s hard to read. Bags are a mess. etc
-%learning tacs is hard because so many, so i did a lot of verbose declarative stuff.
-% de Bruijn factor
 \subsection{Learning Curve}
 I found HOL to have quite a steep learning curve. Several weeks were dedicated to learning how to prove basic propositions which are trivial to prove on paper. Knowing a proof does not help much if you do not know how to use the theorem prover. I found that the documentation was difficult read, as it is very technical once you get past the tutorial. However, I now have gained some confidence in HOL, and its particularities make more sense now that I am used to them.
 
 The difficulty lies not just in understanding how HOL works, but also in remembering and knowing how to find the tools that will prove your proposition. HOL implements \emph{goal directed} proof as a method of proving theorems, and this is what I used to prove all of the results in this project. To prove a goal in HOL, one uses \emph{tactics}, which help to construct a proof starting with the desired conclusion. There are many tactics available in HOL, most of which I have not used and don't understand. In addition there is a library of theories which contain theorems which can be used by some tactics as lemmata to advance towards the goal. The combined number of options is intimidating at first, but I found that only a small subset of these tools were necessary for the purposes of this project.
 
 \subsection{Bag Theory}
-A significant portion of effort in this project was dedicated to proving lemmata concerning bags. As discussed earlier, the existing bag theory in HOL contained only some of the results which I needed, so I had to prove them myself. The bag theory in HOL is also somewhat confusing in it's formulation. For example, there is a ternary relation called \textsf{BAG_DELETE} which is defined \HOLthm[def,tt]{bag.BAG_DELETE}, in contrast to the set theory binary relation called \textsf{DELETE} which is defined \HOLthm[def,tt]{pred_set.DELETE_DEF}. The first is used to relate two bags, one of which has already had an element deleted, the second (more intuitively) is a function which deletes an element from a set.
+A significant portion of effort in this project was dedicated to proving lemmata concerning bags. As discussed earlier, the existing bag theory in HOL contained only some of the results which I needed, so I had to prove them myself. The bag theory in HOL is also somewhat confusing in its formulation. For example, there is a ternary relation called \textsf{BAG_DELETE} which is defined \HOLthm[def,tt]{bag.BAG_DELETE}, in contrast to the set theory binary relation called \textsf{DELETE} which is defined \HOLthm[def,tt]{pred_set.DELETE_DEF}. The first is used to relate two bags, one of which has already had an element deleted, the second (more intuitively) is a function which deletes an element from a set.
 
 In the process of proving the necessary bag lemmata, I often found myself looking at a mess of conditionals inside lambda abstractions. For a simple example, suppose I wanted to prove that \HOLtm{(BAG_OF_SET s) - b = (BAG_OF_SET (s DIFF (SET_OF_BAG b)))} and I expand the definitions of the operators, I get:
 \begin{HOLmath}
@@ -513,10 +633,10 @@ This would allow me to define a set of cut-free sequent calculus rules, and then
 This modification to my formalisation would make the other extensions I considered easier to implement, and would also decrease clutter in the HOL code.
 
 \section{Conclusion}
-I have successfully mechanised the equivalence proof between propositional intuitionistic natural deduction and sequent calculus. In doing so I have learnt a lot about theorem proving and have deepened my understanding of proof theory and mathematical logic, thus satisfying the purpose of undertaking this project. While learning to use HOL was a challenge, the tools which HOL has for inductive definitions and rule induction seem well suited to formalisation of proof theory. I now have an appreciation for the significant effort required to formalise mathematics in a theorem prover compared to proving the same mathematics on paper, and have come to enjoy this process nontheless.
+I have successfully mechanised the equivalence proof between propositional intuitionistic natural deduction and sequent calculus. In doing so I have learnt a lot about theorem proving and have deepened my understanding of proof theory and mathematical logic, thus satisfying the purpose of undertaking this project. While learning to use HOL was a challenge, the tools which HOL has for inductive definitions and rule induction seem well suited to formalisation of proof theory. I now have an appreciation for the significant effort required to formalise mathematics in a theorem prover compared to proving the same mathematics on paper, and have come to enjoy this process nonetheless.
 
 \subsection{Acknowledgements}
-I am very grateful to Michael Norrish for supervising my project, AMSI for awarding me a Vacation Research Scholarship for this project and my wife Myvanwy for listening to my logic-fueled rants.
+I am very grateful to Michael Norrish for supervising my project, AMSI for awarding me a Vacation Research Scholarship for this project and my wife Myvanwy for listening to my logic-fuelled rants.
 \printbibliography
 \newpage
 
@@ -527,56 +647,64 @@ The source for this project can be found at \url{https://github.com/lxndrcx/proo
 In addition, the following bag and unibag lemmata I wrote have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}.
 I have given the theorem names as they appear in HOL.
 
-\begin{lem}[\texttt{BAG\_MERGE\_SUB\_BAG\_UNION}]             \HOLthm{bag.BAG_MERGE_SUB_BAG_UNION}             \end {lem}
-\begin{lem}[\texttt{BAG\_MERGE\_EMPTY}]                       \HOLthm{bag.BAG_MERGE_EMPTY}                     \end {lem}
-\begin{lem}[\texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT}]     \HOLthm{pp.BAG_MERGE_ELBAG_SUB_BAG_INSERT'}      \end {lem}
-\begin{lem}[\texttt{BAG\_MERGE\_EQ\_EMPTY}]                   \HOLthm{bag.BAG_MERGE_EQ_EMPTY}                  \end {lem}
-\begin{lem}[\texttt{BAG\_INSERT\_EQ\_MERGE\_DIFF}]            \HOLthm{pp.BAG_INSERT_EQ_MERGE_DIFF'}            \end {lem}
-\begin{lem}[\texttt{BAG\_MERGE\_BAG\_INSERT}] \begin{HOLmath} \HOLthm{pp.BAG_MERGE_BAG_INSERT'}                \end {HOLmath} \end {lem}
-\begin{lem}[\texttt{BAG\_OF\_SET\_UNION}]                     \HOLthm{bag.BAG_OF_SET_UNION}                    \end {lem}
-\begin{lem}[\texttt{BAG\_OF\_SET\_INSERT}]                    \HOLthm{pp.BAG_OF_SET_INSERT'}                   \end {lem}
-\begin{lem}[\texttt{BAG\_OF\_SET\_BAG\_DIFF\_DIFF}]           \HOLthm{bag.BAG_OF_SET_BAG_DIFF_DIFF}            \end {lem}
-\begin{lem}[\texttt{SET\_OF\_EL\_BAG}]                        \HOLthm{pp.SET_OF_EL_BAG'}                       \end {lem}
-\begin{lem}[\texttt{BAG\_OF\_SET\_EQ\_INSERT}]                \HOLthm{pp.BAG_OF_SET_EQ_INSERT'}                \end {lem}
-\begin{lem}[\texttt{FINITE\_BAG\_MERGE}]                      \HOLthm{bag.FINITE_BAG_MERGE}                    \end {lem}
-\begin{lem}[\texttt{BAG\_MERGE\_CARD}] \begin{HOLmath}        \HOLthm{bag.BAG_MERGE_CARD}                      \end {HOLmath} \end {lem}
-\begin{lem}[\texttt{BAG\_ALL\_DISTINCT\_SUB\_BAG}]            \HOLthm{bag.BAG_ALL_DISTINCT_SUB_BAG}            \end {lem}
+\begin{lem}[\texttt{BAG\_MERGE\_SUB\_BAG\_UNION}]             \HOLthm[tt]{bag.BAG_MERGE_SUB_BAG_UNION}                       \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_EMPTY}]                       \HOLthm[tt]{bag.BAG_MERGE_EMPTY}                               \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT}]     \HOLthm[tt]{pp.BAG_MERGE_ELBAG_SUB_BAG_INSERT'}                \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_EQ\_EMPTY}]                   \HOLthm[tt]{bag.BAG_MERGE_EQ_EMPTY}                            \end{lem}
+\begin{lem}[\texttt{BAG\_INSERT\_EQ\_MERGE\_DIFF}]
+  \begin{HOLmath} \HOLthm{pp.BAG_INSERT_EQ_MERGE_DIFF'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_BAG\_INSERT}]
+  \begin{HOLmath} \HOLthm{pp.BAG_MERGE_BAG_INSERT'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_UNION}]                     \HOLthm[tt]{bag.BAG_OF_SET_UNION}                              \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_INSERT}]                    \HOLthm[tt]{pp.BAG_OF_SET_INSERT'}                             \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_BAG\_DIFF\_DIFF}]           \HOLthm[tt]{bag.BAG_OF_SET_BAG_DIFF_DIFF}                      \end{lem}
+\begin{lem}[\texttt{SET\_OF\_EL\_BAG}]                        \HOLthm[tt]{pp.SET_OF_EL_BAG'}                                 \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_EQ\_INSERT}]                \HOLthm[tt]{pp.BAG_OF_SET_EQ_INSERT'}                          \end{lem}
+\begin{lem}[\texttt{FINITE\_BAG\_MERGE}]                      \HOLthm[tt]{bag.FINITE_BAG_MERGE}                              \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_CARD}]
+  \begin{HOLmath} \HOLthm{bag.BAG_MERGE_CARD} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_ALL\_DISTINCT\_SUB\_BAG}]            \HOLthm[tt]{bag.BAG_ALL_DISTINCT_SUB_BAG}                      \end{lem}
 \begin{defn}
   \HOLtm{BAG_FILTER P b} returns b filtered to include only elements of P:\footnote{Not my definition, just included to explain next lemma}
   \begin{HOLmath} \HOLthm{bag.BAG_FILTER_DEF} \end{HOLmath}
 \end{defn}
-\begin{lem}[\texttt{BAG\_OF\_SET\_DIFF}]   \HOLthm{bag.BAG_OF_SET_DIFF}                                        \end {lem}
-\begin{lem}[\texttt{FINITE\_BAG\_OF\_SET}] \HOLthm{bag.FINITE_BAG_OF_SET}                                      \end {lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_DIFF}]   \HOLthm[tt,s/b,s'/b']{bag.BAG_OF_SET_DIFF}   \end{lem}
+\begin{lem}[\texttt{FINITE\_BAG\_OF\_SET}] \HOLthm[tt]{bag.FINITE_BAG_OF_SET} \end{lem}
 
 \subsection{Unibag Lemmata}
 % TODO define unibags
-\begin{lem}[\texttt{unibag\_INSERT}]                           \HOLthm{pp.unibag_INSERT'}         \end {lem}
-\begin{lem}[\texttt{unibag\_UNION}]                            \HOLthm{bag.unibag_UNION}          \end {lem}
-\begin{lem}[\texttt{BAG\_IN\_unibag}]                               \HOLthm{bag.BAG_IN_unibag}             \end {lem}
-\begin{lem}[\texttt{unibag\_EQ\_BAG\_INSERT}]                  \HOLthm{pp.unibag_EQ_BAG_INSERT'}  \end {lem}
-\begin{lem}[\texttt{unibag\_FINITE}]\label{unibagFINITE}       \HOLthm{bag.unibag_FINITE}         \end {lem}
-\begin{lem}[\texttt{unibag\_ALL\_DISTINCT}]                    \HOLthm{bag.unibag_ALL_DISTINCT}   \end {lem}
-\begin{lem}[\texttt{unibag\_EL\_MERGE\_cases}] \begin{HOLmath} \HOLthm{pp.unibag_EL_MERGE_cases'} \end {HOLmath} \end {lem}
-\begin{lem}[\texttt{unibag\_DECOMPOSE}]                        \HOLthm{bag.unibag_DECOMPOSE}      \end {lem}
-\begin{lem}[\texttt{unibag\_SUB\_BAG}]\label{unibagSUBBAG}     \HOLthm{bag.unibag_SUB_BAG}        \end {lem}
+\begin{lem}[\texttt{unibag\_INSERT}]                           \HOLthm[tt]{pp.unibag_INSERT'}         \end{lem}
+\begin{lem}[\texttt{unibag\_UNION}]                            \HOLthm[tt]{bag.unibag_UNION}          \end{lem}
+\begin{lem}[\texttt{BAG\_IN\_unibag}]                          \HOLthm[tt]{bag.BAG_IN_unibag}         \end{lem}
+\begin{lem}[\texttt{unibag\_EQ\_BAG\_INSERT}]                  \HOLthm[tt]{pp.unibag_EQ_BAG_INSERT'}  \end{lem}
+\begin{lem}[\texttt{unibag\_FINITE}]\label{unibagFINITE}       \HOLthm[tt]{bag.unibag_FINITE}         \end{lem}
+\begin{lem}[\texttt{unibag\_ALL\_DISTINCT}]                    \HOLthm[tt]{bag.unibag_ALL_DISTINCT}   \end{lem}
+\begin{lem}[\texttt{unibag\_EL\_MERGE\_cases}]
+  \begin{HOLmath} \HOLthm{pp.unibag_EL_MERGE_cases'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{unibag\_DECOMPOSE}]                        \HOLthm[tt]{bag.unibag_DECOMPOSE}      \end{lem}
+\begin{lem}[\texttt{unibag\_SUB\_BAG}]\label{unibagSUBBAG}     \HOLthm[tt]{bag.unibag_SUB_BAG}        \end{lem}
 
 \subsection{Main Lemmata and Theorems}
 
-\begin{lem}[\texttt{N\_FINITE}]          \HOLthm{IntuitionisticProof.N_FINITE}       \end {lem}
-\begin{lem}[\texttt{N\_lw}]              \HOLthm{pp.N_lw'}                           \end {lem}
-\begin{lem}[\texttt{Nd\_lw}]             \HOLthm{pp.Nd_lw'}                          \end {lem}
-\begin{lem}[\texttt{N\_lw\_SUBSET}]      \HOLthm{IntuitionisticProof.N_lw_SUBSET}    \end {lem}
-\begin{lem}[\texttt{Nd\_lw\_SUBSET}]     \HOLthm{IntuitionisticProof.Nd_lw_SUBSET}   \end {lem}
-\begin{lem}[\texttt{N\_impi\_DELETE}]    \HOLthm{pp.N_impi_DELETE'}                  \end {lem}
-\begin{thm}[\texttt{N\_Nd}]              \HOLthm{IntuitionisticProof.N_Nd}           \end {thm}
-\begin{lem}[\texttt{G\_FINITE}]          \HOLthm{IntuitionisticProof.G_FINITE}       \end {lem}
-\begin{lem}[\texttt{G\_lw}]\label{Glw}   \HOLthm{IntuitionisticProof.G_lw}           \end {lem}
-\begin{lem}[\texttt{G\_lw\_BAG\_INSERT}] \HOLthm{pp.G_lw_BAG_INSERT'}                \end {lem}
-\begin{lem}[\texttt{G\_lw\_BAG\_MERGE}]  \HOLthm{IntuitionisticProof.G_lw_BAG_MERGE} \end {lem}
-\begin{lem}[\texttt{G\_lw\_BAG\_UNION}]  \HOLthm{IntuitionisticProof.G_lw_BAG_UNION} \end {lem}
-\begin{lem}[\texttt{G\_unibag}]          \HOLthm{IntuitionisticProof.G_unibag}       \end {lem}
-\begin{lem}[\texttt{N\_G}]               \HOLthm{IntuitionisticProof.N_G}            \end {lem}
-\begin{lem}[\texttt{G\_N}]               \HOLthm{IntuitionisticProof.G_N}            \end {lem}
-\begin{thm}[\texttt{G\_iff\_N}]          \HOLthm{IntuitionisticProof.G_iff_N}        \end {thm}
+\begin{lem}[\texttt{N\_FINITE}]          \HOLthm[tt]{IntuitionisticProof.N_FINITE}       \end{lem}
+\begin{lem}[\texttt{N\_lw}]              \HOLthm[tt]{pp.N_lw'}                           \end{lem}
+\begin{lem}[\texttt{Nd\_lw}]             \HOLthm[tt]{pp.Nd_lw'}                          \end{lem}
+\begin{lem}[\texttt{N\_lw\_SUBSET}]      \HOLthm[tt]{IntuitionisticProof.N_lw_SUBSET}    \end{lem}
+\begin{lem}[\texttt{Nd\_lw\_SUBSET}]     \HOLthm[tt]{IntuitionisticProof.Nd_lw_SUBSET}   \end{lem}
+\begin{lem}[\texttt{N\_impi\_DELETE}]    \HOLthm[tt]{pp.N_impi_DELETE'}                  \end{lem}
+\begin{thm}[\texttt{N\_Nd}]              \HOLthm[tt]{IntuitionisticProof.N_Nd}           \end{thm}
+\begin{lem}[\texttt{G\_FINITE}]          \HOLthm[tt]{IntuitionisticProof.G_FINITE}       \end{lem}
+\begin{lem}[\texttt{G\_lw}]\label{Glw}   \HOLthm[tt]{IntuitionisticProof.G_lw}           \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_INSERT}] \HOLthm[tt]{pp.G_lw_BAG_INSERT'}                \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_MERGE}]  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_MERGE} \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_UNION}]  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_UNION} \end{lem}
+\begin{lem}[\texttt{G\_unibag}]          \HOLthm[tt]{IntuitionisticProof.G_unibag}       \end{lem}
+\begin{lem}[\texttt{N\_G}]               \HOLthm[tt]{IntuitionisticProof.N_G}            \end{lem}
+\begin{lem}[\texttt{G\_N}]               \HOLthm[tt]{IntuitionisticProof.G_N}            \end{lem}
+\begin{thm}[\texttt{G\_iff\_N}]          \HOLthm[tt]{IntuitionisticProof.G_iff_N}        \end{thm}
 
 \end{document}

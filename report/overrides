@@ -6,6 +6,7 @@ SET_OF_BAG 3 \HOLConst{set}
 FINITE_BAG 6 \HOLConst{finite}
 FINITE 6 \HOLConst{finite}
 Γ 1 \ensuremath{\Upgamma}
+Γ' 2 \ensuremath{\Upgamma'}
 Δ 1 \ensuremath{\Updelta}
 Bot 1 \ensuremath{\bot}
 N 3 \ensuremath{\vdash_{\textbf{N}}}

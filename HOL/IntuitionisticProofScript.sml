@@ -151,22 +151,17 @@ Proof
         >- metis_tac[Nd_ander]
         >- (`Nd ((A INSERT D) DELETE A) (A Imp B)`
               by metis_tac[Nd_impi] >>
-            Cases_on `A ∈ D`
-              >- (fs[DELETE_DEF] >>
-                  `Nd (A INSERT (D DIFF {A})) (A Imp B)`
-                    by metis_tac[Nd_lw] >>
-                  fs[Once INSERT_SING_UNION] >>
-                  `{A} ⊆ D` by simp[SUBSET_DEF] >>
-                  metis_tac[UNION_DIFF])
-              >- fs[DELETE_DEF,DELETE_NON_ELEMENT])
+            fs[DELETE_DEF] >>
+            irule Nd_lw_SUBSET >>
+            conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+            qexists_tac `D DIFF {A}` >>
+            simp[])
         >- metis_tac[Nd_impe]
         >- (`Nd (D ∪ ((A INSERT D1) DELETE A) ∪ ((B INSERT D2) DELETE B)) C`
               by metis_tac[Nd_ore] >>
             fs[DELETE_DEF] >>
             irule Nd_lw_SUBSET >>
-            `FINITE (D ∪ D1 ∪ D2)`
-              by (simp[FINITE_UNION] >> metis_tac[N_FINITE,FINITE_INSERT]) >>
-            simp[] >>
+            conj_tac >- metis_tac[N_FINITE,FINITE_UNION,FINITE_INSERT] >>
             qexists_tac `D ∪ (D1 DIFF {A}) ∪ (D2 DIFF {B})` >>
             rw[SUBSET_DEF]))
   >- (Induct_on `Nd` >>
@@ -315,13 +310,13 @@ Proof
 QED
 
 Theorem G_lw_BAG_MERGE:
-  !Γ₁ A. G Γ₁ A ==> !Γ₂. FINITE_BAG Γ₂ ==> G (BAG_MERGE Γ₂ Γ₁) A
+  !Γ A. G Γ A ==> !Γ'. FINITE_BAG Γ' ==> G (BAG_MERGE Γ' Γ) A
 Proof
   rw[] >>
   irule G_lw >>
-  `FINITE_BAG Γ₁` by metis_tac[G_FINITE] >>
+  `FINITE_BAG Γ` by metis_tac[G_FINITE] >>
   simp[FINITE_BAG_MERGE] >>
-  qexists_tac `Γ₁` >>
+  qexists_tac `Γ` >>
   simp[SUB_BAG,BAG_INN_BAG_MERGE]
 QED
 
@@ -416,15 +411,16 @@ Proof
      rw[] >>
      qexists_tac `BAG_MERGE {|A|} (BAG_OF_SET D)` >>
      simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT])
- >- (simp[BAG_OF_SET_UNION] >>
+ >- (rename[`N D (A Imp B)`] >>
+     simp[BAG_OF_SET_UNION] >>
     `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
-    `G (BAG_INSERT A' (BAG_OF_SET D')) A'`
+    `G (BAG_INSERT B (BAG_OF_SET D')) B`
       by simp[G_ax,BAG_IN_BAG_INSERT] >>
-    `G (BAG_INSERT (A Imp A') (BAG_OF_SET D')) A'`
+    `G (BAG_INSERT (A Imp B) (BAG_OF_SET D')) B`
       by metis_tac[G_limp] >>
-    `G ((BAG_OF_SET D) ⊎ (BAG_OF_SET D')) A'`
+    `G ((BAG_OF_SET D) ⊎ (BAG_OF_SET D')) B`
       by metis_tac[G_cut] >>
-    `G (unibag (BAG_OF_SET D ⊎ BAG_OF_SET D')) A'` by metis_tac[G_unibag] >>
+    `G (unibag (BAG_OF_SET D ⊎ BAG_OF_SET D')) B` by metis_tac[G_unibag] >>
     fs[unibag_UNION])
  >- (rename [`N (_ INSERT _) C`] >>
      fs[BAG_OF_SET_UNION,BAG_OF_SET_INSERT] >>
@@ -587,7 +583,7 @@ Proof
         qexists_tac `(A Imp B) INSERT (SET_OF_BAG Γ)` >>
         rw[] >>
         fs[SUBSET_INSERT_RIGHT])
-    >- (rename [`N _ (A Imp C)`] >>
+    >- (rename [`N _ (A Imp B)`] >>
         fs[SET_OF_BAG_INSERT] >>
         metis_tac[N_impi])
     >- (rename [`G (BAG_INSERT A Δ) B`] >>
