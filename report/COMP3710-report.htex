@@ -321,12 +321,12 @@ I am using \textbf{G2i} in this project, as that is what was used in the book fo
 \end{corl}
 
 \subsection{Bag lemmata}
-Recall that bags are multisets, defined as a characteristic function returning the number of occurrences of a given element. This definition comes from the provided `bag theory' in HOL, which defines and proves propositions concerning bags. HOL's bag theory was insufficient for my project, so I have extended it with 25 additional results, which have been merged into HOL for others to use if they wish (see \ref{appendix} for list).
+Recall that bags are multisets, defined as a characteristic function returning the number of occurrences of a given element. This definition comes from the provided `bag theory' in HOL, which defines and proves propositions concerning bags. HOL's bag theory was insufficient for my project, so I have extended it with 25 additional results, which have been merged into HOL for others to use if they wish (see \ref{appendix} for a list).
 \begin{defn} The function \textsf{bag: set $\mapsto$ bag} converts sets into bags. This should not be confused with the type \textsf{bag:}~\HOLty{:'a bag}. \end{defn}
 \begin{defn} The function \textsf{set: bag $\mapsto$ set} converts bags into sets. Again, not to be confused with the type \textsf{set:}~\HOLty{:'a set} \end{defn}
 \begin{defn} The function \textsf{unibag: bag $\mapsto$ bag} converts bags into sets and then back again.  \end{defn}
 \begin{notn} \HOLtm{b e} is the number of occurrences of the element \HOLtm{e} in the bag \HOLtm{b}.  \end{notn}
-\begin{defn} A bag is distinct if no elements 1 occur more than once. \HOLthm{bag.BAG_ALL_DISTINCT} \end{defn}
+\begin{defn} A bag is distinct if no elements occur more than once. \HOLthm{bag.BAG_ALL_DISTINCT} \end{defn}
 \begin{corl}[Unibags are distinct] \HOLthm{bag.unibag_ALL_DISTINCT} \end{corl}
 
 I needed unibags in order to reason about contraction of hypotheses in \textbf{G}. To make a bag of hypotheses a unibag is to make them equivalent to a set of hypotheses, which is necessary in the equivalence proof to come later. The main result concerning unibags was the following:
@@ -356,7 +356,7 @@ I needed unibags in order to reason about contraction of hypotheses in \textbf{G
   When I give the HOL tactics of my proofs, I will present them as they are typed in my HOL code. HOL doesn't remember how something is proved, so it can't give a typeset version that I can use. The main thing to note is that the deducibility relations \HOLtm{$G} and \HOLtm{$N} are given in prefix from in my code, and are just typed \texttt{G} and \texttt{N}. I explain other differences with the proofs.
 \end{notn}
 
-\begin{lem}[\textbf{G} weakening]
+\begin{lem}[\textbf{G} superset weakening]
   Since weakening is built into the axiom of \textbf{G}, I have proved a lemma to use as a weakening rule. The hypotheses of a sequent can be extended to any finite superset of those hypotheses.
   \begin{HOLmath} \HOLthm{IntuitionisticProof.G_lw} \end{HOLmath}
 \end{lem}
@@ -394,7 +394,7 @@ Here are the HOL tactics which prove this case:
   `G \{|Bot|\} A` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
   metis_tac[G_cut,BAG_UNION_EMPTY]
 \end{alltt}
-\texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a \texttt{thm} is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. \texttt{BAG\_IN\_BAG\_INSERT} proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, \texttt{FINITE\_BAG} proves that the hypothesis is finite and \texttt{BAG\_UNION\_EMPTY} removes the empty bag which \textsf{cut} introduces.
+\texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a \texttt{thm} is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. \texttt{BAG\_IN\_BAG\_INSERT} proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, \texttt{FINITE\_BAG} proves that the hypotheses are finite and \texttt{BAG\_UNION\_EMPTY} removes the empty bag which \textsf{cut} introduces.
 
 While in the previous construction matches quite closely with the informal proof, for some cases I used tactics which are less similar in appearance.
 
@@ -465,19 +465,19 @@ The following is the case for \textsf{$\to$e}, first in mathematical notation, t
 I will not go over the remainder of the cases, they are similar in structure to the presented cases.
 \end{proof}
 
+\pagebreak
 \begin{lem}[From \textbf{G} to \textbf{N}]\label{GN}
   \begin{HOLmath}
     \HOLthm{IntuitionisticProof.G_N}
   \end{HOLmath}
 \end{lem}
-
 \begin{proof}
   The proof is by rule induction on \textbf{G}. \Citeauthor{bpt} say that ``at each step in the proof we show how to construct from a G-deduction of $\Gamma \Rightarrow A$ an N-deduction of $\Gamma' \Rightarrow A$ for some $\Gamma'$ with $\Gamma' \subset \text{Set}(\Gamma)$''~\autocite[69]{bpt}\footnote{They actually write $\text{Set}(\Gamma') \subset \Gamma$, but this is incorrect since $\Gamma$ is the multiset and $\Gamma'$ is the set.}, but I found that you can avoid the need for a subset, by using weakening in the cases which would take a subset in their proof.
 
   Two cases are proven by a single rewrite with the rules of \textbf{N}, the two instances of L$\veebar$.
   The contraction (\textsf{cont}) rule is proven with the tactic \texttt{fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]}, which rewrites the goal and assumptions with known rewrites and the supplied \texttt{thm}s. Here the extra formula disappears when converted to a set.
 
-  The way I have formulated the \textsf{ax} and \textsf{L$\bot$} rules means these cases take longer to prove than in the book. In the book they say these rules correspond to proof trees in \textbf{N} with a single node \HOLtm{A} and $\frac{\bot}{A}$ respectively. My tactic to prove the \textsf{ax} rule is as follows:
+  Since I use weakening rather than some subset of hypotheses, it takes longer to prove the \textsf{ax} and \textsf{L$\bot$} cases than in the book. In the book they say these rules correspond to proof trees in \textbf{N} with a single node \HOLtm{A} and $\frac{\bot}{A}$ respectively. My tactics to prove the \textsf{ax} rule are as follows:
   \begin{alltt}
     `?b. \HOLtm{Gamma} = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
     fs[] >>
@@ -574,14 +574,14 @@ The following is the primary theorem of this project:
     rw[G_N] >>
     EQ_TAC >- rw[G_N] >>
     rw[] >>
-    `G (unibag Γ) A` by metis_tac[N_G] >>
+    `G (unibag \HOLtm{Gamma}) A` by metis_tac[N_G] >>
     metis_tac[G_unibag]
   \end{alltt}
 \end{proof}
 
 \section{Discussion of Issues} %(bags)
 \subsection{Learning Curve}
-I found HOL to have quite a steep learning curve. Several weeks were dedicated to learning how to prove basic propositions which are trivial to prove on paper. Knowing a proof does not help much if you do not know how to use the theorem prover. I found that the documentation was difficult read, as it is very technical once you get past the tutorial. However, I now have gained some confidence in HOL, and its particularities make more sense now that I am used to them.
+I found HOL to have quite a steep learning curve. Several weeks were dedicated to learning how to prove basic propositions which are trivial to prove on paper. Knowing a proof does not help much if you do not know how to use the theorem prover. I found that the documentation was difficult to read, as it is very technical once you get past the tutorial. However, I now have gained some confidence in HOL, and its particularities make more sense now that I am used to them.
 
 The difficulty lies not just in understanding how HOL works, but also in remembering and knowing how to find the tools that will prove your proposition. HOL implements \emph{goal directed} proof as a method of proving theorems, and this is what I used to prove all of the results in this project. To prove a goal in HOL, one uses \emph{tactics}, which help to construct a proof starting with the desired conclusion. There are many tactics available in HOL, most of which I have not used and don't understand. In addition there is a library of theories which contain theorems which can be used by some tactics as lemmata to advance towards the goal. The combined number of options is intimidating at first, but I found that only a small subset of these tools were necessary for the purposes of this project.
 
