@@ -2,7 +2,8 @@
 (* ========================================================================== *)
 (* Equivalence of Sequent Calculus and Natural Deduction                      *)
 (* Working from Troelstra and Schwichtenburg - Basic Proof Theory 2nd Edition *)
-(*                                                                            *)
+(* Written by Alexander Cox, ANU, u6060697@anu.edu.au                         *)
+(* Supervised by Michael Norrish, ANU; Data61                                 *)
 (* ========================================================================== *)
 
 open HolKernel boolLib Parse bossLib;
@@ -13,50 +14,50 @@ open FormulaSyntaxTheory;
 
 val _ = new_theory "IntuitionisticProof";
 
-(** Natural Deduction for intuitionistic logic **)
-(* N is the 'deduciblility' relation for this system *)
-(* A, B and C are used to represent formulae *)
+(* Natural Deduction for intuitionistic logic                      *)
+(* N is the 'deduciblility' relation for this system               *)
+(* A, B and C are used to represent formulae                       *)
 (* D, D1, D2, D3 are used to represent the set of open assumptions *)
-(* I'm representing the deductions simply with unlabeled sets of
-   open assumptions, as in T&S 2.1.8-2.1.9 (p.41--44) *)
+(* I'm representing the deductions simply with unlabeled sets of   *)
+(*   open assumptions, as in T&S 2.1.8-2.1.9 (p.41--44)            *)
 
 val (N_rules, N_ind, N_cases) = Hol_reln `
-(! (A :'a formula). N {A} A) (* Base case *)
-/\ (!A B D1 D2. (N D1 A) /\ (N D2 B)
+  (∀ (A :'a formula). N {A} A) (* Base case *)
+∧ (∀A B D1 D2. (N D1 A) ∧ (N D2 B)
    ==> (N (D1 UNION D2) (A And B))) (* And Intro *)
-/\ (!A B D. (N D (A And B)) ==> N D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (N D (A And B)) ==> N D B) (* And Elim Right Conjunct *)
-/\ (!A B D. (N (A INSERT D) B) ==> N D (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (N D1 (A Imp B)) /\ (N D2 A)
+∧ (∀A B D. (N D (A And B)) ==> N D A) (* And Elimination Left Conjunct *)
+∧ (∀A B D. (N D (A And B)) ==> N D B) (* And Elim Right Conjunct *)
+∧ (∀A B D. (N (A INSERT D) B) ==> N D (A Imp B)) (* Imp Intro *)
+∧ (∀A B D1 D2. (N D1 (A Imp B)) ∧ (N D2 A)
    ==> N (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. N D A ==> N D (A Or B))  (* Or Intro right *)
-/\ (!A B D. N D B ==> N D (A Or B))  (* Or Intro left *)
-/\ (!A B C D D1 D2. (N D (A Or B)) /\ (* Or Elim *)
-(N (A INSERT D1) C) /\ (N (B INSERT D2) C) ==> N (D ∪ D1 ∪ D2) C)
-/\ (!A D. (N D Bot) ==> (N D A))`; (* Intuitionistic Absurdity Rule *)
+∧ (∀A B D. N D A ==> N D (A Or B))  (* Or Intro right *)
+∧ (∀A B D. N D B ==> N D (A Or B))  (* Or Intro left *)
+∧ (∀A B C D D1 D2. (N D (A Or B)) ∧ (* Or Elim *)
+(N (A INSERT D1) C) ∧ (N (B INSERT D2) C) ==> N (D ∪ D1 ∪ D2) C)
+∧ (∀A D. (N D Bot) ==> (N D A))`; (* Intuitionistic Absurdity Rule *)
 
 val [N_ax, N_andi, N_andel, N_ander,
      N_impi, N_impe, N_orir, N_oril, N_ore, N_bot] = CONJUNCTS N_rules;
 
 Theorem N_FINITE:
-  !D A. N D A ==> FINITE D
+  ∀D A. N D A ==> FINITE D
 Proof Induct_on `N` >> rw[]
 QED
 
 val (Nd_rules, Nd_ind, Nd_cases) = Hol_reln `
-(! (A :'a formula). Nd {A} A) (* Base case *)
-/\ (!A B D1 D2. (Nd D1 A) /\ (Nd D2 B)
+  (∀ (A :'a formula). Nd {A} A) (* Base case *)
+∧ (∀A B D1 D2. (Nd D1 A) ∧ (Nd D2 B)
     ==> (Nd (D1 UNION D2) (A And B))) (* And Intro *)
-/\ (!A B D. (Nd D (A And B)) ==> Nd D A) (* And Elimination Left Conjunct *)
-/\ (!A B D. (Nd D (A And B)) ==> Nd D B) (* And Elim Right Conjunct *)
-/\ (!A B D. (Nd D B) ==> Nd (D DELETE A) (A Imp B)) (* Imp Intro *)
-/\ (!A B D1 D2. (Nd D1 (A Imp B)) /\ (Nd D2 A)
+∧ (∀A B D. (Nd D (A And B)) ==> Nd D A) (* And Elimination Left Conjunct *)
+∧ (∀A B D. (Nd D (A And B)) ==> Nd D B) (* And Elim Right Conjunct *)
+∧ (∀A B D. (Nd D B) ==> Nd (D DELETE A) (A Imp B)) (* Imp Intro *)
+∧ (∀A B D1 D2. (Nd D1 (A Imp B)) ∧ (Nd D2 A)
     ==> Nd (D1 UNION D2) B) (* Imp Elim *)
-/\ (!A B D. Nd D A ==> Nd D (A Or B)) (* Or Intro right *)
-/\ (!A B D. Nd D B ==> Nd D (A Or B)) (* Or Intro left *)
-/\ (!A B C D D1 D2. (Nd D (A Or B)) /\ (Nd D1 C) /\ (Nd D2 C)
+∧ (∀A B D. Nd D A ==> Nd D (A Or B)) (* Or Intro right *)
+∧ (∀A B D. Nd D B ==> Nd D (A Or B)) (* Or Intro left *)
+∧ (∀A B C D D1 D2. (Nd D (A Or B)) ∧ (Nd D1 C) ∧ (Nd D2 C)
     ==> Nd (D ∪ (D1 DELETE A) ∪ (D2 DELETE B)) C) (* Or Elim *)
-/\ (!A D. (Nd D Bot) ==> (Nd D A))`; (* Intuitionistic Absurdity Rule *)
+∧ (∀A D. (Nd D Bot) ==> (Nd D A))`; (* Intuitionistic Absurdity Rule *)
 
 val [Nd_ax, Nd_andi, Nd_andel, Nd_ander,
      Nd_impi, Nd_impe, Nd_orir, Nd_oril, Nd_ore, Nd_bot] = CONJUNCTS Nd_rules;
@@ -82,7 +83,7 @@ Proof
 QED
 
 Theorem N_lw_SUBSET:
-  ∀D'. FINITE D' ==> ∀D A. N D A  /\ D ⊆ D' ==> N D' A
+  ∀D'. FINITE D' ==> ∀D A. N D A  ∧ D ⊆ D' ==> N D' A
 Proof
   GEN_TAC >>
   Induct_on `CARD D'`
@@ -91,8 +92,8 @@ Proof
   >- (rw[] >>
       Cases_on `D=D'`
       >- metis_tac[]
-      >- (`?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
-            by (`?e. e ∈ D' /\ e NOTIN D`
+      >- (`∃D₀ e. (D' = e INSERT D₀) ∧ D ⊆ D₀ ∧ e NOTIN D₀`
+            by (`∃e. e ∈ D' ∧ e NOTIN D`
             by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
             qexists_tac `D' DELETE e` >>
             qexists_tac `e` >>
@@ -104,14 +105,14 @@ Proof
 QED
 
 Theorem Nd_lw_SUBSET:
-∀D'. FINITE D' ==> ∀D A. Nd D A  /\ D ⊆ D' ==> Nd D' A
+∀D'. FINITE D' ==> ∀D A. Nd D A  ∧ D ⊆ D' ==> Nd D' A
 Proof
   GEN_TAC >>
   Induct_on `CARD D'`
   >- (rw[] >> metis_tac[CARD_EQ_0,SUBSET_EMPTY])
   >- (rw[] >> Cases_on `D=D'` >- metis_tac[] >>
-      `?D₀ e. (D' = e INSERT D₀) /\ D ⊆ D₀ /\ e NOTIN D₀`
-        by (`?e. e ∈ D' /\ e NOTIN D`
+      `∃D₀ e. (D' = e INSERT D₀) ∧ D ⊆ D₀ ∧ e NOTIN D₀`
+        by (`∃e. e ∈ D' ∧ e NOTIN D`
               by metis_tac[PSUBSET_DEF,PSUBSET_MEMBER] >>
             qexists_tac `D' DELETE e` >>
             qexists_tac `e` >>
@@ -128,7 +129,7 @@ Proof
   rw[] >>
   `N (B INSERT D) A` by metis_tac[N_lw] >>
   Cases_on `B ∈ D`
-    >- (`?D'. (D = B INSERT D') /\ B NOTIN D'`
+    >- (`∃D'. (D = B INSERT D') ∧ B NOTIN D'`
           by metis_tac[DECOMPOSITION] >>
         fs[] >>
         `(B INSERT D') DELETE B = D'`
@@ -204,35 +205,35 @@ val N_example = Q.prove(`NThm (Bot Imp A)`,
   rw[NThm]);
 
 
-(** Sequent Calculus (Gentzen System) for intuitionistic logic **)
-(* G is the 'deduciblility' relation for this system *)
-(* A, B and C are used to represent formulae *)
-(* S is used to represent the multiset of the Antecedent Context *)
-(* The consequent is always a single formula in the intuitionistic logic *)
+(* Sequent Calculus (Gentzen System) for intuitionistic logic        *)
+(* G is the 'deduciblility' relation for this system                 *)
+(* A, B and C are used to represent formulae                         *)
+(* Γ is used to represent the multiset of the antecedents            *)
+(* The consequent is always a single formula in intuitionistic logic *)
 
 val (G_rules, G_ind, G_cases) = Hol_reln `
-(!(A:'a formula) Γ. (A <: Γ) /\ FINITE_BAG Γ ==> G Γ A) (* Ax *)
-/\ (∀ A Γ. (Bot <: Γ) /\ FINITE_BAG Γ ==> G Γ A) (* LBot *)
-/\ (!A Γ C. (G ({|A;A|} + Γ) C)
-   ==> G ({|A|} + Γ) C) (* Left Contraction *)
-/\ (!A B Γ C. (G (BAG_INSERT A Γ) C)
+  (∀(A:'a formula) Γ. (A <: Γ) ∧ FINITE_BAG Γ ==> G Γ A) (* Ax *)
+∧ (∀ A Γ. (Bot <: Γ) ∧ FINITE_BAG Γ ==> G Γ A) (* LBot *)
+∧ (∀A Γ C. (G ({|A;A|} ⊎ Γ) C)
+   ==> G ({|A|} ⊎ Γ) C) (* Left Contraction *)
+∧ (∀A B Γ C. (G (BAG_INSERT A Γ) C)
    ==> (G (BAG_INSERT (A And B) Γ) C)) (* Left And 1 *)
-/\ (!A B Γ C. (G (BAG_INSERT B Γ) C)
+∧ (∀A B Γ C. (G (BAG_INSERT B Γ) C)
    ==> (G (BAG_INSERT (A And B) Γ) C)) (* Left And 2 *)
-/\ (!A B Γ. (G Γ A) /\ (G Γ B)
+∧ (∀A B Γ. (G Γ A) ∧ (G Γ B)
    ==> (G Γ (A And B))) (* Right And *)
-/\ (!A B Γ C. (G (BAG_INSERT A Γ) C)
-    /\ (G (BAG_INSERT B Γ) C)
+∧ (∀A B Γ C. (G (BAG_INSERT A Γ) C)
+    ∧ (G (BAG_INSERT B Γ) C)
    ==> (G (BAG_INSERT (A Or B) Γ) C)) (* Left Or *)
-/\ (!A B Γ. (G Γ A)
+∧ (∀A B Γ. (G Γ A)
    ==> (G Γ (A Or B))) (* Right Or 1 *)
-/\ (!A B Γ. (G Γ B)
+∧ (∀A B Γ. (G Γ B)
    ==> (G Γ (A Or B))) (* Right Or 2 *)
-/\ (!A B Γ C. (G Γ A) /\ (G (BAG_INSERT B Γ) C)
+∧ (∀A B Γ C. (G Γ A) ∧ (G (BAG_INSERT B Γ) C)
    ==> (G (BAG_INSERT (A Imp B) Γ) C)) (* Left Imp *)
-/\ (!A B Γ. (G (BAG_INSERT A Γ) B)
+∧ (∀A B Γ. (G (BAG_INSERT A Γ) B)
    ==> (G Γ (A Imp B))) (* Right Imp *)
-∧  (∀A B Γ Δ. (G Γ A) ∧ (G (BAG_INSERT A Δ) B) ==> G (Γ + Δ) B)` (* Cut *)
+∧ (∀A B Γ Δ. (G Γ A) ∧ (G (BAG_INSERT A Δ) B) ==> G (Γ ⊎ Δ) B)` (* Cut *)
 
 val [G_ax, G_bot, G_lc, G_landl, G_landr, G_rand,
      G_lor, G_rorl, G_rorr, G_limp, G_rimp, G_cut] = CONJUNCTS G_rules;
@@ -254,24 +255,24 @@ rw[GThm] >>
 `G {|(A Imp A Imp B);A|} (B)` suffices_by metis_tac[BAG_INSERT_commutes] >>
 metis_tac[G_rules]);
 
-val G_land_commutes =
-    Q.prove(`G {| A And B |} Δ ==> G {| B And A |} Δ`, rw[] >>
+val G_land_commutes = Q.prove(`G {| A And B |} Δ ==> G {| B And A |} Δ`,
+rw[] >>
 `G {|B|} B` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
 `G {|B And A|} B` by metis_tac[G_landl] >>
 `G {|A|} A` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
 `G {|B And A|} A` by metis_tac[G_landr] >>
 `G {|B And A|} (A And B)` by metis_tac[G_rand] >>
-`G ({|B And A|} + {||}) Δ` by metis_tac[G_cut] >>
+`G ({|B And A|} ⊎ {||}) Δ` by metis_tac[G_cut] >>
 metis_tac[BAG_UNION_EMPTY]);
 
 Theorem G_FINITE:
-  !Γ A. G Γ A ==> FINITE_BAG Γ
+  ∀Γ A. G Γ A ==> FINITE_BAG Γ
 Proof Induct_on `G` >> rw[]
 QED
 
-(* Thanks for this theorem Michael *)
+(* Thanks for your help with this theorem Michael *)
 Theorem G_lw:
-  ∀Γ A. G Γ A ⇒ ∀Γ'. Γ ≤ Γ' /\ FINITE_BAG Γ' ⇒ G Γ' A
+  ∀Γ A. G Γ A ⇒ ∀Γ'. Γ ≤ Γ' ∧ FINITE_BAG Γ' ⇒ G Γ' A
 Proof
   Induct_on `G` >> rw[]
   >- (irule G_ax >> fs[SUB_BAG, BAG_IN])
@@ -310,7 +311,7 @@ Proof
 QED
 
 Theorem G_lw_BAG_MERGE:
-  !Γ A. G Γ A ==> !Γ'. FINITE_BAG Γ' ==> G (BAG_MERGE Γ' Γ) A
+  ∀Γ A. G Γ A ==> ∀Γ'. FINITE_BAG Γ' ==> G (BAG_MERGE Γ' Γ) A
 Proof
   rw[] >>
   irule G_lw >>
@@ -394,14 +395,14 @@ Proof
          simp[BAG_OF_SET_UNION] >>
          metis_tac[G_lw_BAG_MERGE,G_FINITE])
      >- (simp[BAG_OF_SET_UNION] >>
-             metis_tac[G_lw_BAG_MERGE,G_FINITE]))
+         metis_tac[G_lw_BAG_MERGE,G_FINITE]))
  >- (`G {|A|} A` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
      `G {|A And B|} A` by metis_tac[G_landl] >>
-     `G ((BAG_OF_SET D) + {||}) A` by metis_tac[G_cut] >>
+     `G ((BAG_OF_SET D) ⊎ {||}) A` by metis_tac[G_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (`G {|A'|} A'` by metis_tac[G_ax,BAG_IN_BAG_INSERT,FINITE_BAG] >>
      `G {|A And A'|} A'` by metis_tac[G_landr] >>
-     `G ((BAG_OF_SET D) + {||}) A'` by metis_tac[G_cut] >>
+     `G ((BAG_OF_SET D) ⊎ {||}) A'` by metis_tac[G_cut] >>
      metis_tac[BAG_UNION_EMPTY])
  >- (irule G_rimp >>
      fs[BAG_OF_SET_INSERT] >>
@@ -442,7 +443,7 @@ Proof
             fs[]) >>
       `FINITE_BAG (BAG_INSERT B Δ)`
       by (simp[Abbr`Δ`,FINITE_BAG_THM] >>
-              metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >>
+          metis_tac[FINITE_BAG_OF_SET,N_FINITE,FINITE_INSERT]) >>
       `G (BAG_INSERT B Δ) C`
         by (`G (BAG_MERGE {|B|} Δ) C`
               suffices_by metis_tac[BAG_MERGE_ELBAG_SUB_BAG_INSERT,G_lw] >>
@@ -477,16 +478,16 @@ Theorem G_N:
   ∀Γ A. G Γ A ==> N (SET_OF_BAG Γ) A
 Proof
   Induct_on `G` >> rw[N_rules]
-    >- (`?b. Γ = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
-        fs[] >> 
+    >- (`∃b. Γ = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
+        fs[] >>
         simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
         `N {A} A` by metis_tac[N_ax] >>
         simp[UNION_COMM] >>
         irule N_lw_SUBSET >>
         conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
         metis_tac[SUBSET_UNION])
-    >- (`?b. Γ = BAG_INSERT Bot b` by metis_tac[BAG_DECOMPOSE] >>
-        fs[] >> 
+    >- (`∃b. Γ = BAG_INSERT Bot b` by metis_tac[BAG_DECOMPOSE] >>
+        fs[] >>
         simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
         `N {Bot} Bot` by metis_tac[N_ax] >>
         `N {Bot} A` by metis_tac[N_bot] >>
@@ -503,7 +504,7 @@ Proof
         fs[DELETE_DEF] >>
         `N (((SET_OF_BAG Γ) DIFF {A}) ∪ {A And B}) C` by metis_tac[N_impe] >>
         `N ((A And B) INSERT ((SET_OF_BAG Γ) DIFF {A})) C`
-                  by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+          by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
         irule N_lw_SUBSET >>
         conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
         qexists_tac `(A And B) INSERT SET_OF_BAG Γ DIFF {A}` >>
@@ -515,7 +516,7 @@ Proof
         `N (B INSERT Γ') C` by metis_tac[N_lw] >>
         `N (Γ' DELETE B) (B Imp C)`
           by (Cases_on `B ∈ Γ'`
-              >- (`?Γ0. (Γ' = B INSERT Γ0) /\ B NOTIN Γ0`
+              >- (`∃Γ0. (Γ' = B INSERT Γ0) ∧ B NOTIN Γ0`
                     by metis_tac[DECOMPOSITION] >>
                   fs[] >>
                   `(B INSERT Γ0) DELETE B = Γ0`
@@ -612,6 +613,5 @@ Proof
   `G (unibag Γ) A` by metis_tac[N_G] >>
   metis_tac[G_unibag]
 QED
-
 
 val _ = export_theory()
