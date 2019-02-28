@@ -1,0 +1,723 @@
+\documentclass[a4paper,11pt]{article}
+
+\title{\Large Equivalence of Natural Deduction and Sequent Calculus in HOL4}
+\author{ Alexander Cox\\ \small The Australian National University (ANU)\\\\
+       Supervised by Dr Michael Norrish\\ \small Data61, CSIRO\@; ANU}}
+\usepackage[backend=biber, style=authoryear-icomp] {biblatex}
+\addbibresource{report.bib}
+
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{thmtools, thm-restate}
+\usepackage{
+nameref,%\nameref
+hyperref,%\autoref
+cleveref,% \cref
+}
+\usepackage{upgreek}
+% \usepackage{MnSymbol}
+\usepackage{bussproofs}
+\usepackage{proof}
+\usepackage{alltt}
+\usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
+
+\declaretheorem[numberwithin=subsection,name=Theorem]{thm}
+\declaretheorem[sibling=thm,name=Lemma]{lem}
+\declaretheorem[sibling=thm,name=Corollary]{corl}
+\declaretheorem[sibling=thm,style=definition,name=Definition]{defn}
+\declaretheorem[sibling=thm,style=remark,name=Notation]{notn}
+\declaretheorem[sibling=thm,style=remark,name=Remark]{remk}
+
+\renewcommand{\HOLConst}[1]{\textsf{\upshape#1}}
+\renewcommand{\HOLinline}[1]{\ensuremath{#1}}
+\renewcommand{\HOLKeyword}[1]{\mathbf{#1}}
+
+\renewcommand{\HOLTokenLeftbrace}{\ensuremath{\{}}
+\renewcommand{\HOLTokenRightbrace}{\ensuremath{\}}}
+
+\usepackage{macros-ohp}
+
+\begin{document}
+
+\begin{titlingpage}
+	\tikz[remember picture,overlay] \node[opacity=1,inner sep=0pt] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{imgs/background.png}};
+	\vspace*{3.5cm}
+	{\let\newpage\relax\maketitle}
+	\vspace*{\fill}
+	\begin{textblock*}{140mm}(40mm,200mm)
+			\begin{center}
+				\begin{small}
+		Vacation Research Scholarships are funded jointly by the Department of Education and Training
+and the Australian Mathematical Sciences Institute.
+				\end{small}
+			\end{center}
+	\end{textblock*}
+
+	\end{titlingpage}
+
+\begin{abstract}
+  I describe the mechanisation of the equivalence of two proof calculi, natural deduction and sequent calculus, for intuitionistic propositional logic using the HOL4 interactive theorem prover. The equivalence of these calculi shows that given the same hypotheses, the same conclusion can be deduced by both calculi. This result is achieved by rule induction on the inference rules of each system. I present the relevant proof theory background and its formalisation in HOL4.
+\end{abstract}
+
+\section{Introduction}
+In this project I have closely followed sections of \textcite{bpt} in its presentation of Natural Deduction (\textbf{N}) and Sequent Calculus (\textbf{G}). I will note any deviance from this book.
+
+% \subsection{Background}
+\textbf{N} and \textbf{G} are logical calculi introduced by Gentzen in the mid 1930s.
+\textbf{N} derives formulae from assumptions using introduction or elimination rules (which either introduce or eliminate a logical operator).
+\textbf{G} derives sequents, which are a multisets of formulae related by the sequent relation (denoted $\vdash$). \textbf{G} has one axiom, in addition to left and right rules which operate on formulae in either the left or right of the sequent.
+I have been formalising these proof systems for intuitionistic propositional logic.
+In particular I have been mechanising the proof of equivalence between these two calculi.
+
+The formalisation has taken place in the HOL4 Theorem Prover~\autocite{HOLbrief}, henceforth referred to as HOL\@.
+
+
+% \paragraph{Motivation}
+% why bother?
+The purpose of this project was for me to learn how to use an interactive theorem prover. The proof theory itself is well known, and has been formalised before, albeit in a slightly different manner.
+
+\subsection{The HOL Theorem Prover}
+HOL is an interactive theorem prover which implements Higher Order Logic as the meta-logic with which users formalise mathematics.
+HOL implements Church's Simple Theory of Types with polymorphic types~\autocite{HOLbrief}.
+HOL is implemented with Standard ML, and this is the meta-language and main interface to HOL.
+
+Proving a theorem in HOL guarantees that your proof is correct and the theorem is sound, under the assumption that HOL is itself sound. All theorems in HOL are generated from the composition of a small set of axioms and basic inference rules, which are considered trusted by the HOL community. HOL can be built using two different Standard ML compilers, which increases confidence that the soundness of HOL is compiler-independent. HOL can also produce a certificate of correctness which can then be checked by another theorem prover, as an additional measure to establish trust in soundness. Saying this, any proof relies on first having a correct specification and formulation of the mathematical content. If I have not formalised my definitions correctly, my proofs don't establish the truth of theorems concerning the correct definitions.
+
+HOL has good support for inductively defined relations~\autocite{cam92}, which I use in this project. HOL automatically proves a strong induction theorem for the defined relations, which can then be used to perform rule induction on the relation~\autocite{cam92}.
+
+\subsection{Related Work}
+The equivalence of Natural Deduction, Sequent Calculus and Hilbert calculus for classical propositional logic, has been formalised in the theorem prover Coq, by \textcite{ptcoq}.
+A major difference between my formalisation and that of \citeauthor{ptcoq} is that they used lists for their contexts in both \textbf{N} and \textbf{G}, whereas I have used sets and multisets respectively.
+They also mechanised the proofs of soundness and completeness.
+
+The same equivalence, but for first order classical logic, has been formalised in HOL by \textcite{fopthol}.
+They also mechanised the proofs of deduction monotonicity and compactness, amongst others. The latter was formalised quite differently to the way I have formalised the calculi in this project, using several additional purpose-built datatypes, such as one for derivations.
+
+\section{Formalisation in HOL}
+  % (give definitions and theorem statements; explain interesting proofs)
+
+\subsection{Syntax}
+I formalised the intuitionistic logic versions of \textbf{N} and \textbf{G}, referred to as \textbf{Ni} and \textbf{G2i} in \textcite{bpt}.
+
+\begin{defn}[Formula]
+
+  The formulae of intuitionistic propositional logic are defined inductively, starting with atomic variables of arbitrary type $\alpha$, then connected with logical operators. I have used non-standard symbols $\veebar$ and $\barwedge$ in place of $\vee$ and $\wedge$ to avoid confusion with the meta-logical symbols used. The operators are defined in prefix form, but are always used as infix operators afterwards\footnote{This is how they are defined in HOL}.
+
+  Here is how formulae are defined in BNF syntax:
+  \[ \varphi ::= \alpha~|~\varphi \veebar \varphi~|~\varphi \barwedge \varphi~|~\varphi \to \varphi~|~\bot \]
+  where $\varphi$ is a formula and $\alpha$ is an atomic variable.
+
+  Here is the corresponding HOL definition:
+  \begin{HOLmath}
+    \HOLthm{FormulaSyntax.datatype_formula}
+  \end{HOLmath}
+  \begin{notn}
+    The latter definition is produced by HOL for typesetting. For illustration purposes, here is how I wrote it in my text editor:
+
+    \begin{alltt}
+    val _ = Datatype `formula =
+        Var 'a
+        | Or formula formula
+        | And formula formula
+        | Imp formula formula
+        | Bot`;
+    \end{alltt}
+
+    For the remainder of the report I will use typeset versions of definitions and theorems produced by HOL.
+  \end{notn}
+
+\end{defn}
+
+% \subsection{Notation}
+% I will now explain the notation I will use in this report.
+
+
+
+\begin{notn}
+  I use $A,B,C$ for arbitrary formulae.
+\end{notn}
+
+\begin{defn}[Abbreviations]
+
+  The remainder of propositional logic syntax is achieved with abbreviations:
+
+  \begin{HOLmath}
+    \HOLthm[nosp]{FormulaSyntax.Not_def}\\
+    \HOLthm[nosp]{FormulaSyntax.BiImp_def}\\
+    \HOLthm[nosp]{FormulaSyntax.Top_def}
+  \end{HOLmath}
+\end{defn}
+
+
+\subsection{Natural Deduction (\textbf{N})}
+  I have represented \textbf{N} in sequent style~\autocite[s. 2.1.8]{bpt} using the complete discharge convention~\autocite[s. 2.1.9]{bpt}. This means that rather than having a tree with assumptions as leaves, I have sequents, with a set of open assumptions on the left. Open assumptions are assumptions which have not been discharged.
+
+  The complete discharge convention says that I can discharge all instances of a assumption at once, rather than keeping track of assumptions with labels. This simplifies the presentation of Natural Deduction. The rules which discharge assumptions are $\to$i and $\veebar$e, which I define below.
+
+\begin{notn}
+  $\Gamma \vdash_S A$ denotes that the formula $A$ can be derived from the hypotheses $\Gamma$ in proof system $S$. A $\vdash$ by itself denotes a theorem in the meta-logic, HOL.
+\end{notn}
+
+% I have represented the infix sequent relation $\vdash_{\textbf{N[mi]}}$ as a prefix relation \texttt{N[mi]}.
+
+\begin{defn}[The \textbf{N} calculus]
+
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$i,conj2]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$el,conj3]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$er,conj4]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\to$i,conj5]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\to$e,conj6]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\bot$e,conj10]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\veebar$il,conj7]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$ir,conj8]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$e,conj9]{pp.N_rules'}
+  \end{HOLmath}
+
+\end{defn}
+
+\begin{notn}
+  Equations in this text starting with a $\vdash$ are exported theorems from HOL, and have been specialised (universal quantifiers have been stripped). For example, the finiteness property for \textbf{N} is as follows, first specialised, then not-specialised:
+  \begin{corl}[\textbf{N} hypotheses are finite]
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.N_FINITE}\\
+      \HOLthm[nosp]{IntuitionisticProof.N_FINITE}
+    \end{HOLmath}
+  \end{corl}
+  I will use the specialised versions for the remainder of the text.
+\end{notn}
+
+\begin{defn}[The \textbf{Nd} calculus]
+
+  The definition of \textbf{N} in \textcite{bpt} has different rules when discharging assumptions, which I formalised as \textbf{Nd}. Rather than having singleton unions above the line, they have singleton set differences below the line. Here are the rules which differ:
+
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=$\to$i,conj5]{pp.Nd_rules'}
+    \hspace{1.0cm}
+    \HOLthm[rule,rulename=$\veebar$e,conj9,width=70]{pp.Nd_rules'}
+  \end{HOLmath}
+
+\end{defn}
+
+\begin{lem}[\textbf{N} weakening]\label{Nlw} \HOLthm[tt]{pp.N_lw'} \end{lem}
+\begin{lem}[\textbf{Nd} weakening]\label{Ndlw} \HOLthm[tt]{pp.Nd_lw'} \end{lem}
+
+\begin{proof}
+  Both proofs are the same, just replace \textbf{N} for \textbf{Nd} for the other. The proof is by construction:
+  \[
+    \infer[\barwedge\text{e}]
+    {\HOLtm{((B INSERT EMPTY) UNION D) N A}}
+    {\infer[\barwedge\text{i}]{\HOLtm{((B INSERT EMPTY) UNION D) N (A And B)}}
+    {\infer*{\HOLtm{D N A}}{} &\infer[\text{ax}]{\HOLtm{(B INSERT EMPTY) N B}}{}}}
+  \]
+\end{proof}
+
+Weakening can be extended as much as you like:
+\begin{lem}[\textbf{N} superset weakening]\label{NlwSUBSET} \HOLthm[tt]{IntuitionisticProof.N_lw_SUBSET} \end{lem}
+\begin{lem}[\textbf{Nd} superset weakening]\label{NdlwSUBSET}\HOLthm[tt]{IntuitionisticProof.N_lw_SUBSET} \end{lem}
+
+\begin{proof}
+  By induction on the cardinality of \HOLtm{D'}. You can insert as many formulae as you like.
+\end{proof}
+
+
+\begin{thm}[\textbf{N} is equivalent to \textbf{Nd}]
+  Given the same hypotheses, the same formulae can be derived from both formulations of natural deduction:
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.N_Nd}
+  \end{HOLmath}
+\end{thm}
+
+\begin{proof}
+  \textit{(if)}
+  Proof by rule induction~\autocite[see][6--7]{cam92} on \textbf{N}.
+  Automatic rewrites and first-order automated reasoning prove the cases which coincide.
+  The \textsf{$\to$i} and \textsf{$\veebar$e} cases are proved by using the corresponding inference rule, and using \textbf{Nd} weakening.
+
+  The \textsf{$\to$i} case illustrates the construction from \textbf{N} to \textbf{Nd}, which is similar for \textsf{$\veebar$e}.
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION D) Nd B}}
+    \RightLabel{\textsf{$\to$i}}
+    \UnaryInfC{\HOLtm{(((A INSERT EMPTY) UNION D) DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(set difference definition)}
+    \UnaryInfC{\HOLtm{(D DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(\textbf{Nd} superset weakening)}
+    \UnaryInfC{\HOLtm{D Nd (A Imp B)}}
+    \DisplayProof
+  \]
+
+  \textit{(only if)}
+  Proof by rule induction on \textbf{Nd}.
+  Automatic rewrites and first-order automated reasoning prove the cases which coincide.
+  The \textsf{$\to$i} and \textsf{$\veebar$e} cases are proved using \textbf{N} weakening, then the corresponding inference rule.
+
+  Here is the construction for \textsf{$\veebar$e}, the \textsf{$\to$i} case is similar.
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D N (A Or B)}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D1 N C}}
+    \RightLabel{(\textbf{N} superset wkn)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION (D DIFF (A INSERT EMPTY))) N C}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D2 N C}}
+    \RightLabel{(\textbf{N} superset wkn)}
+    \UnaryInfC{\HOLtm{((B INSERT EMPTY) UNION (D DIFF (B INSERT EMPTY))) N C}}
+    \RightLabel{\textsf{$\veebar$e}}
+    \TrinaryInfC{\HOLtm{(D UNION (D1 DIFF (A INSERT EMPTY)) UNION (D2 DIFF (B INSERT EMPTY))) N C}}
+    \DisplayProof
+  \]
+\end{proof}
+
+\subsection{Sequent Calculus (\textbf{G})}
+I am using \textbf{G2i} in this project, as that is what was used in the book for the equivalence proof~\autocite[s. 3.1.6]{bpt}. \textbf{G2i} has the weakening rules absorbed into the axiom and absurdity rules, but contains distinct contraction rules. Unlike \textbf{G2c} (classical logic), the conclusion is a single formula, rather than a bag of formulae.
+
+\begin{defn}
+  Bags (a.k.a. multisets) are sets with duplicates permitted. In HOL bag is a function type: \textsf{bag:}\HOLty{:'a bag}, where \HOLty{:'a} is a type variable.
+\end{defn}
+
+\begin{notn} The empty bag is denoted \HOLtm{EMPTY_BAG}. \end{notn}
+
+\begin{remk}
+  I use \autocite[lemma 3.1.8]{bpt} to eliminate empty succedents which are possible in \textbf{G2i}, but cause added complexity in formalisation. The only conclusion this removes from the calculus is the empty bag. If I had not done this, the consequent of the $\bot$ rule would instead be \HOLtm{EMPTY_BAG}, and the conclusions of the other rules would be singleton bags of formulae rather than formulae.
+\end{remk}
+
+\begin{notn} Elements of bags are separated by semicolons. For example, \HOLtm{BAG_INSERT A (BAG_INSERT B (BAG_INSERT B EMPTY_BAG))} is the bag containing three elements, one occurrence of \HOLtm{A} and two of \HOLtm{B}. \end{notn}
+
+\begin{defn} The union of two bags, denoted \HOLtm{BAG_UNION b c} is the sum of the element counts.
+  \begin{HOLmath}
+    \HOLthm{bag.BAG_UNION}
+  \end{HOLmath}
+\end{defn}
+
+\begin{defn}[The \textbf{G} Calculus]
+
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\bot$,conj2]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cont,conj3]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\barwedge$L,conj4]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\barwedge$R,conj5]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\barwedge$,conj6]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\veebar$,conj7]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$L,conj8]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$R,conj9]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\to$,conj10]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\to$,conj11]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cut,conj12]{pp.G_rules'}
+  \end{HOLmath}
+
+\end{defn}
+
+\begin{corl}[Hypotheses in \textbf{G} are finite]\label{GFINITE}
+  \HOLthm[tt]{IntuitionisticProof.G_FINITE}
+\end{corl}
+
+\subsection{Bag lemmata}
+Recall that bags are multisets, defined as a characteristic function returning the number of occurrences of a given element. This definition comes from the provided `bag theory' in HOL, which defines and proves propositions concerning bags. HOL's bag theory was insufficient for my project, so I have extended it with 25 additional results, which have been merged into HOL for others to use if they wish (see \ref{appendix} for a list).
+\begin{defn} The function \textsf{bag: set $\mapsto$ bag} converts sets into bags. This should not be confused with the type \textsf{bag:}~\HOLty{:'a bag}. \end{defn}
+\begin{defn} The function \textsf{set: bag $\mapsto$ set} converts bags into sets. Again, not to be confused with the type \textsf{set:}~\HOLty{:'a set} \end{defn}
+\begin{defn} The function \textsf{unibag: bag $\mapsto$ bag} converts bags into sets and then back again.  \end{defn}
+\begin{notn} \HOLtm{b e} is the number of occurrences of the element \HOLtm{e} in the bag \HOLtm{b}.  \end{notn}
+\begin{defn} A bag is distinct if no elements occur more than once. \HOLthm[tt]{bag.BAG_ALL_DISTINCT} \end{defn}
+\begin{corl}[Unibags are distinct] \HOLthm[tt]{bag.unibag_ALL_DISTINCT} \end{corl}
+
+I needed unibags in order to reason about contraction of hypotheses in \textbf{G}. To make a bag of hypotheses a unibag is to make them equivalent to a set of hypotheses, which is necessary in the equivalence proof to come later. The main result concerning unibags was the following:
+\begin{thm}[Complete contraction]\label{Gunibag} \HOLthm[tt]{IntuitionisticProof.G_unibag} \end{thm}
+
+\begin{proof}
+
+  \textit{(if)} By \textbf{G} weakening.
+
+  \textit{(only if)} By induction on the cardinality of \HOLtm{Gamma}, then an application of the \textsf{cont} (contraction) rule.
+\end{proof}
+
+\begin{defn} The merge of two bags, denoted \HOLtm{b BAG_MERGE c} is the pointwise maximum of the element counts.
+  \begin{HOLmath}
+    \HOLthm{bag.BAG_MERGE}
+  \end{HOLmath}
+\end{defn}
+
+\begin{lem}[Bag of set union]\label{bosu}
+  When applied to a set union, \HOLtm{BAG_OF_SET} returns a bag merge with the \HOLtm{BAG_OF_SET} applied to each set.
+  \begin{HOLmath} \HOLthm{bag.BAG_OF_SET_UNION} \end{HOLmath}
+\end{lem}
+
+\subsection{Proof of Equivalence}
+
+\begin{notn}
+  When I give the HOL tactics of my proofs, I will present them as they are typed in my HOL code. HOL doesn't remember how something is proved, so it can't give a typeset version that I can use. The main thing to note is that the deducibility relations \HOLtm{$G} and \HOLtm{$N} are given in prefix from in my code, and are just typed \texttt{G} and \texttt{N}. I explain other differences with the proofs.
+\end{notn}
+
+\begin{lem}[\textbf{G} superset weakening]
+  Since weakening is built into the axiom of \textbf{G}, I have proved a lemma to use as a weakening rule. The hypotheses of a sequent can be extended to any finite superset of those hypotheses.
+  \begin{HOLmath} \HOLthm{IntuitionisticProof.G_lw} \end{HOLmath}
+\end{lem}
+
+\noindent
+The following two lemmata form the main part of my formalisation, and are used together to prove the main theorem.
+
+\begin{lem}[From \textbf{N} to \textbf{G}]\label{NG}
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.N_G}
+  \end{HOLmath}
+\end{lem}
+
+\begin{proof}
+  The proof is by rule induction on \textbf{N}. Given a instance of an inference rule in \textbf{N}, I must construct a proof in \textbf{G} with the same hypotheses and conclusion.
+
+  Three cases are proven by a single rewrite with the rules of \textbf{G}, those corresponding to \textbf{N} rules: \textsf{ax, $\veebar$il and $\veebar$ir}.
+  The introduction rule cases of \textbf{N} generally are translated into the right rules of \textbf{G}. The elimination rules translate to an instance of the corresponding left rule, plus an instance of \textsf{cut}.
+
+  Here is the construction for the \textsf{$\bot$e} case, the next shortest case:
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{(BAG_OF_SET D) G Bot}}
+    \AxiomC{}
+    \RightLabel{\textsf{L$\bot$}}
+    \UnaryInfC{\HOLtm{(BAG_INSERT Bot EMPTY_BAG) G A}}
+    \RightLabel{\textsf{cut}}
+    \BinaryInfC{\HOLtm{(BAG_OF_SET D) G A}}
+    \DisplayProof
+  \]
+
+Here are the HOL tactics which prove this case:
+\begin{alltt}
+  `G \{|Bot|\} A` by metis_tac[G_bot,BAG_IN_BAG_INSERT,FINITE_BAG] >>
+  metis_tac[G_cut,BAG_UNION_EMPTY]
+\end{alltt}
+\texttt{metis\_tac} is the first order reasoner, which takes a \texttt{thm list}, where a \texttt{thm} is the datatype of propositions which have been proved in HOL. \texttt{Bot} is \HOLtm{Bot}, thms starting with \texttt{G_} are the names of \textbf{G} rules. \texttt{BAG\_IN\_BAG\_INSERT} proves that \HOLtm{BAG_IN Bot (BAG_INSERT Bot EMPTY_BAG)}, \texttt{FINITE\_BAG} proves that the hypotheses are finite and \texttt{BAG\_UNION\_EMPTY} removes the empty bag which \textsf{cut} introduces.
+
+While in the previous construction matches quite closely with the informal proof, for some cases I used tactics which are less similar in appearance.
+
+Consider the construction of the \textsf{$\to$i} case:
+\[
+  \AxiomC{}
+  \RightLabel{(IH)}
+  \UnaryInfC{\HOLtm{(BAG_OF_SET ((A INSERT EMPTY) UNION D)) G B}}
+  \RightLabel{\textsf{R$\to$}}
+  \UnaryInfC{\HOLtm{((BAG_OF_SET D)) G (A Imp B)}}
+  \DisplayProof
+\]
+
+Here are the HOL tactics for the \textsf{$\to$i} case:
+\begin{alltt}
+  irule G_rimp >>
+  fs[BAG_OF_SET_INSERT] >>
+  irule G_lw >>
+  simp[] >>
+  drule G_FINITE >>
+  rw[] >>
+  qexists_tac `BAG_MERGE \{|A|\} (BAG_OF_SET D)` >>
+  simp[BAG_MERGE_ELBAG_SUB_BAG_INSERT]
+\end{alltt}
+These tactics are in a backwards-proof style. \texttt{irule} reduces the goal (conclusion) to the antecedent of the supplied \texttt{thm}.
+\texttt{BAG\_OF\_SET\_INSERT} is an instance of bag of set union limited to singleton union.
+\texttt{G_lw} is \textbf{G} weakening.
+\texttt{drule} uses an assumption which matches the antecedent of the supplied \texttt{thm} and introduces the conclusion of that thm as an antecedent to the goal, this is like modes ponens.
+\texttt{rw} aggressively rewrites the goal using known rewrite rules, plus any \texttt{thm}s provided (none here).
+\texttt{qexists\_tac} supplies a witness to an existential goal.
+\texttt{simp} rewrites the goal using known rewrites and supplied thms. \texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT} says that a bag merge of a singleton and a bag is a sub-bag of a bag union of a singleton and a bag (so that I can weaken from merge to union).
+
+The following is the case for \textsf{$\to$e}, first in mathematical notation, then in HOL tactics, which this time display a mostly forwards-proof style. Each line with a \texttt{by} derives an assumption from other assumptions and the provided tactics:
+\[
+  \AxiomC{}
+  \RightLabel{IH}
+  \UnaryInfC{$\HOLtm{(BAG_OF_SET D) G (A Imp B)}$}
+  \AxiomC{}
+  \RightLabel{IH}
+  \UnaryInfC{$\HOLtm{(BAG_OF_SET D') G A}$}
+  \AxiomC{}
+  \RightLabel{\textsf{ax}}
+  \UnaryInfC{$\HOLtm{(BAG_INSERT B EMPTY_BAG) G B}$}
+  \RightLabel{L$\to$}
+  \BinaryInfC{$\HOLtm{(BAG_INSERT (A Imp B) EMPTY_BAG) + D' G B}$}
+  \RightLabel{\textsf{cut}}
+  \BinaryInfC{$\HOLtm{(BAG_OF_SET D) + (BAG_OF_SET D') G B}$}
+  \RightLabel{(complete contraction)}
+  \UnaryInfC{$\HOLtm{((BAG_OF_SET D) BAG_MERGE (BAG_OF_SET D')) G B}$}
+  \DisplayProof
+\]
+
+\begin{alltt}
+  rename[`N D (A Imp B)`] >>
+   simp[BAG_OF_SET_UNION] >>
+  `FINITE_BAG (BAG_OF_SET D')` by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
+  `G (BAG_INSERT B (BAG_OF_SET D')) B`
+    by simp[G_ax,BAG_IN_BAG_INSERT] >>
+  `G (BAG_INSERT (A Imp B) (BAG_OF_SET D')) B`
+    by metis_tac[G_limp] >>
+  `G ((BAG_OF_SET D) + (BAG_OF_SET D')) B`
+    by metis_tac[G_cut] >>
+  `G (unibag (BAG_OF_SET D + BAG_OF_SET D')) B` by metis_tac[G_unibag] >>
+  fs[unibag_UNION]
+\end{alltt}
+\texttt{rename} changes the name of variables, in this case I renamed \texttt{A'} to \texttt{B}. The symbol \texttt{+} is ASCII for $\uplus$. The first \texttt{simp} rewrites the goal as a bag merge, and the final \texttt{fs} rewrites the assumption from the previous line as a bag merge, which equals the goal.
+
+I will not go over the remainder of the cases, they are similar in structure to the presented cases.
+\end{proof}
+
+\begin{lem}[From \textbf{G} to \textbf{N}]\label{GN}
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.G_N}
+  \end{HOLmath}
+\end{lem}
+\begin{proof}
+  The proof is by rule induction on \textbf{G}. \Citeauthor{bpt} say that ``at each step in the proof we show how to construct from a G-deduction of $\Gamma \Rightarrow A$ an N-deduction of $\Gamma' \Rightarrow A$ for some $\Gamma'$ with $\Gamma' \subset \text{Set}(\Gamma)$''~\autocite[69]{bpt}\footnote{They actually write $\text{Set}(\Gamma') \subset \Gamma$, but this is incorrect since $\Gamma$ is the multiset and $\Gamma'$ is the set.}, but I found that you can avoid the need for a subset, by using weakening in the cases which would take a subset in their proof.
+
+  Two cases are proven by a single rewrite with the rules of \textbf{N}, the two instances of L$\veebar$.
+  The contraction (\textsf{cont}) rule is proven with the tactic \texttt{fs[SET_OF_BAG,BAG_UNION,BAG_INSERT]}, which rewrites the goal and assumptions with known rewrites and the supplied \texttt{thm}s. Here the extra formula disappears when converted to a set.
+
+  Since I use weakening rather than some subset of hypotheses, it takes longer to prove the \textsf{ax} and \textsf{L$\bot$} cases than in the book. In the book they say these rules correspond to proof trees in \textbf{N} with a single node \HOLtm{A} and $\frac{\bot}{A}$ respectively. My tactics to prove the \textsf{ax} rule are as follows:
+  \begin{alltt}
+    `?b. \HOLtm{Gamma} = BAG_INSERT A b` by metis_tac[BAG_DECOMPOSE] >>
+    fs[] >>
+    simp[SET_OF_BAG_INSERT, Once INSERT_SING_UNION] >>
+    `N \{A\} A` by metis_tac[N_ax] >>
+    simp[UNION_COMM] >>
+    irule N_lw_SUBSET >>
+    conj_tac >- metis_tac[FINITE_UNION,FINITE_SET_OF_BAG,FINITE_DEF] >>
+    metis_tac[SUBSET_UNION]
+  \end{alltt}
+  The \texttt{?} is ASCII for $\exists$. Since I use bag membership in the definition of \textsf{ax}, I must first decompose $\Upgamma$ into an insert. I than replace the occurrences of $\Upgamma$ in the goal and assumptions with the insert expression using \texttt{fs}. The \texttt{simp} rewrites the goal with the singleton set outside the \texttt{SET_OF_BAG} rather than a singleton bag inside. I then use \textsf{ax} to instantiate a proof of \HOLtm{A}. I then weaken this to a proof of the goal, by rewriting the goal (\texttt{simp}) with commutativity, and proving that the goal is a finite superbag of \texttt{\{A\}} with the last two tactics. \texttt{conj\_tac} splits a conjunctive goal into two sub-goals, the first of which is the finiteness of the superbag, which I prove with the relevant finiteness lemmata. The second sub-goal is that \texttt{\{A\}} is a subset of the goal (a union containing \texttt{\{A\}}), and is solved with the \texttt{SUBSET\_UNION} lemma.
+
+  The right rules of \textbf{G} correspond to introduction rules in \textbf{N}.
+
+  Here is the prooftree for the \textsf{R$\to$} case:
+  \[
+    \AxiomC{}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG ((BAG_INSERT A EMPTY_BAG) + Gamma)) N B}}
+    \RightLabel{(bring \HOLtm{A} out)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION (SET_OF_BAG  Gamma)) N B}}
+    \RightLabel{\textsf{$\to$i}}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG Gamma) N (A Imp B)}}
+    \DisplayProof
+  \]
+
+  Here are the tactics which prove the \textsf{R$\to$} case:
+  \begin{alltt}
+    fs[SET_OF_BAG_INSERT] >>
+    metis_tac[N_impi]
+  \end{alltt}
+
+  The left rules require the assumptions be replaced with an elimination rule which derives the assumption.
+  Here is the case for \textsf{L$\veebar$}, which differs from the book due to my weakening use as described earlier:
+  \[
+    \AxiomC{}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{(SET_OF_BAG ((BAG_INSERT A EMPTY_BAG) + Gamma)) N C}}
+    \RightLabel{\textsf{$\to$i} (\textbf{Nd} version)}
+    \UnaryInfC{\HOLtm{((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) N (A Imp C)}}
+    \AxiomC{}
+    \RightLabel{\textsf{ax}}
+    \UnaryInfC{\HOLtm{((A And B) INSERT EMPTY) N (A And B)}}
+    \RightLabel{\textsf{$\barwedge$e}}
+    \UnaryInfC{\HOLtm{((A And B) INSERT EMPTY) N A}}
+    \RightLabel{\textsf{$\to$e}}
+    \BinaryInfC{\HOLtm{(((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) UNION ((A And B) INSERT EMPTY)) N C}}
+    \RightLabel{(superset weakening, commutativity)}
+    \UnaryInfC{\HOLtm{(((A And B) INSERT EMPTY) UNION SET_OF_BAG Gamma) N C}}
+    \DisplayProof
+  \]
+
+  Here are the HOL tactics which prove the case, the structure is quite similar to the proof-tree, with some rewrites interspersed, and the last four lines correspond to the last inference of the tree:
+
+  \begin{alltt}
+    rename [`N _ C`] >>
+    fs[SET_OF_BAG_INSERT] >>
+    `N {A And B} (A And B)` by metis_tac[N_ax] >>
+    `N {A And B} A` by metis_tac[N_andel] >>
+    `N ((A INSERT (SET_OF_BAG \HOLtm{Gamma})) DELETE A) (A Imp C)`
+      by metis_tac[N_impi_DELETE] >>
+    fs[DELETE_DEF] >>
+    `N (((SET_OF_BAG \HOLtm{Gamma}) DIFF {A}) UNION {A And B}) C` by metis_tac[N_impe] >>
+    `N ((A And B) INSERT ((SET_OF_BAG \HOLtm{Gamma}) DIFF {A})) C`
+              by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+    irule N_lw_SUBSET >>
+    conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+    qexists_tac `(A And B) INSERT SET_OF_BAG \HOLtm{Gamma} DIFF {A}` >>
+    rw[SUBSET_DEF]
+  \end{alltt}
+
+  I will not show any of the other cases, as they are all fairly similar.
+
+\end{proof}
+
+\noindent
+The following is the primary theorem of this project:
+
+\begin{thm}[Proof of equivalence between \textbf{N} and \textbf{G}]\label{GiffN}
+
+  Given the same hypotheses, modulo weakening, the same formulae are provable in both calculi. This is Theorem 3.3.1 in \textcite{bpt}.
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.G_iff_N}
+  \end{HOLmath}
+\end{thm}
+\begin{proof}
+  \textit{(only if)} by \cref{GN}.\\
+
+  \noindent
+  \textit{(if)} by \cref{NG} and \cref{Gunibag} (Complete contraction).\\
+
+  In HOL:
+  \begin{alltt}
+    rw[G_N] >>
+    EQ_TAC >- rw[G_N] >>
+    rw[] >>
+    `G (unibag \HOLtm{Gamma}) A` by metis_tac[N_G] >>
+    metis_tac[G_unibag]
+  \end{alltt}
+\end{proof}
+
+\section{Discussion of Issues} %(bags)
+\subsection{Learning Curve}
+I found HOL to have quite a steep learning curve. Several weeks were dedicated to learning how to prove basic propositions which are trivial to prove on paper. Knowing a proof does not help much if you do not know how to use the theorem prover. I found that the documentation was difficult to read, as it is very technical once you get past the tutorial. However, I now have gained some confidence in HOL, and its particularities make more sense now that I am used to them.
+
+The difficulty lies not just in understanding how HOL works, but also in remembering and knowing how to find the tools that will prove your proposition. HOL implements \emph{goal directed} proof as a method of proving theorems, and this is what I used to prove all of the results in this project. To prove a goal in HOL, one uses \emph{tactics}, which help to construct a proof starting with the desired conclusion. There are many tactics available in HOL, most of which I have not used and don't understand. In addition there is a library of theories which contain theorems which can be used by some tactics as lemmata to advance towards the goal. The combined number of options is intimidating at first, but I found that only a small subset of these tools were necessary for the purposes of this project.
+
+\subsection{Bag Theory}
+A significant portion of effort in this project was dedicated to proving lemmata concerning bags. As discussed earlier, the existing bag theory in HOL contained only some of the results which I needed, so I had to prove them myself. The bag theory in HOL is also somewhat confusing in its formulation. For example, there is a ternary relation called \textsf{BAG_DELETE} which is defined \HOLthm[def,tt]{bag.BAG_DELETE}, in contrast to the set theory binary relation called \textsf{DELETE} which is defined \HOLthm[def,tt]{pred_set.DELETE_DEF}. The first is used to relate two bags, one of which has already had an element deleted, the second (more intuitively) is a function which deletes an element from a set.
+
+In the process of proving the necessary bag lemmata, I often found myself looking at a mess of conditionals inside lambda abstractions. For a simple example, suppose I wanted to prove that \HOLtm{(BAG_OF_SET s) - b = (BAG_OF_SET (s DIFF (SET_OF_BAG b)))} and I expand the definitions of the operators, I get:
+\begin{HOLmath}
+  \HOLtm{(λx. (if s x then 1 else 0) − b x) = (λx. if s x ∧ ¬(b x ≥ 1) then 1 else 0)}.
+\end{HOLmath}
+The only way I found to prove a goal like this is to use \textsf{FUN_EQ_THM}:\HOLthm[tt]{bool.FUN_EQ_THM}, a theorem which does not mention lambda abstractions nor conditionals, so took some time for me to find.
+
+\subsection{Summary of effort}
+The effort and time required to formalise mathematics in HOL is more than that which it takes to cover the same content informally. After a few weeks learning to use HOL, another full month has been spent formalising content which I understood after only a day or two of reading \textcite{bpt}. In total I have spent over 40 hours learning HOL, and 90 hours formalising the relevant proof theory.
+
+
+\section{Future Work}
+% Summary of effort/Future Work/What'd I'd do differently
+% abstract derivation relation, which you give a set of inference rules, much more flexible and less redundancy in script.sml. Better for cut/cutfree stuff
+% prove cutfree stuff, relationship to normalised nd derivations
+% classical, predicate
+\subsection{Extensions of the proof}
+\subsubsection{Classical Logic}
+I would have liked to have formalised the proof for classical logic as well as intuitionistic logic, but I was unable to due to time. I did make some progress, but due to the differences between the classical absurdity rules of Natural Deduction and Sequent Calculus, extra work is required which I have not completed. The rest of the rules did not seem to cause any significant difficulty, and in fact I was able to prove all cases of $\textbf{N} \Rightarrow \textbf{G}$, except for the negation case, in a single afternoon.
+
+Here are the negation rules in question. Note that in classical sequent calculus the consequent is a bag of formulae rather than an individual formula:
+\begin{HOLmath}
+  \HOLthm[rule,rulename=$\bot_c$e,conj10]{pp.Nc_rules}
+  \hspace{0.5cm}
+  \HOLthm[rule,rulename=L$\bot_c$,conj2]{pp.Gc_rules}
+\end{HOLmath}
+
+\Citeauthor{bpt} leave the proof of equivalence for classical logic as an exercise for the reader~\autocite[Thm. 3.3.3]{bpt}.
+
+\subsubsection{First Order Logic}
+I would have liked to have extended the proof to first order logic. In future it would be interesting to do so. The first order proof contains the propositional one I have done, and they do not separate them in \textcite[Sec. 3.3]{bpt}.
+
+\subsubsection{Cut-free proofs and Normalisation}
+A substantial part of \textcite{bpt} is dedicated to cut-free sequent calculus (\textbf{G} without the cut rule), and there is a proof that this is equivalent to normalised natural deduction~\autocite[Sec. 6.3.1]{bpt}. Cut-free sequent calculus is interesting because it has the subformula property, that is, in any proof of \HOLtm{Gamma G Delta}, only subformulae of \HOLtm{Gamma} and \HOLtm{Delta} appear. This has many applications, for example, propositional intuitionistic logic is decidable, and a decision procedure exists in a cut-free sequent calculus~\autocite[Thm. 4.2.6]{bpt}.
+
+\subsection{Other Proof Theory}
+Other calculi of interest to me are those for modal logics. \Citeauthor{bpt} present a sequent calculus for \textbf{S4}, and prove that intuitionistic logic can be embedded into it~\autocite[Sec. 9.2]{bpt}. This would have been more interesting to formalise, but I expect would have been more challenging as I have less experience with calculi of non-classical logics. There are many modal logics and multiple calculi for each, so there is a room for more original formalisation in this area.
+
+\subsection{Flexible sets of rules}
+The main improvement I would have liked to have made to my formalisation is a significant alteration in how the proof systems are defined. Since there are many variants of the proof systems, and many of these build upon each other, it would be optimal to be able to specify a set of inference rules rather than redefine all of the redundant rules each time I want to define a deducibility relation for a system.
+
+This would allow me to define a set of cut-free sequent calculus rules, and then add the cut rule to them to form cut-full sequent calculus, for example.
+
+This modification to my formalisation would make the other extensions I considered easier to implement, and would also decrease clutter in the HOL code.
+
+\section{Conclusion}
+I have successfully mechanised the equivalence proof between propositional intuitionistic natural deduction and sequent calculus. In doing so I have learnt a lot about theorem proving and have deepened my understanding of proof theory and mathematical logic, thus satisfying the purpose of undertaking this project. While learning to use HOL was a challenge, the tools which HOL has for inductive definitions and rule induction seem well suited to formalisation of proof theory. I now have an appreciation for the significant effort required to formalise mathematics in a theorem prover compared to proving the same mathematics on paper, and have come to enjoy this process nonetheless.
+
+\subsection{Acknowledgements}
+I am very grateful to Michael Norrish for supervising my project, AMSI for awarding me a Vacation Research Scholarship for this project and my wife Myvanwy for listening to my logic-fuelled rants.
+\printbibliography
+\newpage
+
+\section{Appendix}\label{appendix}
+\subsection{Bag Lemmata}
+This is a list of the theorems I have formalised in HOL.
+The source for this project can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}.
+In addition, the following bag and unibag lemmata I wrote have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}.
+I have given the theorem names as they appear in HOL.
+
+\begin{lem}[\texttt{BAG\_MERGE\_SUB\_BAG\_UNION}]             \HOLthm[tt]{bag.BAG_MERGE_SUB_BAG_UNION}                       \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_EMPTY}]                       \HOLthm[tt]{bag.BAG_MERGE_EMPTY}                               \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT}]     \HOLthm[tt]{pp.BAG_MERGE_ELBAG_SUB_BAG_INSERT'}                \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_EQ\_EMPTY}]                   \HOLthm[tt]{bag.BAG_MERGE_EQ_EMPTY}                            \end{lem}
+\begin{lem}[\texttt{BAG\_INSERT\_EQ\_MERGE\_DIFF}]
+  \begin{HOLmath} \HOLthm{pp.BAG_INSERT_EQ_MERGE_DIFF'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_BAG\_INSERT}]
+  \begin{HOLmath} \HOLthm{pp.BAG_MERGE_BAG_INSERT'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_UNION}]                     \HOLthm[tt]{bag.BAG_OF_SET_UNION}                              \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_INSERT}]                    \HOLthm[tt]{pp.BAG_OF_SET_INSERT'}                             \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_BAG\_DIFF\_DIFF}]           \HOLthm[tt]{bag.BAG_OF_SET_BAG_DIFF_DIFF}                      \end{lem}
+\begin{lem}[\texttt{SET\_OF\_EL\_BAG}]                        \HOLthm[tt]{pp.SET_OF_EL_BAG'}                                 \end{lem}
+\begin{lem}[\texttt{BAG\_OF\_SET\_EQ\_INSERT}]                \HOLthm[tt]{pp.BAG_OF_SET_EQ_INSERT'}                          \end{lem}
+\begin{lem}[\texttt{FINITE\_BAG\_MERGE}]                      \HOLthm[tt]{bag.FINITE_BAG_MERGE}                              \end{lem}
+\begin{lem}[\texttt{BAG\_MERGE\_CARD}]
+  \begin{HOLmath} \HOLthm{bag.BAG_MERGE_CARD} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{BAG\_ALL\_DISTINCT\_SUB\_BAG}]            \HOLthm[tt]{bag.BAG_ALL_DISTINCT_SUB_BAG}                      \end{lem}
+\begin{defn}
+  \HOLtm{BAG_FILTER P b} returns b filtered to include only elements of P:\footnote{Not my definition, just included to explain next lemma}
+  \begin{HOLmath} \HOLthm{bag.BAG_FILTER_DEF} \end{HOLmath}
+\end{defn}
+\begin{lem}[\texttt{BAG\_OF\_SET\_DIFF}]   \HOLthm[tt,s/b,s'/b']{bag.BAG_OF_SET_DIFF}   \end{lem}
+\begin{lem}[\texttt{FINITE\_BAG\_OF\_SET}] \HOLthm[tt]{bag.FINITE_BAG_OF_SET} \end{lem}
+
+\subsection{Unibag Lemmata}
+% TODO define unibags
+\begin{lem}[\texttt{unibag\_INSERT}]                           \HOLthm[tt]{pp.unibag_INSERT'}         \end{lem}
+\begin{lem}[\texttt{unibag\_UNION}]                            \HOLthm[tt]{bag.unibag_UNION}          \end{lem}
+\begin{lem}[\texttt{BAG\_IN\_unibag}]                          \HOLthm[tt]{bag.BAG_IN_unibag}         \end{lem}
+\begin{lem}[\texttt{unibag\_EQ\_BAG\_INSERT}]                  \HOLthm[tt]{pp.unibag_EQ_BAG_INSERT'}  \end{lem}
+\begin{lem}[\texttt{unibag\_FINITE}]\label{unibagFINITE}       \HOLthm[tt]{bag.unibag_FINITE}         \end{lem}
+\begin{lem}[\texttt{unibag\_ALL\_DISTINCT}]                    \HOLthm[tt]{bag.unibag_ALL_DISTINCT}   \end{lem}
+\begin{lem}[\texttt{unibag\_EL\_MERGE\_cases}]
+  \begin{HOLmath} \HOLthm{pp.unibag_EL_MERGE_cases'} \end{HOLmath}
+\end{lem}
+\begin{lem}[\texttt{unibag\_DECOMPOSE}]                        \HOLthm[tt]{bag.unibag_DECOMPOSE}      \end{lem}
+\begin{lem}[\texttt{unibag\_SUB\_BAG}]\label{unibagSUBBAG}     \HOLthm[tt]{bag.unibag_SUB_BAG}        \end{lem}
+
+\subsection{Main Lemmata and Theorems}
+
+\begin{lem}[\texttt{N\_FINITE}]          \HOLthm[tt]{IntuitionisticProof.N_FINITE}       \end{lem}
+\begin{lem}[\texttt{N\_lw}]              \HOLthm[tt]{pp.N_lw'}                           \end{lem}
+\begin{lem}[\texttt{Nd\_lw}]             \HOLthm[tt]{pp.Nd_lw'}                          \end{lem}
+\begin{lem}[\texttt{N\_lw\_SUBSET}]      \HOLthm[tt]{IntuitionisticProof.N_lw_SUBSET}    \end{lem}
+\begin{lem}[\texttt{Nd\_lw\_SUBSET}]     \HOLthm[tt]{IntuitionisticProof.Nd_lw_SUBSET}   \end{lem}
+\begin{lem}[\texttt{N\_impi\_DELETE}]    \HOLthm[tt]{pp.N_impi_DELETE'}                  \end{lem}
+\begin{thm}[\texttt{N\_Nd}]              \HOLthm[tt]{IntuitionisticProof.N_Nd}           \end{thm}
+\begin{lem}[\texttt{G\_FINITE}]          \HOLthm[tt]{IntuitionisticProof.G_FINITE}       \end{lem}
+\begin{lem}[\texttt{G\_lw}]\label{Glw}   \HOLthm[tt]{IntuitionisticProof.G_lw}           \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_INSERT}] \HOLthm[tt]{pp.G_lw_BAG_INSERT'}                \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_MERGE}]  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_MERGE} \end{lem}
+\begin{lem}[\texttt{G\_lw\_BAG\_UNION}]  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_UNION} \end{lem}
+\begin{lem}[\texttt{G\_unibag}]          \HOLthm[tt]{IntuitionisticProof.G_unibag}       \end{lem}
+\begin{lem}[\texttt{N\_G}]               \HOLthm[tt]{IntuitionisticProof.N_G}            \end{lem}
+\begin{lem}[\texttt{G\_N}]               \HOLthm[tt]{IntuitionisticProof.G_N}            \end{lem}
+\begin{thm}[\texttt{G\_iff\_N}]          \HOLthm[tt]{IntuitionisticProof.G_iff_N}        \end{thm}
+
+\end{document}

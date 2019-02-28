@@ -3,7 +3,7 @@ INCLUDES = $(HOME)/project/HOL
 THYDEPS = FormulaSyntax MinimalProof IntuitionisticProof
 
 DEPS = $(patsubst %,$(HOME)/project/HOL/%Theory.uo,$(THYDEPS))
-all: COMP3710-report.pdf
+all: COMP3710-report.pdf amsi-report.pdf
 .PHONY: all
 
 munge.exe: ppTheory.uo ppScript.sml
@@ -15,5 +15,10 @@ COMP3710-report.tex: COMP3710-report.htex overrides munge.exe
 COMP3710-report.pdf: COMP3710-report.tex report.bib
 	latexmk -bibtex -pdf -interaction=nonstopmode -g COMP3710-report
 
-EXTRA_CLEANS = COMP3710-report.tex COMP3710-report.aux COMP3710-report.pdf
-#COMP3710-report.bbl COMP3710-report.bcf COMP3710-report.fls COMP3710-report.out COMP3710-report.fdb_latexmk COMP3710-report.run.xml
+amsi-report.tex: amsi-report.htex overrides munge.exe
+	./munge.exe -m\, overrides < $< > $@
+
+amsi-report.pdf: amsi-report.tex report.bib
+	latexmk -bibtex -pdf -f -interaction=nonstopmode -g amsi-report
+
+EXTRA_CLEANS = COMP3710-report.tex COMP3710-report.aux COMP3710-report.pdf amsi-report.tex amsi-report.aux amsi-report.pdf
