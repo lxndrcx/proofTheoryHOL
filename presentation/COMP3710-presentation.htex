@@ -1,9 +1,17 @@
+
 \documentclass[english,svgnames,hide notes,12pt]{beamer}
 % \usetheme{Madrid}
 \useoutertheme{infolines}
 \useinnertheme[shadow]{rounded}
 \usecolortheme{seahorse}
 
+%% Show notes on other screen
+\usepackage{pgfpages}
+% \setbeameroption{show notes on second screen=right}
+
+%% Use overlays for enum and item environments.
+% \beamerdefaultoverlayspecification{<+->}
+\setbeamercovered{transparent}
 
 \usepackage{bussproofs}
 \usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
@@ -12,8 +20,9 @@
 \usepackage{alltt}
 \usepackage{MnSymbol}
 \usepackage{textgreek}
-\usepackage[backend=biber, style=numeric-comp]{biblatex}
+\usepackage[backend=biber, style=authoryear-comp]{biblatex}
 \addbibresource{presentation.bib}
+\addbibresource{report.bib}
 
 \newtheorem{thm}{Theorem}
 \theoremstyle{definition}
@@ -43,21 +52,24 @@
     The proof I have been formalising is the equivalence between Natural Deduction and Sequent Calculus, for intuitionistic propositional logic.
 
     \bigskip
-    I have been working from \citetitle{bpt} by \citeauthor{bpt}, with some small deviations which I shall explain along the way.
+    I have been working from \textcite{bpt}, with some small deviations which I shall explain along the way.
 \end{frame}
 
 \section{Theorem Proving in HOL}
 
 \begin{frame}{Theorem Provers}
     \begin{itemize}
-        \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
-        \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
+      \item{I assume you already have some knowledge of theorem provers, but I include this brief definition for completeness.}
+      \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
+      \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
     \end{itemize}
 \end{frame}
 
 \begin{frame}{The HOL Theorem Prover}
   I have been using the HOL theorem prover (HOL4), a theorem prover which implements a Higher Order Logic which is a variant of Church's Simple Theory of Types.
-  HOL is engineered so that theorems can only be produced under the control of a small trusted kernel.
+
+  \bigskip
+  HOL is engineered so that theorems can only be produced under the control of a small trusted kernel. This small trusted kernel consists of a handful of axioms and some basic inference rules. Larger, more complicated, inference rules are constructed using this small trusted kernel.
 \end{frame}
 
 \begin{frame}{Why Bother?}
@@ -90,15 +102,12 @@
 
     \bigskip
     In HOL:
-    \small
-\begin{alltt}
-val _ = Datatype `formula =
-    Var 'a
-    | Or formula formula
-    | And formula formula
-    | Imp formula formula
-    | Bot`;
-\end{alltt}
+    \begin{HOLmath}
+    \HOLthm{FormulaSyntax.datatype_formula}
+  \end{HOLmath}
+  \note{These connectives are defined in prefix even though they are used as infix later.}
+
+  I'm using typeset definitions and theorems exported from HOL.
 \end{frame}
 
 \begin{frame}{Abbreviations}
@@ -106,6 +115,14 @@ val _ = Datatype `formula =
   \[ \neg \varphi := \varphi \to \bot \]
   \[ \varphi \leftrightarrow \psi := (\varphi \to \psi) \land (\psi \to \varphi) \]
   \[ \top := \bot \to \bot \]
+  \bigskip
+  \begin{defn}
+  \begin{HOLmath}
+    \HOLthm{FormulaSyntax.Not_def}\\
+    \HOLthm{FormulaSyntax.BiImp_def}\\
+    \HOLthm{FormulaSyntax.Top_def}
+  \end{HOLmath}
+  \end{defn}
 \end{frame}
 
 \newcommand{\bs}{\char`\\}
