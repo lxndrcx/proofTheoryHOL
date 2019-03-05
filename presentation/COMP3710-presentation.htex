@@ -6,7 +6,7 @@
 
 %% Show notes on other screen
 \usepackage{pgfpages}
-% \setbeameroption{show notes on second screen=right}
+%notes%\setbeameroption{show notes on second screen=right}
 
 %% Use overlays for enum and item environments.
 % \beamerdefaultoverlayspecification{<+->}
@@ -51,46 +51,57 @@
 \begin{document}
 \begin{frame}[plain]
     \titlepage{}
+    \note{Hi, I'm Alexander Cox. Today I'm going to tell you about my COMP3710 project which I have been doing as part of my Bachelor of Science.}
 \end{frame}
 
 \section{Introduction}
-\subsection{Introduction}
 \begin{frame}
     \frametitle{Introduction}
     Over the summer, I have been formalising some proof theory in the HOL4 theorem prover.
+    \note[item]{This summer I have been using the HOL interactive theorem prover to formalise some mathematical logic.}
 
     \bigskip
     The proof I have been formalising is the equivalence between Natural Deduction and Sequent Calculus, for intuitionistic propositional logic.
+    \note[item]{I wanted to formalise the proof of the equivalence between two propositional logic calculi, Natural Deduction and Sequent Calculus. }
 
     \bigskip
     I have been working from \textcite{bpt}, with some small deviations which I shall explain along the way.
+    \note[item]{I have been working from the book "basic proof theory" by Troelstra and Schwichtenburg. I will note any differences from the book when relevant.}
 \end{frame}
 
 \section{Theorem Proving}
-\subsection{Introduction}
 \begin{frame}{Theorem Provers}
     \begin{itemize}
       \item{I assume you already have some knowledge of theorem provers, but I include this brief definition for completeness.}
+      \note[item]{I am guessing that you have seen many of the definitions I am going to give, but I will include the important ones for completeness.}
       \item An \emph{Interactive Theorem Prover} or \emph{Proof Assistant} is software used to formalise and verify the correctness of proofs.
+        \note[item]{A Theorem Prover is a software environment in which you can formalise and check the correctness of proofs.}
       \item Proving a proposition in a theorem prover usually takes significantly more time than proving an informal proof on paper.
+        \note[item]{Using a theorem prover to formalise something usually takes more time and effort than it would on paper.}
     \end{itemize}
+\end{frame}
+
+\subsection{Motivation}
+\begin{frame}{Why Bother?}
+  \note{So why have I chosen to use a theorem prover, given that it takes so much time and effort? }
+    \begin{enumerate}
+        \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
+          \note[item]{Well, given that your theorem prover is sound, proving a proposition in the theorem prover gives you a guarantee of correctness for your proof.}
+        \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
+          \note[item]{Also, sometimes when mathematicians prove something informally, they make small mistakes, or skim over details which appear trivial. In a theorem prover this is not possible, every step needs to be justified.}
+        \item I wanted to learn about theorem provers, and this seemed like a good project for that.
+          \note[item]{Another reason I wanted to do this project is because I wanted to learn to use a theorem prover, and this project seemed like a good fit for that purpose.}
+    \end{enumerate}
 \end{frame}
 
 \subsection{HOL4}
 \begin{frame}{The HOL Theorem Prover}
   I have been using the HOL theorem prover (HOL4), a theorem prover which implements a Higher Order Logic which is a variant of Church's Simple Theory of Types.
+  \note[item]{The theorem prover I have been using is HOL4, which I will refer to as just HOL. It implements a variant of Church's Simple Theory of Types, which is a Higher Order Logic.}
 
   \bigskip
   HOL is engineered so that theorems can only be produced under the control of a small trusted kernel. This small trusted kernel consists of a handful of axioms and some basic inference rules. Larger, more complicated, inference rules are constructed using this small trusted kernel.
-\end{frame}
-
-\subsection{Motivation}
-\begin{frame}{Why Bother?}
-    \begin{enumerate}
-        \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
-        \item Proving a theorem formally can reveal problems with the informal proof in some cases, since details cannot be skimmed over like they sometimes are in informal proofs.
-        \item I wanted to learn about theorem provers, and this seemed like a good project for that.
-    \end{enumerate}
+  \note[item]{HOL theorems can only be constructed using a small trusted kernel. This kernel consists of just a few axioms and inference rules which are considered correct by the HOL community. All higher level inference relies on only this small trusted kernel.}
 \end{frame}
 
 \section{Proof Theory and Logic}
@@ -98,30 +109,38 @@
 \subsection{Proof Theory}
 \begin{frame}{Proofs about proofs}
     I have been talking about proofs in HOL, now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. This discussion is syntactical, and not semantic.
+    \note[item]{Before I proceed, I'd like to make sure I don't confuse you. I have just been talking about proving mathematical propositions in HOL, these could be any mathematical proofs.}
+    \note[item]{I'm about to talk about proof theory in HOL, which involves proofs about proofs.}
 
     \bigskip
-    HOL is the meta-logic used to formalise the (object-)logic which is used in the proof systems I am analysing.
+    HOL is the meta-logic used to formalise the (object-)logic which is used in the proof systems I am analysing. The object-logic is intuitionistic propositional logic.
+    \note[item]{HOL is the meta-logic I am using to formalise the object-logic of the proof calculi I have studied. These calculi use intuitionistic propositional logic.}
 
     \bigskip
     Standard ML is the meta-language of HOL and the interface to the logic.
+    \note[item]{HOL is written in the functional programming language Standard ML, which is also the main interface of HOL. This makes Standard ML the meta-language of HOL.}
 
     \bigskip
     English is the language and meta-language of this talk.
+    \note[item]{English is both the language and meta-language of this talk.}
 \end{frame}
 
 \subsection{Logic}
 
 \begin{frame}[fragile]
     \frametitle{Propositional Logic Syntax}
+    \note[item]{The formulae of propositional logic are defined inductively. Here is the definition in Backus-Naur Form:}
     Propositional logic formulae are defined inductively as follows:
+    \note[item]{A formula phi is either a variable, a disjunction of formulae, a conjunction of formulae, a implication between formulae, or the falsity operator.}
     \[ \varphi ::= a~|~\varphi \lor \varphi~|~\varphi \land \varphi~|~\varphi \to \varphi~|~\bot \]
 
     \bigskip
     In HOL:
+    \note[item]{Here is the definition of formulae as I formalised it in HOL, which is much the same as in mathematical notation above, but defines a datatype named formula, which above I called phi, and the logical operators are given in prefix notation rather than infix as they are in the mathematical form.}
     \begin{HOLmath}
     \HOLthm{FormulaSyntax.datatype_formula}
   \end{HOLmath}
-  \note{These connectives are defined in prefix even though they are used as infix later.}
+  \note[item]{These connectives are defined in prefix here due to the way datatypes are defined in HOL, but are used in infix later.}
 
   I'm using typeset definitions and theorems exported from HOL.
 \end{frame}
@@ -130,10 +149,15 @@
   \begin{notn}
     I use $A,B,C$ for arbitrary formulae.
   \end{notn}
+  \note[item]{The remainder of propositional logic syntax is defined by abbreviation.}
+  \note[item]{The following lines beginning with a turnstile are definitions exported from HOL.}
   \begin{notn}
     Lines beginning with $\vdash$ are `theorems' (the \texttt{thm} type), from HOL.
   \end{notn}
 
+  \note[item]{Negation is defined as implication of falsity.}
+  \note[item]{Bi-implication is defined as the conjunction of the implication and it's converse.}
+  \note[item]{Truth is defined as falsity implying itself}
   \begin{defn}
   \begin{HOLmath}
     \HOLthm[tt]{FormulaSyntax.Not_def}\\
@@ -147,30 +171,37 @@
 \subsection{Inference Rules}
 
 \newcommand{\bs}{\char`\\}
-\begin{frame}[fragile]
-    \frametitle{Inference Rules}
-    An inference rule in a system $S$ is a condition under which a conclusion can be inferred from hypotheses:
-    \[
-        \AxiomC{$\Gamma_0 \vdash_S \varphi_0$}
-        \AxiomC{$\dots$}
-        \AxiomC{$\Gamma_n \vdash_S \varphi_n$}
-        \RightLabel{(rule)}
-        \TrinaryInfC{$\Delta \vdash_S \psi$}
-        \DisplayProof
-    \]
-    Presented with hypotheses above and conclusion below.
+\begin{frame}[fragile]{Inference Rules}
+  \note[item]{I use inference rules to define my calculi, so I will first define inference rules.}
+  An inference rule in a system $S$ is a condition under which a conclusion can be inferred from hypotheses:
+  \note[item]{An inference rule in a system is a condition under which a conclusion can be inferred from hypotheses.}
+  \[
+      \AxiomC{$\Gamma_0 \vdash_S \varphi_0$}
+      \AxiomC{$\dots$}
+      \AxiomC{$\Gamma_n \vdash_S \varphi_n$}
+      \RightLabel{(rule)}
+      \TrinaryInfC{$\Delta \vdash_S \psi$}
+      \DisplayProof
+  \]
+  Presented with hypotheses above and conclusion below.
+  \note[item]{The hypotheses are presented above the line, the rule name to the right, and the conclusion below.}
 
-    \bigskip
-    In HOL I type:
-    \begin{alltt}
-        S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
-    \end{alltt}
+  \bigskip
+  In HOL I type:
+  \begin{alltt}
+      S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
+  \end{alltt}
+  \note[item]{And here is how it is typed in HOL, as a conjunction of hypotheses implying a conclusion.}
+  \note[item]{Note that in my project code I used a prefix relation for each calculi, and in this presentation I use and infix turnstile with the system name as a subscript.}
 
-    In HOL, I represent the infix binary relation ($\vdash_S$) as a prefix \texttt{S} relation, for no particular reason.
+  In HOL, I represent the infix binary relation ($\vdash_S$) as a prefix \texttt{S} relation, for no particular reason.
 \end{frame}
 
 \subsection{Natural Deduction}
 \begin{frame}{Natural Deduction}
+  \note[item]{The first Calculus I will talk about is Natural Deduction, which I present in sequent style.}
+  \note[item]{I represent the open assumptions as a set of hypotheses to the left of the turnstile.}
+  \note[item]{Natural Deduction has one axiom in addition to introduction and elimination rules for each operator except falsity, which only has an elimination rule.}
   In Natural Deduction (\textbf{N}) the hypotheses are a represented as a set of formulae (\textbf{N} is in sequent style).  \textbf{N} has introduction and elimination rules, as well as one axiom.
   \begin{defn}[Some \textbf{N} rules]
     \begin{HOLmath}
@@ -185,11 +216,13 @@
   \begin{remk}
     I will only present some of the rules in this talk, there are introduction and elimination rules for each formula connective.
   \end{remk}
+  \note[item]{There are more rules than these, please ask at the end of the talk if you'd like to see them.}
 
 \end{frame}
 
 \begin{frame}{Weakening in Natural Deduction}
   You can add additional assumptions if you like, this is called weakening.
+  \note[item]{Weakening is permitted in Natural Deduction, here is the proof}
 
   \begin{lemma}[\textbf{N} weakening]
     \begin{HOLmath}
@@ -213,12 +246,15 @@
 \end{corl}
 \end{frame}
 
-\begin{frame}{Discharge deviation from book}
+\begin{frame}{Discharge difference from book}
   \begin{remk}
     In the book, the hypotheses are labelled. In my formalisation I keep them unlabelled (Complete Discharge Convention, permissible).
   \end{remk}
+  \note[item]{The standard formulation in the book uses labelled assumptions, which are discharged separately even if they are the same formula. I use the complete discharge convention from the book, which is equivalent to the labelled discharge for my purposes.}
 
   \bigskip
+  \note[item]{The inference rules I use which have a discharge are slightly different from those in the book.}
+  \note[item]{My rules have a set union above the line, the book has a set difference below the line. Here are the rules which differ.}
   \begin{defn}[\textbf{Nd} discharge rules]
     The book has different rules for discharge, which I formalised as \textbf{Nd}:
     \begin{HOLmath}
@@ -230,7 +266,8 @@
 
 \end{frame}
 
-\begin{frame}{The deviation is equivalent}
+\begin{frame}{The difference is equivalent}
+  \note[item]{I prove that the two formulations are equivalent, that is, they derive the same formulae from the same assumptions.}
   \begin{thm}[\textbf{N} is equivalent to \textbf{Nd}]
     Both formulations derive the same formulae from the same hypotheses:
     \begin{HOLmath}
@@ -238,6 +275,7 @@
     \end{HOLmath}
   \end{thm}
 
+  \note[item]<1>{First I prove from my formulation to theirs.}
   \begin{onlyenv}<1>
   \begin{proof}[Proof (only if).]
   By rule induction on \textbf{N}.
@@ -547,6 +585,26 @@ conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
 qexists_tac `(A And B) INSERT SET_OF_BAG \HOLtm{Gamma} DIFF {A}` >>
 rw[SUBSET_DEF]
 \end{alltt}
+\end{frame}
+
+\subsection{Primary Theorem}
+\begin{frame}[fragile]{Proof Of The Primary Theorem}
+
+\begin{thm}[Equivalence of \textbf{G} and \textbf{N}]
+
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.G_iff_N}
+  \end{HOLmath}
+\end{thm}
+\begin{proof}
+  \begin{alltt}
+    rw[] >>
+    EQ_TAC >- rw[G_N] >>
+    rw[] >>
+    `G (unibag \HOLtm{Gamma}) A` by metis_tac[N_G] >>
+    metis_tac[G_unibag]
+  \end{alltt}
+\end{proof}
 \end{frame}
 
 \section{Conclusion}
