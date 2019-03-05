@@ -607,7 +607,7 @@ QED
 Theorem G_iff_N:
 ∀Γ A. G Γ A <=> N (SET_OF_BAG Γ) A
 Proof
-  rw[G_N] >>
+  rw[] >>
   EQ_TAC >- rw[G_N] >>
   rw[] >>
   `G (unibag Γ) A` by metis_tac[N_G] >>
