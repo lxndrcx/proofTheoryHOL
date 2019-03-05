@@ -511,7 +511,7 @@ I will not go over the remainder of the cases, they are similar in structure to 
   \end{alltt}
 
   The left rules require the assumptions be replaced with an elimination rule which derives the assumption.
-  Here is the case for \textsf{L$\veebar$}, which differs from the book due to my weakening use as described earlier:
+  Here is the case for \textsf{L$\barwedge$}, which differs from the book due to my weakening use as described earlier:
   \[
     \AxiomC{}
     \RightLabel{(IH)}

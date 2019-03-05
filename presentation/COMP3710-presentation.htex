@@ -1,5 +1,4 @@
-
-\documentclass[english,svgnames,hide notes,12pt]{beamer}
+\documentclass[english,usenames,svgnames,hide notes,11pt]{beamer}
 % \usetheme{Madrid}
 \useoutertheme{infolines}
 \useinnertheme[shadow]{rounded}
@@ -13,27 +12,39 @@
 % \beamerdefaultoverlayspecification{<+->}
 \setbeamercovered{transparent}
 
+\usepackage{xcolor}
 \usepackage{bussproofs}
+\usepackage{proof}
 \usepackage{/Users/alexc/HOL/src/TeX/holtexbasic}
-\usepackage{amsthm}
 \usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{thmtools}
 \usepackage{alltt}
-\usepackage{MnSymbol}
-\usepackage{textgreek}
+\usepackage{upgreek}
 \usepackage[backend=biber, style=authoryear-comp]{biblatex}
 \addbibresource{presentation.bib}
 \addbibresource{report.bib}
 
-\newtheorem{thm}{Theorem}
-\theoremstyle{definition}
-\newtheorem{defn}{Definition}
-\theoremstyle{remark}
-\newtheorem{notn}{Notation}
+\declaretheorem[numberwithin=subsection,name=Theorem]{thm}
+\declaretheorem[sibling=thm,name=Lemma]{lem}
+\declaretheorem[sibling=thm,name=Corollary]{corl}
+\declaretheorem[sibling=thm,style=definition,name=Definition]{defn}
+\declaretheorem[sibling=thm,style=remark,name=Notation]{notn}
+\declaretheorem[sibling=thm,style=remark,name=Remark]{remk}
+
+
+\renewcommand{\HOLConst}[1]{\textsf{\upshape#1}}
+\renewcommand{\HOLinline}[1]{\ensuremath{#1}}
+\renewcommand{\HOLKeyword}[1]{\mathbf{#1}}
+
+\renewcommand{\HOLTokenLeftbrace}{\ensuremath{\{}}
+\renewcommand{\HOLTokenRightbrace}{\ensuremath{\}}}
 
 \title[Equivalence of calculi in HOL4]{Equivalence of propositional logic proof calculi, formalised in HOL4}
 \subtitle{COMP3710 Project, Bachelor of Science}
 
-\author[Alexander Cox]{\large Alexander Cox\\ \small Supervised by Michael Norrish}
+\author[Alexander Cox]{\large Alexander Cox \\
+                       \small Supervised by Michael Norrish}
 \institute[ANU]{The Australian National University}
 \date[Summer 2019]{Summer Session 2019}
 
@@ -43,7 +54,7 @@
 \end{frame}
 
 \section{Introduction}
-
+\subsection{Introduction}
 \begin{frame}
     \frametitle{Introduction}
     Over the summer, I have been formalising some proof theory in the HOL4 theorem prover.
@@ -55,8 +66,8 @@
     I have been working from \textcite{bpt}, with some small deviations which I shall explain along the way.
 \end{frame}
 
-\section{Theorem Proving in HOL}
-
+\section{Theorem Proving}
+\subsection{Introduction}
 \begin{frame}{Theorem Provers}
     \begin{itemize}
       \item{I assume you already have some knowledge of theorem provers, but I include this brief definition for completeness.}
@@ -65,6 +76,7 @@
     \end{itemize}
 \end{frame}
 
+\subsection{HOL4}
 \begin{frame}{The HOL Theorem Prover}
   I have been using the HOL theorem prover (HOL4), a theorem prover which implements a Higher Order Logic which is a variant of Church's Simple Theory of Types.
 
@@ -72,6 +84,7 @@
   HOL is engineered so that theorems can only be produced under the control of a small trusted kernel. This small trusted kernel consists of a handful of axioms and some basic inference rules. Larger, more complicated, inference rules are constructed using this small trusted kernel.
 \end{frame}
 
+\subsection{Motivation}
 \begin{frame}{Why Bother?}
     \begin{enumerate}
         \item Once a theorem is proved in a theorem prover, you can trust that it is a correct proof, provided that the theorem prover itself is sound.
@@ -82,8 +95,9 @@
 
 \section{Proof Theory and Logic}
 
+\subsection{Proof Theory}
 \begin{frame}{Proofs about proofs}
-    I have been talking about proofs in HOL, now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL.
+    I have been talking about proofs in HOL, now I'm going to talk about proof theory in HOL, i.e., proofs about proofs in HOL. This discussion is syntactical, and not semantic.
 
     \bigskip
     HOL is the meta-logic used to formalise the (object-)logic which is used in the proof systems I am analysing.
@@ -94,6 +108,8 @@
     \bigskip
     English is the language and meta-language of this talk.
 \end{frame}
+
+\subsection{Logic}
 
 \begin{frame}[fragile]
     \frametitle{Propositional Logic Syntax}
@@ -111,19 +127,24 @@
 \end{frame}
 
 \begin{frame}{Abbreviations}
-  The following abbreviations are made:
-  \[ \neg \varphi := \varphi \to \bot \]
-  \[ \varphi \leftrightarrow \psi := (\varphi \to \psi) \land (\psi \to \varphi) \]
-  \[ \top := \bot \to \bot \]
-  \bigskip
+  \begin{notn}
+    I use $A,B,C$ for arbitrary formulae.
+  \end{notn}
+  \begin{notn}
+    Lines beginning with $\vdash$ are `theorems' (the \texttt{thm} type), from HOL.
+  \end{notn}
+
   \begin{defn}
   \begin{HOLmath}
-    \HOLthm{FormulaSyntax.Not_def}\\
-    \HOLthm{FormulaSyntax.BiImp_def}\\
-    \HOLthm{FormulaSyntax.Top_def}
+    \HOLthm[tt]{FormulaSyntax.Not_def}\\
+    \HOLthm[tt]{FormulaSyntax.BiImp_def}\\
+    \HOLthm[tt]{FormulaSyntax.Top_def}
   \end{HOLmath}
   \end{defn}
 \end{frame}
+
+\section{The Calculi}
+\subsection{Inference Rules}
 
 \newcommand{\bs}{\char`\\}
 \begin{frame}[fragile]
@@ -140,7 +161,7 @@
     Presented with hypotheses above and conclusion below.
 
     \bigskip
-    In HOL:
+    In HOL I type:
     \begin{alltt}
         S \(\Gamma_0\) \(\varphi_0\) /\bs{} ... /\bs{} S \(\Gamma_n\) \(\varphi_n\) ==> S \(\Delta\) \(\psi\)
     \end{alltt}
@@ -148,168 +169,545 @@
     In HOL, I represent the infix binary relation ($\vdash_S$) as a prefix \texttt{S} relation, for no particular reason.
 \end{frame}
 
-\section{The Calculi}
+\subsection{Natural Deduction}
+\begin{frame}{Natural Deduction}
+  In Natural Deduction (\textbf{N}) the hypotheses are a represented as a set of formulae (\textbf{N} is in sequent style).  \textbf{N} has introduction and elimination rules, as well as one axiom.
+  \begin{defn}[Some \textbf{N} rules]
+    \begin{HOLmath}
+      \HOLthm[rule,rulename=ax,conj1]{pp.N_rules'}
+      \hspace{2cm}
+      \HOLthm[rule,rulename=$\bot$e,conj10]{pp.N_rules'}\\\\
+      \HOLthm[rule,rulename=$\to$i,conj5]{pp.N_rules'}
+      \hspace{1cm}
+      \HOLthm[rule,rulename=$\to$e,conj6]{pp.N_rules'}
+    \end{HOLmath}
+  \end{defn}
+  \begin{remk}
+    I will only present some of the rules in this talk, there are introduction and elimination rules for each formula connective.
+  \end{remk}
 
-\begin{frame}
-    \frametitle{Natural Deduction}
-    In Natural Deduction ($N$) the hypotheses are a represented as a set of formulae. In the book, the hypotheses are labelled. In my formalisation I keep them unlabelled (Complete Discharge Convention, permissible). $N$ has introduction and elimination rules, as well as one axiom. Here are some of them:
-
-    % TODO: my discharge is different from book but I prove it's ok.
-
-    \[
-        \AxiomC{}
-        \RightLabel{(Axiom)}
-        \UnaryInfC{$\{A\} \vdash_N A$}
-        \DisplayProof
-        \hspace{0.5cm}
-        \AxiomC{$\Gamma\cup\{A\} \vdash_N B$}
-        \RightLabel{$\to i$}
-        \UnaryInfC{$\Gamma\vdash_N A\to B$}
-        \DisplayProof
-    \]
-    \[
-        \AxiomC{$\Gamma\vdash_N A\to B$}
-        \AxiomC{$\Delta\vdash_N A$}
-        \RightLabel{$\to e$}
-        \BinaryInfC{$\Gamma\cup\Delta\vdash_N B$}
-        \DisplayProof
-    \]
 \end{frame}
 
+\begin{frame}{Weakening in Natural Deduction}
+  You can add additional assumptions if you like, this is called weakening.
 
-\begin{frame}
-    \frametitle{Sequent Calculus (aka. Gentzen System)}
-    In Sequent Calculus ($G$) the hypotheses are represented as a multiset (or \emph{bag}). $G$ has Left and Right rules, and one axiom.
+  \begin{lemma}[\textbf{N} weakening]
+    \begin{HOLmath}
+      \HOLthm{pp.N_lw'}
+    \end{HOLmath}
+  \end{lemma}
 
-    Here are some of them:
+  \begin{proof}[Proof by construction.]
     \[
-        \AxiomC{}
-        \RightLabel{(Axiom)}
-        \UnaryInfC{$\Gamma \cupplus \{A\}\vdash_G A$}
-        \DisplayProof
+      \infer[\barwedge\text{e}]
+      {\HOLtm{((B INSERT EMPTY) UNION D) N A}}
+      {\infer[\barwedge\text{i}]{\HOLtm{((B INSERT EMPTY) UNION D) N (A And B)}}
+      {\infer[\text{(IH)}]{\HOLtm{D N A}}{} &\infer[\text{ax}]{\HOLtm{(B INSERT EMPTY) N B}}{}}}
     \]
-    \[
-        \AxiomC{$\Gamma\vdash_G A$}
-        \AxiomC{$\Gamma\cupplus\{B\}\vdash_G C$}
-        \RightLabel{L$\to$}
-        \BinaryInfC{$\Gamma\cupplus\{A\to B\}\vdash_G C$}
-        \DisplayProof
-        \hspace{0.5cm}
-        \AxiomC{$\Gamma\cupplus\{A\}\vdash_G B$}
-        \RightLabel{R$\to$}
-        \UnaryInfC{$\Gamma\vdash_G A\to B$}
-        \DisplayProof
-    \]
+  \end{proof}
+
+\begin{corl}[\textbf{N} superset weakening]
+  \begin{HOLmath}
+    \HOLthm{IntuitionisticProof.N_lw_SUBSET}
+  \end{HOLmath}
+\end{corl}
+\end{frame}
+
+\begin{frame}{Discharge deviation from book}
+  \begin{remk}
+    In the book, the hypotheses are labelled. In my formalisation I keep them unlabelled (Complete Discharge Convention, permissible).
+  \end{remk}
+
+  \bigskip
+  \begin{defn}[\textbf{Nd} discharge rules]
+    The book has different rules for discharge, which I formalised as \textbf{Nd}:
+    \begin{HOLmath}
+      \HOLthm[rule,rulename=$\to$i,conj5]{pp.Nd_rules'}
+      \hspace{0.5cm}
+      \HOLthm[rule,rulename=$\veebar$e,conj9,width=70]{pp.Nd_rules'}
+    \end{HOLmath}
+  \end{defn}
+
+\end{frame}
+
+\begin{frame}{The deviation is equivalent}
+  \begin{thm}[\textbf{N} is equivalent to \textbf{Nd}]
+    Both formulations derive the same formulae from the same hypotheses:
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.N_Nd}
+    \end{HOLmath}
+  \end{thm}
+
+  \begin{onlyenv}<1>
+  \begin{proof}[Proof (only if).]
+  By rule induction on \textbf{N}.
+  Most cases coincide.
+  Here is the construction for \textsf{$\to$i}, which is similar for \textsf{$\veebar$e}.\small
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION D) Nd B}}
+    \RightLabel{\textsf{$\to$i}}
+    \UnaryInfC{\HOLtm{(((A INSERT EMPTY) UNION D) DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(set difference definition)}
+    \UnaryInfC{\HOLtm{(D DIFF (A INSERT EMPTY)) Nd (A Imp B)}}
+    \RightLabel{(\textbf{Nd} superset weakening)}
+    \UnaryInfC{\HOLtm{D Nd (A Imp B)}}
+    \DisplayProof
+  \]
+\end{proof}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+\begin{proof}[Proof (if).]
+  By rule induction on \textbf{Nd}.
+
+  Here is the construction for \textsf{$\veebar$e}, the \textsf{$\to$i} case is similar. \footnotesize
+  \[
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D N (A Or B)}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D1 N C}}
+    \RightLabel{wk}
+    \UnaryInfC{\HOLtm{((A INSERT EMPTY) UNION (D DIFF (A INSERT EMPTY))) N C}}
+    \AxiomC{$\vdots$}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm{D2 N C}}
+    \RightLabel{wk}
+    \UnaryInfC{\HOLtm{((B INSERT EMPTY) UNION (D DIFF (B INSERT EMPTY))) N C}}
+    \RightLabel{\textsf{$\veebar$e}}
+    \TrinaryInfC{\HOLtm{(D UNION (D1 DIFF (A INSERT EMPTY)) UNION (D2 DIFF (B INSERT EMPTY))) N C}}
+    \DisplayProof
+  \]
+\end{proof}
+\end{onlyenv}
+
+\end{frame}
+
+\subsection{Sequent Calculus}
+
+\begin{frame}{Bags}
+  \begin{defn}[Bags are multisets]
+    A bag, or multiset, is an unordered collection of elements, i.e., sets with multiplicity or sequences modulo ordering.
+
+    In HOL:
+    \begin{HOLmath}
+      \texttt{bag:}\HOLty{:'a bag}
+    \end{HOLmath}
+  \end{defn}
+
+  \begin{defn}[Bag Union]
+    The union of two bags, denoted \HOLtm{BAG_UNION b c} is the sum of the element counts.
+  \begin{HOLmath}
+    \HOLthm{bag.BAG_UNION}
+  \end{HOLmath}
+\end{defn}
+  \end{frame}
+
+\begin{frame}{Sequent Calculus (aka. Gentzen System)}
+
+    In Sequent Calculus (\textbf{G}) the hypotheses are represented as a bag of formulae. \textbf{G} has Left and Right rules, and one axiom.
+
+\begin{defn}[Some \textbf{G} rules]
+  \small
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\bot$,conj2]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cut,conj12]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\to$,conj10]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\to$,conj11]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cont,conj3]{pp.G_rules'}
+  \end{HOLmath}
+  \note{Note that there is no right contraction rules, since the conclusion is just a formula in intuitionistic logic, rather than a bag.}
+\end{defn}
+  \begin{remk}
+    I will only present some of the rules in this talk, there are left and right rules for each remaining formula connective.
+  \end{remk}
+\end{frame}
+
+\begin{frame}{Conversions between collections}
+  \begin{defn}[bag of set]
+  The function \[\textsf{bag_of: \HOLty[of]{BAG_OF_SET}}\] converts sets into bags.
+\end{defn}
+\begin{defn}[set of bag]
+  The function \[\textsf{set_of: \HOLty[of]{SET_OF_BAG}}\] converts bags into sets.
+\end{defn}
+\end{frame}
+
+\begin{frame}{Unibags}
+  \begin{defn}[unibag]
+  The function \[\textsf{unibag: \HOLty[of]{unibag}}\] converts bags into sets and then back again.
+\end{defn}
+\begin{defn}[Distinct bag]
+  A bag is distinct if no elements occur more than once. \begin{HOLmath} \HOLthm{bag.BAG_ALL_DISTINCT} \end{HOLmath}
+\end{defn}
+\begin{corl}[Unibags are distinct]
+  \begin{HOLmath}
+    \HOLthm{bag.unibag_ALL_DISTINCT}
+  \end{HOLmath}
+\end{corl}
+\end{frame}
+
+\begin{frame}{Contraction and Weakening in \textbf{G}}
+  I needed unibags in order to reason about maximal contraction of hypotheses in \textbf{G}. To make a bag of hypotheses a unibag is to make them equivalent to a set of hypotheses.
+  \begin{lem}[Complete contraction]
+    \begin{HOLmath}
+      \HOLthm{IntuitionisticProof.G_unibag}
+    \end{HOLmath}
+  \end{lem}
+
+  \begin{proof}
+    \textit{(if)} By \textbf{G} weakening.
+
+    \textit{(only if)} By induction on the cardinality of \HOLtm{Gamma}, then \textbf{G} contraction.
+  \end{proof}
+
+  \begin{lem}[\textbf{G} Weakening]
+    \begin{HOLmath} \HOLthm{IntuitionisticProof.G_lw} \end{HOLmath}
+  \end{lem}
 \end{frame}
 
 \section{The Proof}
+\subsection{Introduction}
 
 \begin{frame}
     \frametitle{The Proof of Equivalence}
     \begin{itemize}
-        \item For my project, I wanted to formalise the proof of the equivalence of $N$ and $G$, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since $N$ uses sets and $G$ uses multisets, this has been trickier than expected.
+        \item For my project, I wanted to formalise the proof of the equivalence of \textbf{N} and \textbf{G}, i.e.,\ exactly the same conclusions can be derived from the same hypotheses in both systems. Since \textbf{N} uses sets and \textbf{G} uses multisets, this has been trickier than expected.
         \item I was originally going to try to formalise the proofs for classical logic as well as intuitionistic logic, but I've only done the intuitionistic version.
-        \item I have had to prove many lemmata which are not provided in HOL.
+        \item I have had to prove many bag related lemmata which were not provided in HOL.
     \end{itemize}
 \end{frame}
 
+\subsection{Primary Theorem}
+
 \begin{frame}[fragile]
     \frametitle{The Proof of Equivalence}
-    Here is the statement in mathematical notation:
+    This is the primary theorem of my project, first in mathematical notation, then as exported from HOL.
+    \begin{thm}[Equivalence of \textbf{G} and \textbf{N}]
+      Given the same hypotheses, the same formulae are deducible in both calculi.
 
-    (read $\Gamma\vdash_S A$ as ``$\Gamma$ derives $A$ in $S$'')
-    \begin{thm}
-        \[\forall ~\Gamma ~A. ~\Gamma \vdash_N A ~\Leftrightarrow~ \Gamma \vdash_G A\]
+      \[\forall ~\Gamma ~A. ~\Gamma \vdash_{\textbf{G}} A ~\Leftrightarrow~ \Gamma \vdash_{\textbf{N}} A\]
+
+      \begin{HOLmath}
+        \HOLthm{IntuitionisticProof.G_iff_N}
+      \end{HOLmath}
     \end{thm}
-    In HOL:
 
-    \begin{alltt}
-        \(\forall\) \textGamma A. Gm \textGamma A <=> Nm (SET_OF_BAG \textGamma) A
-    \end{alltt}
+    \note{Notice that in the mathematical notation, we don't need to account for the fact that the two gammas are different, we just understand that they have equivalent contents. In HOL you need to be specific, since the relations are only defined for their datatypes.}
 \end{frame}
 
-\begin{frame}[fragile]
-    \frametitle{Proof of $N\Rightarrow G$}
-\small
-\begin{alltt}
-Theorem Nm_Gm
-    `\(\forall\) \textGamma A. Nm \textGamma A ==> Gm (BAG_OF_SET \textGamma) A`
-\end{alltt}
-The proof is by rule induction. Each case corresponds to a rule in $N$.
+\subsection{Natural Deduction to Sequent Calculus}
 
-Modus Ponens ($\to$e) case:
+\begin{frame}[fragile]
+  \frametitle{Proof of $\textbf{N}\Rightarrow \textbf{G}$}
+\begin{lem}[From \textbf{N} to \textbf{G}]
+  \center \HOLthm[tt]{IntuitionisticProof.N_G}
+\end{lem}
+
+The proof is by rule induction on \textbf{N}.
+  Introduction rules turn into right rules of \textbf{G}. Elimination rules turn into  left rules, plus \textsf{cut}.
+
+  Here is the $\to$e case:
 \[
-    \AxiomC{}
-    \RightLabel{IH}
-    \UnaryInfC{$\Gamma_0\vdash_N A\to B$}
-    \AxiomC{}
-    \RightLabel{IH}
-    \UnaryInfC{$\Gamma_1\vdash_N A$}
+    \AxiomC{$\vdots$}
+    \UnaryInfC{$\Gamma_0\vdash_{\textbf{N}} A\to B$}
+    \AxiomC{$\vdots$}
+    \UnaryInfC{$\Gamma_1\vdash_{\textbf{N}} A$}
     \RightLabel{$\to$e}
-    \BinaryInfC{$\Gamma_0\cup\Gamma_1 \vdash_N B$}
+    \BinaryInfC{$\Gamma_0\cup\Gamma_1 \vdash_{\textbf{N}} B$}
     \DisplayProof
 \]
 becomes
 \[
     \AxiomC{}
     \RightLabel{IH}
-    \UnaryInfC{$\Gamma_0 \vdash_G A \to B$}
+    \UnaryInfC{$\Gamma_0 \vdash_{\textbf{G}} A \to B$}
     \AxiomC{}
     \RightLabel{IH}
-    \UnaryInfC{$\Gamma_1 \vdash_G A$}
+    \UnaryInfC{$\Gamma_1 \vdash_{\textbf{G}} A$}
     \AxiomC{}
     \RightLabel{axiom}
-    \UnaryInfC{$\{B\} \vdash_G B$}
+    \UnaryInfC{$\{B\} \vdash_{\textbf{G}} B$}
     \RightLabel{L$\to$}
-    \BinaryInfC{$\{A\to B\}\cupplus\Gamma_1\vdash_G B$}
+    \BinaryInfC{$\{A\to B\}\uplus\Gamma_1\vdash_{\textbf{G}} B$}
     \RightLabel{cut}
-    \BinaryInfC{$\Gamma_0\cupplus\Gamma_1\vdash_G B$}
+    \BinaryInfC{$\Gamma_0\uplus\Gamma_1\vdash_{\textbf{G}} B$}
     \RightLabel{contraction}
-    \UnaryInfC{$\text{set}(\Gamma_0\cupplus\Gamma_1)\vdash_G B$}
+    \UnaryInfC{$\text{set}(\Gamma_0\uplus\Gamma_1)\vdash_{\textbf{G}} B$}
     \DisplayProof
 \]
 
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{Proof of $N\Rightarrow G$ in HOL}
-    \small
+  \frametitle{Proof tactics of \textsf{$\to$e} case in HOL}
 \begin{alltt}
-(simp[BAG_OF_SET_UNION] >>
-`FINITE_BAG (BAG_OF_SET \textGamma')`
-  by metis_tac[Nm_FINITE,FINITE_BAG_OF_SET] >>
-`Gm (BAG_INSERT A' (BAG_OF_SET \textGamma')) A'`
-  by simp[Gm_ax,BAG_IN_BAG_INSERT] >>
-`Gm (BAG_INSERT (A Imp A') (BAG_OF_SET \textGamma')) A'`
-  by metis_tac[Gm_limp] >>
-`Gm ((BAG_OF_SET \textGamma) \(\cupplus\) (BAG_OF_SET \textGamma')) A'`
-  by metis_tac[Gm_cut] >>
-`Gm (unibag (BAG_OF_SET \textGamma \(\cupplus\) BAG_OF_SET \textGamma')) A'`
-  by metis_tac[Gm_unibag] >>
-fs[unibag_UNION])
+\textcolor{SlateGrey}{rename[`N D (A Imp B)`] >>}
+\textcolor{Maroon}{simp[BAG_OF_SET_UNION] >>}
+\textcolor{DarkSlateBlue}{`FINITE_BAG (BAG_OF_SET D')`
+    by metis_tac[N_FINITE,FINITE_BAG_OF_SET] >>
+`G (BAG_INSERT B (BAG_OF_SET D')) B`
+by simp[G_ax,BAG_IN_BAG_INSERT] >>
+`G (BAG_INSERT (A Imp B) (BAG_OF_SET D')) B`
+by metis_tac[G_limp] >>
+`G ((BAG_OF_SET D) \(\uplus\) (BAG_OF_SET D')) B`
+by metis_tac[G_cut] >>
+`G (unibag (BAG_OF_SET D \(\uplus\) BAG_OF_SET D')) B`
+    by metis_tac[G_unibag] >>}
+\textcolor{Maroon}{fs[unibag_UNION]}
 \end{alltt}
 \end{frame}
 
-\begin{frame}[fragile]{Proof of $G\Rightarrow N$}
-    The proof in the other direction seems to require a subset of the hypotheses:
-    \begin{alltt}
-Theorem Gm_Nm
-`\(\forall\) \textGamma A. Gm \textGamma A ==> \(\exists\) \textGamma'. \textGamma' \(\subseteq\) SET_OF_BAG \textGamma /\bs{} Nm \textGamma' A`
-    \end{alltt}
+\subsection{Sequent Calculus to Natural Deduction}
+
+\begin{frame}[fragile]{Proof of $\textbf{G}\Rightarrow \textbf{N}$}
+  \begin{lem}[From \textbf{G} to \textbf{N}]
+    \center\HOLthm[tt]{IntuitionisticProof.G_N}
+  \end{lem}
+  The book proves this for some subset of \HOLtm{SET_OF_BAG Gamma}, but I use weakening instead.
+  The proof is by rule induction on \textbf{G}.
+
+  \bigskip
+  The right rules of \textbf{G} correspond to introduction rules in \textbf{N}.
+  The left rules require the assumptions be replaced with an elimination rule which derives the assumption.
+\end{frame}
+
+\begin{frame}{The \textsf{L$\barwedge$} Case In The Book}
+  Here is the \textsf{L$\barwedge$} case, as it is proved in the book. They do not include \HOLtm{A} in the context.
+  \[
+    \AxiomC{$\vdots$}
+    \UnaryInfC{\HOLtm[tt]{((BAG_INSERT A EMPTY_BAG) + Gamma) G C}}
+    \RightLabel{\textsf{L$\barwedge$}}
+    \UnaryInfC{\HOLtm[tt]{((BAG_INSERT (A And B) EMPTY_BAG) + Gamma) G C}}
+    \DisplayProof
+  \]
+  becomes
+  \[
+    \AxiomC{}
+    \RightLabel{\textsf{ax}}
+    \UnaryInfC{\HOLtm[tt]{((A And B) INSERT EMPTY) N (A And B)}}
+    \RightLabel{\textsf{$\barwedge$e}}
+    \UnaryInfC{\HOLtm[tt]{((A And B) INSERT EMPTY) N A}}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm[tt]{(((A And B) INSERT EMPTY) UNION SET_OF_BAG Gamma) N C}}
+    \DisplayProof
+  \]
+\end{frame}
+\begin{frame}{The \textsf{L$\barwedge$} Case}
+  Here my \textsf{L$\barwedge$} case:
+  \[
+    \AxiomC{$\vdots$}
+    \UnaryInfC{\HOLtm[tt]{((BAG_INSERT A EMPTY_BAG) + Gamma) G C}}
+    \RightLabel{\textsf{L$\barwedge$}}
+    \UnaryInfC{\HOLtm[tt]{((BAG_INSERT (A And B) EMPTY_BAG) + Gamma) G C}}
+    \DisplayProof
+  \]
+  becomes
+  \[
+    \AxiomC{}
+    \RightLabel{(IH)}
+    \UnaryInfC{\HOLtm[tt]{(SET_OF_BAG ((BAG_INSERT A EMPTY_BAG) + Gamma)) N C}}
+    \RightLabel{\textsf{$\to$i} (diff version)}
+    \UnaryInfC{\HOLtm[tt]{((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) N (A Imp C)}}
+    \AxiomC{}
+    \RightLabel{\textsf{ax}}
+    \UnaryInfC{\HOLtm[tt]{((A And B) INSERT EMPTY) N (A And B)}}
+    \RightLabel{\textsf{$\barwedge$e}}
+    \UnaryInfC{\HOLtm[tt]{((A And B) INSERT EMPTY) N A}}
+    \RightLabel{\textsf{$\to$e}}
+    \BinaryInfC{\HOLtm[tt]{(((SET_OF_BAG Gamma) DIFF (A INSERT EMPTY)) UNION ((A And B) INSERT EMPTY)) N C}}
+    \RightLabel{(weakening, commute)}
+    \UnaryInfC{\HOLtm[tt]{(((A And B) INSERT EMPTY) UNION SET_OF_BAG Gamma) N C}}
+    \DisplayProof
+  \]
+\end{frame}
+
+\begin{frame}[fragile]{HOL tactics for the \textsf{L$\barwedge$} Case}
+\begin{alltt}
+\color{SlateGrey}rename [`N _ C`] >>
+\color{Maroon}fs[SET_OF_BAG_INSERT] >>
+\color{DarkSlateBlue}`N {A And B} (A And B)` by metis_tac[N_ax] >>
+`N {A And B} A` by metis_tac[N_andel] >>
+`N ((A INSERT (SET_OF_BAG \HOLtm{Gamma})) DELETE A) (A Imp C)`
+    by metis_tac[N_impi_DELETE] >>
+\color{Maroon}fs[DELETE_DEF] >>
+\color{DarkSlateBlue}`N (((SET_OF_BAG \HOLtm{Gamma}) DIFF {A}) UNION {A And B}) C`
+    by metis_tac[N_impe] >>
+`N ((A And B) INSERT ((SET_OF_BAG \HOLtm{Gamma}) DIFF {A})) C`
+    by metis_tac[UNION_COMM,INSERT_SING_UNION] >>
+\color{Maroon}irule N_lw_SUBSET >>
+conj_tac >- metis_tac[N_FINITE,FINITE_INSERT] >>
+qexists_tac `(A And B) INSERT SET_OF_BAG \HOLtm{Gamma} DIFF {A}` >>
+rw[SUBSET_DEF]
+\end{alltt}
 \end{frame}
 
 \section{Conclusion}
+
+\subsection{Future Work}
+
+\begin{frame}{The Classical Case}
+  I started but did not finish the classical case. I proved most cases quickly, but ran into a problem with the $\bot$ rules. I think I need more lemmata to do with negation to prove these cases.
+
+  \begin{defn}[Classical $\bot$ rules]
+    \begin{HOLmath}
+      \HOLthm[rule,rulename=$\bot_c$e,conj10]{pp.Nc_rules}
+      \hspace{0.5cm}
+      \HOLthm[rule,rulename=L$\bot_c$,conj2]{pp.Gc_rules}
+    \end{HOLmath}
+  \end{defn}
+\end{frame}
+
+\begin{frame}{Relations From Sets Of Rules}
+  \begin{itemize}
+    \note{One thing I wish I had early on is the ability to define relations which build on each other.}
+    \item If you have a relation with rules \texttt{r1,...,rn} and you want to have another which is \texttt{r1,...,rn,r(n+1)}, it seems annoying to rewrite all the rules
+    \item The function \texttt{Hol\_reln}, takes a big conjunction as input.
+    \item After completing the project I wrote a function taking a list of rules called \texttt{Hol\_list\_reln}.
+    \item It is yet to be seen if it is actually useful.
+  \end{itemize}
+\end{frame}
+
+\subsection{Conclusion}
 
 \begin{frame}
     \frametitle{Conclusion}
     \begin{itemize}
         \item A lot of my time has been spent proving lemmata, mostly multiset/bag related.
-        \item While it has been lot of work, I have learnt a lot about interactive theorem proving.
-        \item I finished the proof for minimal and intuitionistic logic.
-        \item My project may become an example within the distribution of HOL.
+        \item While it has been lot of work, I have learnt a lot about interactive theorem proving (success!).
+        \item I finished the proof for intuitionistic logic.
+        \item My project has become an example within the distribution of HOL.
         \item Some of my bag lemmata have been merged into HOL, see \url{https://github.com/HOL-Theorem-Prover/HOL/pull/654}
         \item The code, report and this seminar can be found at \url{https://github.com/lxndrcx/proofTheoryHOL}
     \end{itemize}
+\end{frame}
+
+\appendix
+\section{\appendixname}
+
+\subsection{Full Calculi Rules}
+\begin{frame}
+\begin{defn}[The \textbf{N} calculus]
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\bot$e,conj10]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\barwedge$i,conj2]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$el,conj3]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\barwedge$er,conj4]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\to$i,conj5]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\to$e,conj6]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\veebar$il,conj7]{pp.N_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=$\veebar$ir,conj8]{pp.N_rules'}\\\\
+    \HOLthm[rule,rulename=$\veebar$e,conj9]{pp.N_rules'}
+  \end{HOLmath}
+\end{defn}
+\end{frame}
+
+\begin{frame}
+\begin{defn}[The \textbf{G} Calculus]
+  \begin{HOLmath}
+    \HOLthm[rule,rulename=ax,conj1]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\bot$,conj2]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=cont,conj3]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\barwedge$L,conj4]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=L$\barwedge$R,conj5]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\barwedge$,conj6]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\veebar$,conj7]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$L,conj8]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\veebar$R,conj9]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=L$\to$,conj10]{pp.G_rules'}
+    \hspace{0.5cm}
+    \HOLthm[rule,rulename=R$\to$,conj11]{pp.G_rules'}\\\\
+    \HOLthm[rule,rulename=cut,conj12]{pp.G_rules'}
+  \end{HOLmath}
+\end{defn}
+\end{frame}
+
+\subsection{Bag Lemmata}
+\begin{frame}
+This is a list of the theorems I have formalised in HOL.
+I have given the theorem names as they appear in HOL.
+
+\texttt{BAG\_MERGE\_SUB\_BAG\_UNION}             \HOLthm[tt]{bag.BAG_MERGE_SUB_BAG_UNION}                       \\
+\texttt{BAG\_MERGE\_EMPTY}                       \HOLthm[tt]{bag.BAG_MERGE_EMPTY}                               \\
+\texttt{BAG\_MERGE\_ELBAG\_SUB\_BAG\_INSERT}     \HOLthm[tt]{pp.BAG_MERGE_ELBAG_SUB_BAG_INSERT'}                \\
+\texttt{BAG\_MERGE\_EQ\_EMPTY}                   \HOLthm[tt]{bag.BAG_MERGE_EQ_EMPTY}                            \\
+\texttt{BAG\_INSERT\_EQ\_MERGE\_DIFF}
+  \begin{HOLmath} \HOLthm{pp.BAG_INSERT_EQ_MERGE_DIFF'} \end{HOLmath}
+\\
+\texttt{BAG\_MERGE\_BAG\_INSERT}
+  \begin{HOLmath} \HOLthm{pp.BAG_MERGE_BAG_INSERT'} \end{HOLmath}
+\\
+\texttt{BAG\_OF\_SET\_UNION}                     \HOLthm[tt]{bag.BAG_OF_SET_UNION}                              \\
+\texttt{BAG\_OF\_SET\_INSERT}                    \HOLthm[tt]{pp.BAG_OF_SET_INSERT'}
+\end{frame}
+\begin{frame}
+\texttt{BAG\_OF\_SET\_BAG\_DIFF\_DIFF}           \HOLthm[tt]{bag.BAG_OF_SET_BAG_DIFF_DIFF}                      \\
+\texttt{SET\_OF\_EL\_BAG}                        \HOLthm[tt]{pp.SET_OF_EL_BAG'}                                 \\
+\texttt{BAG\_OF\_SET\_EQ\_INSERT}                \HOLthm[tt]{pp.BAG_OF_SET_EQ_INSERT'}                          \\
+\texttt{FINITE\_BAG\_MERGE}                      \HOLthm[tt]{bag.FINITE_BAG_MERGE}                              \\
+\texttt{BAG\_MERGE\_CARD}
+  \begin{HOLmath} \HOLthm{bag.BAG_MERGE_CARD} \end{HOLmath}
+\\
+\texttt{BAG\_ALL\_DISTINCT\_SUB\_BAG}            \HOLthm[tt]{bag.BAG_ALL_DISTINCT_SUB_BAG}                      \\
+\texttt{BAG\_OF\_SET\_DIFF}   \HOLthm[tt,s/b,s'/b']{bag.BAG_OF_SET_DIFF}   \\
+\texttt{FINITE\_BAG\_OF\_SET} \HOLthm[tt]{bag.FINITE_BAG_OF_SET} \\
+
+\end{frame}
+
+\subsection{Unibag Lemmata}
+
+\begin{frame}
+\texttt{unibag\_INSERT}                           \HOLthm[tt]{pp.unibag_INSERT'}         \\
+\texttt{unibag\_UNION}                            \HOLthm[tt]{bag.unibag_UNION}          \\
+\texttt{BAG\_IN\_unibag}                          \HOLthm[tt]{bag.BAG_IN_unibag}         \\
+\texttt{unibag\_EQ\_BAG\_INSERT}                  \HOLthm[tt]{pp.unibag_EQ_BAG_INSERT'}  \\
+\texttt{unibag\_FINITE}\label{unibagFINITE}       \HOLthm[tt]{bag.unibag_FINITE}         \\
+\texttt{unibag\_ALL\_DISTINCT}                    \HOLthm[tt]{bag.unibag_ALL_DISTINCT}   \\
+\texttt{unibag\_EL\_MERGE\_cases}
+  \begin{HOLmath} \HOLthm{pp.unibag_EL_MERGE_cases'} \end{HOLmath}
+\\
+\texttt{unibag\_DECOMPOSE}                        \HOLthm[tt]{bag.unibag_DECOMPOSE}      \\
+\texttt{unibag\_SUB\_BAG}\label{unibagSUBBAG}     \HOLthm[tt]{bag.unibag_SUB_BAG}        \\
+\end{frame}
+
+\subsection{Main Lemmata and Theorems}
+
+\begin{frame}
+\texttt{N\_FINITE}          \HOLthm[tt]{IntuitionisticProof.N_FINITE}       \\
+\texttt{N\_lw}              \HOLthm[tt]{pp.N_lw'}                           \\
+\texttt{Nd\_lw}             \HOLthm[tt]{pp.Nd_lw'}                          \\
+\texttt{N\_lw\_SUBSET}      \HOLthm[tt]{IntuitionisticProof.N_lw_SUBSET}    \\
+\texttt{Nd\_lw\_SUBSET}     \HOLthm[tt]{IntuitionisticProof.Nd_lw_SUBSET}   \\
+\texttt{N\_impi\_DELETE}    \HOLthm[tt]{pp.N_impi_DELETE'}                  \\
+\texttt{N\_Nd}              \HOLthm[tt]{IntuitionisticProof.N_Nd}           \\
+\texttt{G\_FINITE}          \HOLthm[tt]{IntuitionisticProof.G_FINITE}       \\
+\texttt{G\_lw}\label{Glw}   \HOLthm[tt]{IntuitionisticProof.G_lw}           \\
+\texttt{G\_lw\_BAG\_INSERT} \HOLthm[tt]{pp.G_lw_BAG_INSERT'}                \\
+\texttt{G\_lw\_BAG\_MERGE}  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_MERGE} \\
+\texttt{G\_lw\_BAG\_UNION}  \HOLthm[tt]{IntuitionisticProof.G_lw_BAG_UNION} \\
+\texttt{G\_unibag}          \HOLthm[tt]{IntuitionisticProof.G_unibag}       \\
+\texttt{N\_G}               \HOLthm[tt]{IntuitionisticProof.N_G}            \\
+\texttt{G\_N}               \HOLthm[tt]{IntuitionisticProof.G_N}            \\
+\texttt{G\_iff\_N}          \HOLthm[tt]{IntuitionisticProof.G_iff_N}        \\
 \end{frame}
 
 \end{document}
