@@ -1,0 +1,20 @@
+INCLUDES = $(HOME)/project/HOL
+
+THYDEPS = FormulaSyntax IntuitionisticProof ClassicalProof
+
+DEPS = $(patsubst %,$(HOME)/project/HOL/%Theory.uo,$(THYDEPS))
+all: COMP3710-presentation.pdf
+.PHONY: all
+
+munge.exe: ppTheory.uo ppScript.sml
+	$(HOLDIR)/bin/mkmunge.exe ppTheory
+
+COMP3710-presentation.tex: COMP3710-presentation.htex overrides munge.exe
+	./munge.exe --nomergeanalysis -m\, overrides < $< > $@
+
+COMP3710-presentation.pdf: COMP3710-presentation.tex presentation.bib
+	latexmk -bibtex -lualatex -interaction=nonstopmode -g COMP3710-presentation
+	sed 's/\%notes\%//' COMP3710-presentation.tex > COMP3710-presentation-notes.tex
+	latexmk -bibtex -lualatex -interaction=nonstopmode -g COMP3710-presentation-notes
+
+EXTRA_CLEANS = COMP3710-presentaion.tex COMP3710-presentaion.aux COMP3710-presentaion.pdf
