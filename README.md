@@ -5,7 +5,7 @@ See releases tab for pdfs of report and presentation.
 Done:
 - Proof in full intuitionistic logic
 - report
-
-TODO: 
-- classical logic
 - seminar
+
+Incomplete: 
+- classical logic
